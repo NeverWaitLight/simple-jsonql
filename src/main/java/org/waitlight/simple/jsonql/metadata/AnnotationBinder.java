@@ -1,4 +1,4 @@
-package org.waitlight.simple.jsonql;
+package org.waitlight.simple.jsonql.metadata;
 
 
 import jakarta.persistence.*;
@@ -10,14 +10,14 @@ public class AnnotationBinder {
     public void bindEntity(Class<?> entityClass, PersistentClass metadata) {
         if (!entityClass.isAnnotationPresent(Entity.class)) return;
 
-        metadata.setEntityName(entityClass.getSimpleName());
+        metadata.setEntityName(entityClass.getSimpleName().toLowerCase());
 
         // 2. 处理@Table注解(如果有)
         if (entityClass.isAnnotationPresent(Table.class)) {
             Table table = entityClass.getAnnotation(Table.class);
-            metadata.setTableName(table.name());
+            metadata.setTableName(table.name().toLowerCase());
         } else {
-            metadata.setTableName(entityClass.getSimpleName());
+            metadata.setTableName(entityClass.getSimpleName().toLowerCase());
         }
 
         // 3. 处理属性字段

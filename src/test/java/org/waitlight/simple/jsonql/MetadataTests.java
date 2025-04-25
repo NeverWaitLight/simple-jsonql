@@ -3,6 +3,9 @@ package org.waitlight.simple.jsonql;
 import org.junit.Test;
 import org.waitlight.simple.jsonql.entity.Blog;
 import org.waitlight.simple.jsonql.entity.User;
+import org.waitlight.simple.jsonql.metadata.Metadata;
+import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.metadata.PersistentClass;
 
 public class MetadataTests {
 

@@ -1,4 +1,4 @@
-package org.waitlight.simple.jsonql;
+package org.waitlight.simple.jsonql.metadata;
 
 import java.util.ArrayList;
 import java.util.List;
