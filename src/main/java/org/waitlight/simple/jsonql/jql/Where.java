@@ -1,6 +1,11 @@
 package org.waitlight.simple.jsonql.jql;
 
+import org.waitlight.simple.jsonql.jql.condition.Condition;
+
 public record Where(
-        String condition // WHERE条件表达式
+        Condition condition
 ) {
+    public String toSql() {
+        return condition != null ? condition.toSql() : "";
+    }
 }

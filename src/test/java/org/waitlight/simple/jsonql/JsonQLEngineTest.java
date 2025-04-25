@@ -35,6 +35,31 @@ public class JsonQLEngineTest {
     }
 
     @Test
+    public void deleteTest() throws Exception {
+        String jsonQuery = """
+                {
+                    "statement": "delete",
+                    "into": "user",
+                    "where": {
+                        "name": {
+                            "like": "张三"
+                        }
+                    }
+                }
+                """;
+        jsonQuery = jsonQuery.formatted(new Random().nextInt());
+
+        MetadataSources metadataSources = new MetadataSources();
+        metadataSources.addAnnotatedClass(User.class);
+        metadataSources.addAnnotatedClass(Blog.class);
+
+        JsonQLEngine engine = new JsonQLEngine(metadataSources);
+        Object result = engine.execute(jsonQuery);
+        ObjectMapper objectMapper = new ObjectMapper();
+        System.out.println(objectMapper.writeValueAsString(result));
+    }
+
+    @Test
     public void selectSingleTable() throws Exception {
         String jsonQuery = """
                 {

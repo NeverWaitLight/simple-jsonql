@@ -47,8 +47,20 @@ public class JsonQLEngine {
                     return stmt.executeUpdate();
                 }
             }
-            case UPDATE -> sql = new SelectEngine(metadataSources).parseSql(jql);
-            case DELETE -> sql = new SelectEngine(metadataSources).parseSql(jql);
+            case UPDATE -> {
+                sql = new UpdateEngine(metadataSources).parseSql(jql);
+                log.info(sql);
+                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                    return stmt.executeUpdate();
+                }
+            }
+            case DELETE -> {
+                sql = new DeleteEngine(metadataSources).parseSql(jql);
+                log.info(sql);
+                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                    return stmt.executeUpdate();
+                }
+            }
         }
         return null;
     }
