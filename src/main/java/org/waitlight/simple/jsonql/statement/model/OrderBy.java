@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class OrderBy {
+public class OrderBy implements Clause {
     private String field;
-    private String direction;
-} 
+    private Direction direction;
+}

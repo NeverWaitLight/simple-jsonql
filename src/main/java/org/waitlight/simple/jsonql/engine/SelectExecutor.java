@@ -20,11 +20,13 @@ public class SelectExecutor extends StatementExecutor {
     private static SelectExecutor instance;
     private final WhereClauseExecutor whereClauseExecutor;
     private final JoinClauseExecutor joinClauseExecutor;
+    private final OrderByClauseExecutor orderByClauseExecutor;
 
     private SelectExecutor(MetadataSources metadataSources) {
         super(metadataSources);
         this.whereClauseExecutor = new WhereClauseExecutor(metadataSources);
         this.joinClauseExecutor = new JoinClauseExecutor(metadataSources);
+        this.orderByClauseExecutor = new OrderByClauseExecutor(metadataSources);
     }
 
     public static synchronized SelectExecutor getInstance(MetadataSources metadataSources) {
@@ -92,14 +94,14 @@ public class SelectExecutor extends StatementExecutor {
         WhereCondition where = selectStatement.getWhere();
         if (where != null) {
             sql.append(" WHERE ")
-                    .append(whereClauseExecutor.buildWhereClause(where));
+                    .append(whereClauseExecutor.buildClause(where));
         }
 
         // 处理 JOIN
         if (selectStatement.getJoins() != null && !selectStatement.getJoins().isEmpty()) {
             for (Join joinItem : selectStatement.getJoins()) {
                 sql.append(" ")
-                        .append(joinClauseExecutor.buildJoinClause(joinItem));
+                        .append(joinClauseExecutor.buildClause(joinItem));
             }
         } else {
             sql.append(join);
@@ -107,10 +109,7 @@ public class SelectExecutor extends StatementExecutor {
 
         // 处理 ORDER BY
         if (selectStatement.getOrderBy() != null) {
-            sql.append(" ORDER BY ")
-                    .append(selectStatement.getOrderBy().getField())
-                    .append(" ")
-                    .append(selectStatement.getOrderBy().getDirection());
+            sql.append(orderByClauseExecutor.buildClause(selectStatement.getOrderBy()));
         }
 
         // 处理 LIMIT 和 OFFSET

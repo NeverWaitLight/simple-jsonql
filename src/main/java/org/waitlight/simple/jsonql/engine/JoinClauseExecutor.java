@@ -1,13 +1,10 @@
 package org.waitlight.simple.jsonql.engine;
 
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.statement.model.Clause;
 import org.waitlight.simple.jsonql.statement.model.Join;
-import org.waitlight.simple.jsonql.statement.model.JsonqlStatement;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-
-public class JoinClauseExecutor extends StatementExecutor {
+public class JoinClauseExecutor extends ClauseExecutor {
     private final WhereClauseExecutor whereClauseExecutor;
 
     public JoinClauseExecutor(MetadataSources metadataSources) {
@@ -15,7 +12,12 @@ public class JoinClauseExecutor extends StatementExecutor {
         this.whereClauseExecutor = new WhereClauseExecutor(metadataSources);
     }
 
-    public String buildJoinClause(Join join) {
+    @Override
+    public String buildClause(Clause condition) {
+        if (!(condition instanceof Join)) {
+            throw new IllegalArgumentException("Expected Join but got " + condition.getClass().getSimpleName());
+        }
+        Join join = (Join) condition;
         if (join == null) return "";
 
         StringBuilder stringBuilder = new StringBuilder();
@@ -23,17 +25,8 @@ public class JoinClauseExecutor extends StatementExecutor {
                 .append(" JOIN ")
                 .append(join.getTable())
                 .append(" ON ")
-                .append(whereClauseExecutor.buildWhereClause(join.getOn()));
+                .append(whereClauseExecutor.buildClause(join.getOn()));
         return stringBuilder.toString();
     }
 
-    @Override
-    protected Object doExecute(Connection conn, SqlAndParameters sqlAndParameters) throws SQLException {
-        throw new UnsupportedOperationException("JoinClauseExecutor is only for building join clauses");
-    }
-
-    @Override
-    protected SqlAndParameters parseSql(JsonqlStatement statement) {
-        throw new UnsupportedOperationException("JoinClauseExecutor is only for building join clauses");
-    }
 }

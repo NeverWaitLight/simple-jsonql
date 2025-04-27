@@ -218,7 +218,7 @@ public class JsonQLParserTest {
         // 验证排序
         OrderBy orderBy = statement.getOrderBy();
         assertEquals("u.age", orderBy.getField());
-        assertEquals("desc", orderBy.getDirection());
+        assertEquals(Direction.DESC, orderBy.getDirection());
 
         // 验证 WHERE 条件
         LogicalCondition where = (LogicalCondition) statement.getWhere();

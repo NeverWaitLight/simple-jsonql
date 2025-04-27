@@ -55,7 +55,7 @@ public class UpdateExecutor extends StatementExecutor {
         WhereCondition where = updateStatement.getWhere();
         if (where != null) {
             sql.append(" WHERE ")
-                    .append(whereClauseExecutor.buildWhereClause(where));
+                    .append(whereClauseExecutor.buildClause(where));
         }
 
         return new SqlAndParameters(sql.toString(), null);

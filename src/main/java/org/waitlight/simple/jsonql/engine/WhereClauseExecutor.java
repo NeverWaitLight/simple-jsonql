@@ -3,25 +3,28 @@ package org.waitlight.simple.jsonql.engine;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.statement.model.*;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
 
-public class WhereClauseExecutor extends StatementExecutor {
+public class WhereClauseExecutor extends ClauseExecutor {
 
     public WhereClauseExecutor(MetadataSources metadataSources) {
         super(metadataSources);
     }
 
-    public String buildWhereClause(WhereCondition condition) {
-        if (condition == null) return "";
+    @Override
+    public String buildClause(Clause condition) {
+        if (!(condition instanceof WhereCondition)) {
+            throw new IllegalArgumentException("Expected WhereCondition but got " + condition.getClass().getSimpleName());
+        }
+        WhereCondition whereCondition = (WhereCondition) condition;
+        if (whereCondition == null) return "";
 
-        return switch (condition.getType()) {
-            case COMPARISON -> buildComparison((ComparisonCondition) condition);
-            case LOGICAL -> buildLogical((LogicalCondition) condition);
-            case BETWEEN -> buildBetween((BetweenCondition) condition);
-            case SUBQUERY -> buildSubquery((SubqueryCondition) condition);
-            default -> throw new IllegalArgumentException("Unsupported condition type: " + condition.getType());
+        return switch (whereCondition.getType()) {
+            case COMPARISON -> buildComparison((ComparisonCondition) whereCondition);
+            case LOGICAL -> buildLogical((LogicalCondition) whereCondition);
+            case BETWEEN -> buildBetween((BetweenCondition) whereCondition);
+            case SUBQUERY -> buildSubquery((SubqueryCondition) whereCondition);
+            default -> throw new IllegalArgumentException("Unsupported condition type: " + whereCondition.getType());
         };
     }
 
@@ -56,7 +59,7 @@ public class WhereClauseExecutor extends StatementExecutor {
             if (i > 0) {
                 sb.append(" ").append(condition.getOperator().getSymbol()).append(" ");
             }
-            sb.append(buildWhereClause(conditions.get(i)));
+            sb.append(buildClause(conditions.get(i)));
         }
         sb.append(")");
         return sb.toString();
@@ -82,13 +85,4 @@ public class WhereClauseExecutor extends StatementExecutor {
         return String.valueOf(value);
     }
 
-    @Override
-    protected Object doExecute(Connection conn, SqlAndParameters sqlAndParameters) throws SQLException {
-        throw new UnsupportedOperationException("WhereExecutor is only for building where clauses");
-    }
-
-    @Override
-    protected SqlAndParameters parseSql(JsonqlStatement statement) {
-        throw new UnsupportedOperationException("WhereExecutor is only for building where clauses");
-    }
 }

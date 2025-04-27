@@ -48,7 +48,7 @@ public class DeleteExecutor extends StatementExecutor {
         WhereCondition where = deleteStatement.getWhere();
         if (where != null) {
             sql.append(" WHERE ")
-                    .append(whereClauseExecutor.buildWhereClause(where));
+                    .append(whereClauseExecutor.buildClause(where));
         }
         return new SqlAndParameters(sql.toString(), null);
     }

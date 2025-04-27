@@ -173,7 +173,7 @@ public class JsonQLParser {
     private OrderBy parseOrderBy(Map<String, Object> orderByMap) {
         OrderBy orderBy = new OrderBy();
         orderBy.setField((String) orderByMap.get("field"));
-        orderBy.setDirection((String) orderByMap.get("direction"));
+        orderBy.setDirection(Direction.fromValue((String) orderByMap.get("direction")));
         return orderBy;
     }
 
