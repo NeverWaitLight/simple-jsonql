@@ -6,7 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Join {
-    private String type;
+    private JoinType type;
     private String table;
     private WhereCondition on;
-} 
+}

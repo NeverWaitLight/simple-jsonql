@@ -18,11 +18,13 @@ import java.util.Map;
 @Slf4j
 public class SelectExecutor extends StatementExecutor {
     private static SelectExecutor instance;
-    private final WhereExecutor whereExecutor;
+    private final WhereClauseExecutor whereClauseExecutor;
+    private final JoinClauseExecutor joinClauseExecutor;
 
     private SelectExecutor(MetadataSources metadataSources) {
         super(metadataSources);
-        this.whereExecutor = new WhereExecutor(metadataSources);
+        this.whereClauseExecutor = new WhereClauseExecutor(metadataSources);
+        this.joinClauseExecutor = new JoinClauseExecutor(metadataSources);
     }
 
     public static synchronized SelectExecutor getInstance(MetadataSources metadataSources) {
@@ -90,18 +92,14 @@ public class SelectExecutor extends StatementExecutor {
         WhereCondition where = selectStatement.getWhere();
         if (where != null) {
             sql.append(" WHERE ")
-                    .append(whereExecutor.buildWhereClause(where));
+                    .append(whereClauseExecutor.buildWhereClause(where));
         }
 
         // 处理 JOIN
         if (selectStatement.getJoins() != null && !selectStatement.getJoins().isEmpty()) {
             for (Join joinItem : selectStatement.getJoins()) {
                 sql.append(" ")
-                        .append(joinItem.getType().toUpperCase())
-                        .append(" JOIN ")
-                        .append(joinItem.getTable())
-                        .append(" ON ")
-                        .append(joinItem.getOn().toString());
+                        .append(joinClauseExecutor.buildJoinClause(joinItem));
             }
         } else {
             sql.append(join);

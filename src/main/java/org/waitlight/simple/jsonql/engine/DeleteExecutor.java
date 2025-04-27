@@ -13,11 +13,11 @@ import java.sql.SQLException;
 @Slf4j
 public class DeleteExecutor extends StatementExecutor {
     private static DeleteExecutor instance;
-    private final WhereExecutor whereExecutor;
+    private final WhereClauseExecutor whereClauseExecutor;
 
     private DeleteExecutor(MetadataSources metadataSources) {
         super(metadataSources);
-        this.whereExecutor = new WhereExecutor(metadataSources);
+        this.whereClauseExecutor = new WhereClauseExecutor(metadataSources);
     }
 
     public static synchronized DeleteExecutor getInstance(MetadataSources metadataSources) {
@@ -48,7 +48,7 @@ public class DeleteExecutor extends StatementExecutor {
         WhereCondition where = deleteStatement.getWhere();
         if (where != null) {
             sql.append(" WHERE ")
-                    .append(whereExecutor.buildWhereClause(where));
+                    .append(whereClauseExecutor.buildWhereClause(where));
         }
         return new SqlAndParameters(sql.toString(), null);
     }

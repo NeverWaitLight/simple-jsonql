@@ -13,11 +13,11 @@ import java.sql.SQLException;
 @Slf4j
 public class UpdateExecutor extends StatementExecutor {
     private static UpdateExecutor instance;
-    private final WhereExecutor whereExecutor;
+    private final WhereClauseExecutor whereClauseExecutor;
 
     private UpdateExecutor(MetadataSources metadataSources) {
         super(metadataSources);
-        this.whereExecutor = new WhereExecutor(metadataSources);
+        this.whereClauseExecutor = new WhereClauseExecutor(metadataSources);
     }
 
     public static synchronized UpdateExecutor getInstance(MetadataSources metadataSources) {
@@ -55,7 +55,7 @@ public class UpdateExecutor extends StatementExecutor {
         WhereCondition where = updateStatement.getWhere();
         if (where != null) {
             sql.append(" WHERE ")
-                    .append(whereExecutor.buildWhereClause(where));
+                    .append(whereClauseExecutor.buildWhereClause(where));
         }
 
         return new SqlAndParameters(sql.toString(), null);

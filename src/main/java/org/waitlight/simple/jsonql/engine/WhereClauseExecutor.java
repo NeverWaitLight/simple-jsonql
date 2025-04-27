@@ -7,9 +7,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-public class WhereExecutor extends StatementExecutor {
+public class WhereClauseExecutor extends StatementExecutor {
 
-    public WhereExecutor(MetadataSources metadataSources) {
+    public WhereClauseExecutor(MetadataSources metadataSources) {
         super(metadataSources);
     }
 

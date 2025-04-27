@@ -179,7 +179,7 @@ public class JsonQLParser {
 
     private Join parseJoin(Map<String, Object> joinMap) throws JsonqlParseException {
         Join join = new Join();
-        join.setType((String) joinMap.get("type"));
+        join.setType(JoinType.fromValue((String) joinMap.get("type")));
         join.setTable((String) joinMap.get("table"));
         join.setOn(parseWhere((Map<String, Object>) joinMap.get("on")));
         return join;

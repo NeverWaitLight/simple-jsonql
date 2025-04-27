@@ -206,7 +206,7 @@ public class JsonQLParserTest {
         List<Join> joins = statement.getJoins();
         assertEquals(1, joins.size());
         Join join = joins.get(0);
-        assertEquals("left", join.getType());
+        assertEquals(JoinType.LEFT, join.getType());
         assertEquals("department d", join.getTable());
 
         ComparisonCondition joinCondition = (ComparisonCondition) join.getOn();
@@ -302,7 +302,7 @@ public class JsonQLParserTest {
 
         // 验证 LEFT JOIN
         Join leftJoin = joins.get(0);
-        assertEquals("left", leftJoin.getType());
+        assertEquals(JoinType.LEFT, leftJoin.getType());
         assertEquals("department d", leftJoin.getTable());
         ComparisonCondition leftJoinCondition = (ComparisonCondition) leftJoin.getOn();
         assertEquals("u.department_id", leftJoinCondition.getField());
@@ -311,7 +311,7 @@ public class JsonQLParserTest {
 
         // 验证 INNER JOIN
         Join innerJoin = joins.get(1);
-        assertEquals("inner", innerJoin.getType());
+        assertEquals(JoinType.INNER, innerJoin.getType());
         assertEquals("role r", innerJoin.getTable());
         ComparisonCondition innerJoinCondition = (ComparisonCondition) innerJoin.getOn();
         assertEquals("u.role_id", innerJoinCondition.getField());
@@ -320,7 +320,7 @@ public class JsonQLParserTest {
 
         // 验证 RIGHT JOIN
         Join rightJoin = joins.get(2);
-        assertEquals("right", rightJoin.getType());
+        assertEquals(JoinType.RIGHT, rightJoin.getType());
         assertEquals("project p", rightJoin.getTable());
         ComparisonCondition rightJoinCondition = (ComparisonCondition) rightJoin.getOn();
         assertEquals("u.project_id", rightJoinCondition.getField());
@@ -410,7 +410,7 @@ public class JsonQLParserTest {
 
         // 验证第一个 LEFT JOIN (部门)
         Join deptJoin = joins.get(0);
-        assertEquals("left", deptJoin.getType());
+        assertEquals(JoinType.LEFT, deptJoin.getType());
         assertEquals("department d", deptJoin.getTable());
         LogicalCondition deptJoinCondition = (LogicalCondition) deptJoin.getOn();
         assertEquals(OperatorType.AND, deptJoinCondition.getOperator());
@@ -418,7 +418,7 @@ public class JsonQLParserTest {
 
         // 验证第二个 LEFT JOIN (经理)
         Join managerJoin = joins.get(1);
-        assertEquals("left", managerJoin.getType());
+        assertEquals(JoinType.LEFT, managerJoin.getType());
         assertEquals("employee m", managerJoin.getTable());
         LogicalCondition managerJoinCondition = (LogicalCondition) managerJoin.getOn();
         assertEquals(OperatorType.AND, managerJoinCondition.getOperator());
