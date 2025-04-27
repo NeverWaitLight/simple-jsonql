@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.statement.model.JsonqlStatement;
 import org.waitlight.simple.jsonql.statement.model.UpdateStatement;
+import org.waitlight.simple.jsonql.statement.model.WhereCondition;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,9 +13,11 @@ import java.sql.SQLException;
 @Slf4j
 public class UpdateExecutor extends StatementExecutor {
     private static UpdateExecutor instance;
+    private final WhereExecutor whereExecutor;
 
     private UpdateExecutor(MetadataSources metadataSources) {
         super(metadataSources);
+        this.whereExecutor = new WhereExecutor(metadataSources);
     }
 
     public static synchronized UpdateExecutor getInstance(MetadataSources metadataSources) {
@@ -49,11 +52,12 @@ public class UpdateExecutor extends StatementExecutor {
         sql.append(String.join(", ", setClauses));
 
         // 处理 WHERE 子句
-        if (updateStatement.getWhere() != null) {
+        WhereCondition where = updateStatement.getWhere();
+        if (where != null) {
             sql.append(" WHERE ")
-                    .append(updateStatement.getWhere().toString());
+                    .append(whereExecutor.buildWhereClause(where));
         }
 
         return new SqlAndParameters(sql.toString(), null);
     }
-} 
+}

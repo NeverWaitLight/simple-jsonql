@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.statement.model.DeleteStatement;
 import org.waitlight.simple.jsonql.statement.model.JsonqlStatement;
+import org.waitlight.simple.jsonql.statement.model.WhereCondition;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,9 +13,11 @@ import java.sql.SQLException;
 @Slf4j
 public class DeleteExecutor extends StatementExecutor {
     private static DeleteExecutor instance;
+    private final WhereExecutor whereExecutor;
 
     private DeleteExecutor(MetadataSources metadataSources) {
         super(metadataSources);
+        this.whereExecutor = new WhereExecutor(metadataSources);
     }
 
     public static synchronized DeleteExecutor getInstance(MetadataSources metadataSources) {
@@ -42,10 +45,11 @@ public class DeleteExecutor extends StatementExecutor {
                 .append(deleteStatement.getFrom());
 
         // 处理 WHERE 子句
-        if (deleteStatement.getWhere() != null) {
+        WhereCondition where = deleteStatement.getWhere();
+        if (where != null) {
             sql.append(" WHERE ")
-                    .append(deleteStatement.getWhere().toString());
+                    .append(whereExecutor.buildWhereClause(where));
         }
         return new SqlAndParameters(sql.toString(), null);
     }
-} 
+}

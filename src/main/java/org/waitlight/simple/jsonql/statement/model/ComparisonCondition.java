@@ -11,12 +11,12 @@ import lombok.Setter;
 @Setter
 public class ComparisonCondition implements WhereCondition {
     private String field;
-    private String operator;
+    private OperatorType operatorType;
     private Object value;
     private boolean not;
 
     @Override
-    public String getType() {
-        return "comparison";
+    public ConditionType getType() {
+        return ConditionType.COMPARISON;
     }
-} 
+}

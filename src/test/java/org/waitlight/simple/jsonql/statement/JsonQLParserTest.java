@@ -37,9 +37,9 @@ public class JsonQLParserTest {
         assertEquals("user", statement.getFrom());
 
         ComparisonCondition where = (ComparisonCondition) statement.getWhere();
-        assertEquals("comparison", where.getType());
+        assertEquals(ConditionType.COMPARISON, where.getType());
         assertEquals("age", where.getField());
-        assertEquals("gt", where.getOperator());
+        assertEquals(OperatorType.GT, where.getOperatorType());
         assertEquals(18, where.getValue());
     }
 
@@ -95,9 +95,9 @@ public class JsonQLParserTest {
         assertEquals("inactive", statement.getSet().get("status"));
 
         ComparisonCondition where = (ComparisonCondition) statement.getWhere();
-        assertEquals("comparison", where.getType());
+        assertEquals(ConditionType.COMPARISON, where.getType());
         assertEquals("id", where.getField());
-        assertEquals("eq", where.getOperator());
+        assertEquals(OperatorType.EQ, where.getOperatorType());
         assertEquals(123, where.getValue());
     }
 
@@ -134,18 +134,18 @@ public class JsonQLParserTest {
         assertEquals("user", statement.getFrom());
 
         LogicalCondition where = (LogicalCondition) statement.getWhere();
-        assertEquals("logical", where.getType());
-        assertEquals("and", where.getOperator());
+        assertEquals(ConditionType.LOGICAL, where.getType());
+        assertEquals(OperatorType.AND, where.getOperator());
         assertEquals(2, where.getConditions().size());
 
         ComparisonCondition firstCondition = (ComparisonCondition) where.getConditions().get(0);
         assertEquals("status", firstCondition.getField());
-        assertEquals("eq", firstCondition.getOperator());
+        assertEquals(OperatorType.EQ, firstCondition.getOperatorType());
         assertEquals("inactive", firstCondition.getValue());
 
         ComparisonCondition secondCondition = (ComparisonCondition) where.getConditions().get(1);
         assertEquals("created_at", secondCondition.getField());
-        assertEquals("lt", secondCondition.getOperator());
+        assertEquals(OperatorType.LT, secondCondition.getOperatorType());
         assertEquals("2025-01-01", secondCondition.getValue());
     }
 
@@ -210,9 +210,9 @@ public class JsonQLParserTest {
         assertEquals("department d", join.getTable());
 
         ComparisonCondition joinCondition = (ComparisonCondition) join.getOn();
-        assertEquals("comparison", joinCondition.getType());
+        assertEquals(ConditionType.COMPARISON, joinCondition.getType());
         assertEquals("u.department_id", joinCondition.getField());
-        assertEquals("eq", joinCondition.getOperator());
+        assertEquals(OperatorType.EQ, joinCondition.getOperatorType());
         assertEquals("d.id", joinCondition.getValue());
 
         // 验证排序
@@ -222,22 +222,22 @@ public class JsonQLParserTest {
 
         // 验证 WHERE 条件
         LogicalCondition where = (LogicalCondition) statement.getWhere();
-        assertEquals("logical", where.getType());
-        assertEquals("and", where.getOperator());
+        assertEquals(ConditionType.LOGICAL, where.getType());
+        assertEquals(OperatorType.AND, where.getOperator());
         assertEquals(2, where.getConditions().size());
 
         // 验证第一个条件
         ComparisonCondition firstCondition = (ComparisonCondition) where.getConditions().get(0);
-        assertEquals("comparison", firstCondition.getType());
+        assertEquals(ConditionType.COMPARISON, firstCondition.getType());
         assertEquals("u.age", firstCondition.getField());
-        assertEquals("gt", firstCondition.getOperator());
+        assertEquals(OperatorType.GT, firstCondition.getOperatorType());
         assertEquals(25, firstCondition.getValue());
 
         // 验证第二个条件
         ComparisonCondition secondCondition = (ComparisonCondition) where.getConditions().get(1);
-        assertEquals("comparison", secondCondition.getType());
+        assertEquals(ConditionType.COMPARISON, secondCondition.getType());
         assertEquals("u.status", secondCondition.getField());
-        assertEquals("eq", secondCondition.getOperator());
+        assertEquals(OperatorType.EQ, secondCondition.getOperatorType());
         assertEquals("active", secondCondition.getValue());
     }
 
@@ -306,7 +306,7 @@ public class JsonQLParserTest {
         assertEquals("department d", leftJoin.getTable());
         ComparisonCondition leftJoinCondition = (ComparisonCondition) leftJoin.getOn();
         assertEquals("u.department_id", leftJoinCondition.getField());
-        assertEquals("eq", leftJoinCondition.getOperator());
+        assertEquals(OperatorType.EQ, leftJoinCondition.getOperatorType());
         assertEquals("d.id", leftJoinCondition.getValue());
 
         // 验证 INNER JOIN
@@ -315,7 +315,7 @@ public class JsonQLParserTest {
         assertEquals("role r", innerJoin.getTable());
         ComparisonCondition innerJoinCondition = (ComparisonCondition) innerJoin.getOn();
         assertEquals("u.role_id", innerJoinCondition.getField());
-        assertEquals("eq", innerJoinCondition.getOperator());
+        assertEquals(OperatorType.EQ, innerJoinCondition.getOperatorType());
         assertEquals("r.id", innerJoinCondition.getValue());
 
         // 验证 RIGHT JOIN
@@ -324,14 +324,14 @@ public class JsonQLParserTest {
         assertEquals("project p", rightJoin.getTable());
         ComparisonCondition rightJoinCondition = (ComparisonCondition) rightJoin.getOn();
         assertEquals("u.project_id", rightJoinCondition.getField());
-        assertEquals("eq", rightJoinCondition.getOperator());
+        assertEquals(OperatorType.EQ, rightJoinCondition.getOperatorType());
         assertEquals("p.id", rightJoinCondition.getValue());
 
         // 验证 WHERE 条件
         ComparisonCondition where = (ComparisonCondition) statement.getWhere();
-        assertEquals("comparison", where.getType());
+        assertEquals(ConditionType.COMPARISON, where.getType());
         assertEquals("u.status", where.getField());
-        assertEquals("eq", where.getOperator());
+        assertEquals(OperatorType.EQ, where.getOperatorType());
         assertEquals("active", where.getValue());
     }
 
@@ -413,7 +413,7 @@ public class JsonQLParserTest {
         assertEquals("left", deptJoin.getType());
         assertEquals("department d", deptJoin.getTable());
         LogicalCondition deptJoinCondition = (LogicalCondition) deptJoin.getOn();
-        assertEquals("and", deptJoinCondition.getOperator());
+        assertEquals(OperatorType.AND, deptJoinCondition.getOperator());
         assertEquals(2, deptJoinCondition.getConditions().size());
 
         // 验证第二个 LEFT JOIN (经理)
@@ -421,14 +421,14 @@ public class JsonQLParserTest {
         assertEquals("left", managerJoin.getType());
         assertEquals("employee m", managerJoin.getTable());
         LogicalCondition managerJoinCondition = (LogicalCondition) managerJoin.getOn();
-        assertEquals("and", managerJoinCondition.getOperator());
+        assertEquals(OperatorType.AND, managerJoinCondition.getOperator());
         assertEquals(2, managerJoinCondition.getConditions().size());
 
         // 验证 WHERE 条件
         ComparisonCondition where = (ComparisonCondition) statement.getWhere();
-        assertEquals("comparison", where.getType());
+        assertEquals(ConditionType.COMPARISON, where.getType());
         assertEquals("e.status", where.getField());
-        assertEquals("eq", where.getOperator());
+        assertEquals(OperatorType.EQ, where.getOperatorType());
         assertEquals("active", where.getValue());
     }
 
@@ -509,7 +509,7 @@ public class JsonQLParserTest {
 
         // 验证 BETWEEN 条件
         BetweenCondition where = (BetweenCondition) statement.getWhere();
-        assertEquals("between", where.getType());
+        assertEquals(ConditionType.BETWEEN, where.getType());
         assertEquals("salary", where.getField());
         assertEquals(5000, where.getStart());
         assertEquals(10000, where.getEnd());

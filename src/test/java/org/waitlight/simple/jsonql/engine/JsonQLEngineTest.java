@@ -6,6 +6,7 @@ import org.waitlight.simple.jsonql.entity.Blog;
 import org.waitlight.simple.jsonql.entity.User;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -59,7 +60,7 @@ public class JsonQLEngineTest {
         Object selectResult = engine.execute(selectQuery);
         assertNotNull("Select result should not be null", selectResult);
         assertTrue("Select result should be a list", selectResult instanceof List);
-        
+
         List<Map<String, Object>> resultList = (List<Map<String, Object>>) selectResult;
         assertEquals("Should find exactly one record", 1, resultList.size());
         assertEquals("Name should match", randomName, resultList.get(0).get("name"));
@@ -117,7 +118,7 @@ public class JsonQLEngineTest {
         Object selectResult = engine.execute(selectQuery);
         assertNotNull("Select result should not be null", selectResult);
         assertTrue("Select result should be a list", selectResult instanceof List);
-        
+
         List<Map<String, Object>> resultList = (List<Map<String, Object>>) selectResult;
         assertTrue("Should find no records", resultList.isEmpty());
     }
@@ -135,10 +136,10 @@ public class JsonQLEngineTest {
         Object result = engine.execute(jsonQuery);
         assertNotNull("Select result should not be null", result);
         assertTrue("Select result should be a list", result instanceof List);
-        
+
         List<Map<String, Object>> resultList = (List<Map<String, Object>>) result;
         assertFalse("Result list should not be empty", resultList.isEmpty());
-        
+
         // Verify each record has the expected structure
         for (Map<String, Object> record : resultList) {
             assertTrue("Each record should have a name field", record.containsKey("name"));
@@ -159,16 +160,16 @@ public class JsonQLEngineTest {
         Object result = engine.execute(jsonQuery);
         assertNotNull("Select result should not be null", result);
         assertTrue("Select result should be a list", result instanceof List);
-        
+
         List<Map<String, Object>> resultList = (List<Map<String, Object>>) result;
         assertFalse("Result list should not be empty", resultList.isEmpty());
-        
+
         // Verify each record has the expected structure
         for (Map<String, Object> record : resultList) {
             assertTrue("Each record should have a name field", record.containsKey("name"));
             assertTrue("Each record should have a blogs field", record.containsKey("blogs"));
             assertNotNull("Name field should not be null", record.get("name"));
-            assertTrue("Blogs field should be a list", record.get("blogs") instanceof List);
+            assertTrue("Blogs field should be a list", record.get("blogs") instanceof LinkedHashMap<?, ?>);
         }
     }
 }

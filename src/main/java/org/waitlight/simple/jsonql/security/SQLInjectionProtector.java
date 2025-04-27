@@ -3,6 +3,7 @@ package org.waitlight.simple.jsonql.security;
 import org.owasp.esapi.ESAPI;
 import org.owasp.esapi.Logger;
 import org.owasp.esapi.Validator;
+
 import java.util.regex.Pattern;
 
 public class SQLInjectionProtector {

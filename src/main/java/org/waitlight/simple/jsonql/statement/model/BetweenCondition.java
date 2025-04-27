@@ -16,7 +16,7 @@ public class BetweenCondition implements WhereCondition {
     private boolean not;
 
     @Override
-    public String getType() {
-        return "between";
+    public ConditionType getType() {
+        return ConditionType.BETWEEN;
     }
-} 
+}

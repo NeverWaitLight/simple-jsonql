@@ -11,6 +11,6 @@ public class Metadata {
     }
 
     public PersistentClass getEntityBinding(String entityName) {
-        return entityBindings.get(entityName);
+        return entityBindings.get(entityName.toLowerCase());
     }
 }

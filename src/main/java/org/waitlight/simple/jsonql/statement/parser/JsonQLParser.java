@@ -29,18 +29,13 @@ public class JsonQLParser {
                 throw new JsonqlParseException("Unsupported statement type: " + statementStr);
             }
 
-            switch (statement) {
-                case SELECT:
-                    return parseSelect(jsonMap);
-                case INSERT:
-                    return parseInsert(jsonMap);
-                case UPDATE:
-                    return parseUpdate(jsonMap);
-                case DELETE:
-                    return parseDelete(jsonMap);
-                default:
-                    throw new JsonqlParseException("Unsupported statement type: " + statement);
-            }
+            return switch (statement) {
+                case SELECT -> parseSelect(jsonMap);
+                case INSERT -> parseInsert(jsonMap);
+                case UPDATE -> parseUpdate(jsonMap);
+                case DELETE -> parseDelete(jsonMap);
+                default -> throw new JsonqlParseException("Unsupported statement type: " + statement);
+            };
         } catch (Exception e) {
             if (e instanceof JsonqlParseException) {
                 throw (JsonqlParseException) e;
@@ -127,24 +122,19 @@ public class JsonQLParser {
     private WhereCondition parseWhere(Map<String, Object> whereMap) throws JsonqlParseException {
         String type = (String) whereMap.get("type");
 
-        switch (type) {
-            case "comparison":
-                return parseComparisonCondition(whereMap);
-            case "logical":
-                return parseLogicalCondition(whereMap);
-            case "subquery":
-                return parseSubqueryCondition(whereMap);
-            case "between":
-                return parseBetweenCondition(whereMap);
-            default:
-                throw new JsonqlParseException("Unsupported where condition type: " + type);
-        }
+        return switch (type) {
+            case "comparison" -> parseComparisonCondition(whereMap);
+            case "logical" -> parseLogicalCondition(whereMap);
+            case "subquery" -> parseSubqueryCondition(whereMap);
+            case "between" -> parseBetweenCondition(whereMap);
+            default -> throw new JsonqlParseException("Unsupported where condition type: " + type);
+        };
     }
 
     private ComparisonCondition parseComparisonCondition(Map<String, Object> conditionMap) {
         ComparisonCondition condition = new ComparisonCondition();
         condition.setField((String) conditionMap.get("field"));
-        condition.setOperator((String) conditionMap.get("operator"));
+        condition.setOperatorType(OperatorType.fromValue((String) conditionMap.get("operator")));
         condition.setValue(conditionMap.get("value"));
         condition.setNot((Boolean) conditionMap.getOrDefault("not", false));
         return condition;
@@ -152,7 +142,7 @@ public class JsonQLParser {
 
     private LogicalCondition parseLogicalCondition(Map<String, Object> conditionMap) throws JsonqlParseException {
         LogicalCondition condition = new LogicalCondition();
-        condition.setOperator((String) conditionMap.get("operator"));
+        condition.setOperator(OperatorType.fromValue((String) conditionMap.get("operator")));
 
         List<Map<String, Object>> conditions = (List<Map<String, Object>>) conditionMap.get("conditions");
         List<WhereCondition> parsedConditions = new ArrayList<>();

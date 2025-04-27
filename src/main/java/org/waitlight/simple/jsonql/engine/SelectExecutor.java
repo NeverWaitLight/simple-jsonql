@@ -7,6 +7,7 @@ import org.waitlight.simple.jsonql.metadata.Property;
 import org.waitlight.simple.jsonql.statement.model.Join;
 import org.waitlight.simple.jsonql.statement.model.JsonqlStatement;
 import org.waitlight.simple.jsonql.statement.model.SelectStatement;
+import org.waitlight.simple.jsonql.statement.model.WhereCondition;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -17,9 +18,11 @@ import java.util.Map;
 @Slf4j
 public class SelectExecutor extends StatementExecutor {
     private static SelectExecutor instance;
+    private final WhereExecutor whereExecutor;
 
     private SelectExecutor(MetadataSources metadataSources) {
         super(metadataSources);
+        this.whereExecutor = new WhereExecutor(metadataSources);
     }
 
     public static synchronized SelectExecutor getInstance(MetadataSources metadataSources) {
@@ -84,9 +87,10 @@ public class SelectExecutor extends StatementExecutor {
                 .append(entity.getTableName().toLowerCase());
 
         // 处理 WHERE
-        if (selectStatement.getWhere() != null) {
+        WhereCondition where = selectStatement.getWhere();
+        if (where != null) {
             sql.append(" WHERE ")
-                    .append(selectStatement.getWhere().toString());
+                    .append(whereExecutor.buildWhereClause(where));
         }
 
         // 处理 JOIN
@@ -156,4 +160,4 @@ public class SelectExecutor extends StatementExecutor {
         }
         return result;
     }
-} 
+}

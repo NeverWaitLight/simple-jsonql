@@ -7,7 +7,8 @@ package org.waitlight.simple.jsonql.statement.model;
 public interface WhereCondition {
     /**
      * 获取条件类型
-     * @return 条件类型：comparison, logical, subquery
+     *
+     * @return 条件类型枚举
      */
-    String getType();
-} 
+    ConditionType getType();
+}

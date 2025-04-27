@@ -14,7 +14,7 @@ public class SubqueryCondition implements WhereCondition {
     private boolean not;
 
     @Override
-    public String getType() {
-        return "subquery";
+    public ConditionType getType() {
+        return ConditionType.SUBQUERY;
     }
 } 

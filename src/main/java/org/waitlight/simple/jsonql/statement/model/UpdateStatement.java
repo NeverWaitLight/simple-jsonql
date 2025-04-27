@@ -2,6 +2,7 @@ package org.waitlight.simple.jsonql.statement.model;
 
 import lombok.Getter;
 import lombok.Setter;
+
 import java.util.Map;
 
 @Getter
