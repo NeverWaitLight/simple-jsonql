@@ -30,15 +30,15 @@ public class SelectExecutor extends StatementExecutor {
     }
 
     @Override
-    protected Object doExecute(Connection conn, String sql) throws SQLException {
-        try (PreparedStatement stmt = conn.prepareStatement(sql);
+    protected Object doExecute(Connection conn, SqlAndParameters sqlAndParameters) throws SQLException {
+        try (PreparedStatement stmt = conn.prepareStatement(sqlAndParameters.sql());
              ResultSet rs = stmt.executeQuery()) {
             return processResultSet(rs);
         }
     }
 
     @Override
-    protected String parseSql(JsonqlStatement statement) {
+    protected SqlAndParameters parseSql(JsonqlStatement statement) {
         if (!(statement instanceof SelectStatement)) {
             throw new IllegalArgumentException("Expected SelectStatement but got " + statement.getClass().getSimpleName());
         }
@@ -119,7 +119,7 @@ public class SelectExecutor extends StatementExecutor {
             }
         }
 
-        return sql.toString();
+        return new SqlAndParameters(sql.toString(), null);
     }
 
     private List<Map<String, Object>> processResultSet(ResultSet rs) throws SQLException {

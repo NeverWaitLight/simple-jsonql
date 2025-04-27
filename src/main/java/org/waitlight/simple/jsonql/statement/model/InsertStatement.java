@@ -1,24 +1,13 @@
 package org.waitlight.simple.jsonql.statement.model;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.util.Map;
 
+@Data
+@EqualsAndHashCode(callSuper = true)
 public class InsertStatement extends JsonqlStatement {
     private String into;
     private Map<String, Object> values;
-
-    public String getInto() {
-        return into;
-    }
-
-    public void setInto(String into) {
-        this.into = into;
-    }
-
-    public Map<String, Object> getValues() {
-        return values;
-    }
-
-    public void setValues(Map<String, Object> values) {
-        this.values = values;
-    }
-} 
+}

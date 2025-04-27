@@ -25,14 +25,14 @@ public class DeleteExecutor extends StatementExecutor {
     }
 
     @Override
-    protected Object doExecute(Connection conn, String sql) throws SQLException {
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+    protected Object doExecute(Connection conn, SqlAndParameters sqlAndParameters) throws SQLException {
+        try (PreparedStatement stmt = conn.prepareStatement(sqlAndParameters.sql())) {
             return stmt.executeUpdate();
         }
     }
 
     @Override
-    protected String parseSql(JsonqlStatement statement) {
+    protected SqlAndParameters parseSql(JsonqlStatement statement) {
         if (!(statement instanceof DeleteStatement)) {
             throw new IllegalArgumentException("Expected DeleteStatement but got " + statement.getClass().getSimpleName());
         }
@@ -46,7 +46,6 @@ public class DeleteExecutor extends StatementExecutor {
             sql.append(" WHERE ")
                     .append(deleteStatement.getWhere().toString());
         }
-
-        return sql.toString();
+        return new SqlAndParameters(sql.toString(), null);
     }
 } 
