@@ -134,6 +134,8 @@ public class JsonQLParser {
                 return parseLogicalCondition(whereMap);
             case "subquery":
                 return parseSubqueryCondition(whereMap);
+            case "between":
+                return parseBetweenCondition(whereMap);
             default:
                 throw new JsonqlParseException("Unsupported where condition type: " + type);
         }
@@ -166,6 +168,15 @@ public class JsonQLParser {
     private SubqueryCondition parseSubqueryCondition(Map<String, Object> conditionMap) throws JsonqlParseException {
         SubqueryCondition condition = new SubqueryCondition();
         condition.setSubquery(parseSelect((Map<String, Object>) conditionMap.get("subquery")));
+        return condition;
+    }
+
+    private BetweenCondition parseBetweenCondition(Map<String, Object> conditionMap) {
+        BetweenCondition condition = new BetweenCondition();
+        condition.setField((String) conditionMap.get("field"));
+        condition.setStart(conditionMap.get("start"));
+        condition.setEnd(conditionMap.get("end"));
+        condition.setNot((Boolean) conditionMap.getOrDefault("not", false));
         return condition;
     }
 

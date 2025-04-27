@@ -1,71 +1,56 @@
 package org.waitlight.simple.jsonql.engine;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.waitlight.simple.jsonql.config.DBConfig;
-import org.waitlight.simple.jsonql.jql.JsonQL;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.statement.model.JsonqlStatement;
+import org.waitlight.simple.jsonql.statement.model.StatementType;
+import org.waitlight.simple.jsonql.statement.parser.JsonQLParser;
 
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.*;
 
 @Slf4j
 public class JsonQLEngine {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
     private final MetadataSources metadataSources;
+    private final JsonQLParser parser;
+    private final Map<StatementType, StatementExecutor> executors;
 
     public JsonQLEngine(MetadataSources metadataSources) {
         this.metadataSources = metadataSources;
+        this.parser = new JsonQLParser();
+        this.executors = initializeExecutors();
+    }
+
+    private Map<StatementType, StatementExecutor> initializeExecutors() {
+        Map<StatementType, StatementExecutor> executors = new HashMap<>();
+        executors.put(StatementType.SELECT, SelectExecutor.getInstance(metadataSources));
+        executors.put(StatementType.INSERT, InsertExecutor.getInstance(metadataSources));
+        executors.put(StatementType.UPDATE, UpdateExecutor.getInstance(metadataSources));
+        executors.put(StatementType.DELETE, DeleteExecutor.getInstance(metadataSources));
+        return executors;
     }
 
     public Object execute(String jsonQuery) throws Exception {
-        JsonQL jql = objectMapper.readValue(jsonQuery, JsonQL.class);
+        JsonqlStatement statement = parser.parse(jsonQuery);
         try (Connection conn = DBConfig.getConnection()) {
-            return execute(conn, jql);
+            return execute(conn, statement);
         }
     }
 
-    private Object execute(Connection conn, JsonQL jql) throws SQLException {
-        String sql = "";
-        switch (jql.statement()) {
-            case SELECT -> {
-                sql = new SelectEngine(metadataSources).parseSql(jql);
-                log.info(sql);
-                try (PreparedStatement stmt = conn.prepareStatement(sql);
-                     ResultSet rs = stmt.executeQuery()) {
-                    return processResultSet(rs);
-                }
-            }
-            case INSERT -> {
-                sql = new InsertEngine(metadataSources).parseSql(jql);
-                log.info(sql);
-                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                    return stmt.executeUpdate();
-                }
-            }
-            case UPDATE -> {
-                sql = new UpdateEngine(metadataSources).parseSql(jql);
-                log.info(sql);
-                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                    return stmt.executeUpdate();
-                }
-            }
-            case DELETE -> {
-                sql = new DeleteEngine(metadataSources).parseSql(jql);
-                log.info(sql);
-                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                    return stmt.executeUpdate();
-                }
-            }
+    private Object execute(Connection conn, JsonqlStatement statement) throws SQLException {
+        StatementExecutor executor = executors.get(statement.getStatement());
+        if (executor == null) {
+            throw new IllegalStateException("Unsupported statement type: " + statement.getStatement());
         }
-        return null;
+        return executor.execute(conn, statement);
     }
 
-    private List<Map<String, Object>> processResultSet(ResultSet rs) throws SQLException {
+    private static List<Map<String, Object>> processResultSet(ResultSet rs) throws SQLException {
         List<Map<String, Object>> result = new ArrayList<>();
         ResultSetMetaData metaData = rs.getMetaData();
         int columnCount = metaData.getColumnCount();

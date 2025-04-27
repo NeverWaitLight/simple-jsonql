@@ -1,4 +1,4 @@
-package org.waitlight.simple.jsonql;
+package org.waitlight.simple.jsonql.statement;
 
 import org.junit.jupiter.api.Test;
 import org.waitlight.simple.jsonql.statement.model.*;
@@ -482,5 +482,36 @@ public class JsonQLParserTest {
             parser.parse(json);
         });
         assertEquals("Statement type is required", exception.getMessage());
+    }
+
+    @Test
+    public void testParseSelectWithBetweenCondition() throws JsonqlParseException {
+        String json = """
+                {
+                    "statement": "select",
+                    "select": ["id", "name", "age", "salary"],
+                    "from": "employee",
+                    "where": {
+                        "type": "between",
+                        "field": "salary",
+                        "start": 5000,
+                        "end": 10000
+                    }
+                }
+                """;
+
+        SelectStatement statement = (SelectStatement) parser.parse(json);
+
+        // 验证基本字段
+        assertEquals(StatementType.SELECT, statement.getStatement());
+        assertEquals(4, statement.getSelect().size());
+        assertEquals("employee", statement.getFrom());
+
+        // 验证 BETWEEN 条件
+        BetweenCondition where = (BetweenCondition) statement.getWhere();
+        assertEquals("between", where.getType());
+        assertEquals("salary", where.getField());
+        assertEquals(5000, where.getStart());
+        assertEquals(10000, where.getEnd());
     }
 } 
