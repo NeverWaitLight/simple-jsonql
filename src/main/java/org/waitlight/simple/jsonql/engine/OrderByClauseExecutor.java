@@ -1,8 +1,7 @@
 package org.waitlight.simple.jsonql.engine;
 
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
-import org.waitlight.simple.jsonql.statement.model.Clause;
-import org.waitlight.simple.jsonql.statement.model.OrderBy;
+import org.waitlight.simple.jsonql.statement.model.SelectStatement;
 
 public class OrderByClauseExecutor extends ClauseExecutor {
 
@@ -11,14 +10,13 @@ public class OrderByClauseExecutor extends ClauseExecutor {
     }
 
     @Override
-    public String buildClause(Clause condition) {
-        if (!(condition instanceof OrderBy)) {
-            throw new IllegalArgumentException("Expected OrderBy but got " + condition.getClass().getSimpleName());
+    public String buildClause(Object condition) {
+        if (condition instanceof SelectStatement) {
+            SelectStatement select = (SelectStatement) condition;
+            if (select.getOrderBy() == null) return "";
+            return " ORDER BY " + select.getOrderBy().getField() + " " + select.getOrderBy().getDirection().getValue();
         }
-        OrderBy orderBy = (OrderBy) condition;
-        if (orderBy == null) return "";
-
-        return " ORDER BY " + orderBy.getField() + " " + orderBy.getDirection().getValue();
+        return "";
     }
 
 }

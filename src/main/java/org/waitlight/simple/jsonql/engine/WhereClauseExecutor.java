@@ -12,13 +12,16 @@ public class WhereClauseExecutor extends ClauseExecutor {
     }
 
     @Override
-    public String buildClause(Clause condition) {
-        if (!(condition instanceof WhereCondition)) {
-            throw new IllegalArgumentException("Expected WhereCondition but got " + condition.getClass().getSimpleName());
+    public String buildClause(Object condition) {
+        if (condition instanceof SelectStatement) {
+            SelectStatement select = (SelectStatement) condition;
+            if (select.getWhere() == null) return "";
+            return " WHERE " + buildWhereCondition(select.getWhere());
         }
-        WhereCondition whereCondition = (WhereCondition) condition;
-        if (whereCondition == null) return "";
+        return "";
+    }
 
+    private String buildWhereCondition(WhereCondition whereCondition) {
         return switch (whereCondition.getType()) {
             case COMPARISON -> buildComparison((ComparisonCondition) whereCondition);
             case LOGICAL -> buildLogical((LogicalCondition) whereCondition);

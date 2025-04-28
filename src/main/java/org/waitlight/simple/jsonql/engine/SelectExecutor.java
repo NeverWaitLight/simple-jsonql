@@ -4,10 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.metadata.PersistentClass;
 import org.waitlight.simple.jsonql.metadata.Property;
-import org.waitlight.simple.jsonql.statement.model.Join;
 import org.waitlight.simple.jsonql.statement.model.JsonqlStatement;
 import org.waitlight.simple.jsonql.statement.model.SelectStatement;
-import org.waitlight.simple.jsonql.statement.model.WhereCondition;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -18,15 +16,11 @@ import java.util.Map;
 @Slf4j
 public class SelectExecutor extends StatementExecutor {
     private static SelectExecutor instance;
-    private final WhereClauseExecutor whereClauseExecutor;
-    private final JoinClauseExecutor joinClauseExecutor;
-    private final OrderByClauseExecutor orderByClauseExecutor;
+    private final ClauseExecutor clauseExecutor;
 
     private SelectExecutor(MetadataSources metadataSources) {
         super(metadataSources);
-        this.whereClauseExecutor = new WhereClauseExecutor(metadataSources);
-        this.joinClauseExecutor = new JoinClauseExecutor(metadataSources);
-        this.orderByClauseExecutor = new OrderByClauseExecutor(metadataSources);
+        this.clauseExecutor = new ClauseExecutor(metadataSources);
     }
 
     public static synchronized SelectExecutor getInstance(MetadataSources metadataSources) {
@@ -90,26 +84,14 @@ public class SelectExecutor extends StatementExecutor {
                 .append(" FROM ")
                 .append(entity.getTableName().toLowerCase());
 
-        // 处理 WHERE
-        WhereCondition where = selectStatement.getWhere();
-        if (where != null) {
-            sql.append(" WHERE ")
-                    .append(whereClauseExecutor.buildClause(where));
-        }
+        // 处理WHERE/JOIN/ORDER BY
+        if (selectStatement.getWhere() != null ||
+                (selectStatement.getJoins() != null && !selectStatement.getJoins().isEmpty()) ||
+                selectStatement.getOrderBy() != null) {
 
-        // 处理 JOIN
-        if (selectStatement.getJoins() != null && !selectStatement.getJoins().isEmpty()) {
-            for (Join joinItem : selectStatement.getJoins()) {
-                sql.append(" ")
-                        .append(joinClauseExecutor.buildClause(joinItem));
-            }
-        } else {
+            clauseExecutor.process(selectStatement, sql);
+        } else if (join.length() > 0) {
             sql.append(join);
-        }
-
-        // 处理 ORDER BY
-        if (selectStatement.getOrderBy() != null) {
-            sql.append(orderByClauseExecutor.buildClause(selectStatement.getOrderBy()));
         }
 
         // 处理 LIMIT 和 OFFSET
