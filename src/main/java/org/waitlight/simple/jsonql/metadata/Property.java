@@ -12,14 +12,14 @@ public class Property {
     private String name;
     private String column;
     private String type;
-    private RelationshipType relationshipType; // 使用枚举替代字符串
-    private Class<?> targetEntity; // For relationships
-    private String mappedBy; // For bidirectional relationships
-    private String foreignKeyName; // For foreign key constraints
-    private boolean nullable; // Whether column is nullable
-    private String joinTableName; // For ManyToMany join table
-    private JoinColumn[] joinColumns; // For ManyToMany join columns
-    private JoinColumn[] inverseJoinColumns; // For ManyToMany inverse join columns
+    private RelationshipType relationshipType; // 关系类型（一对一、一对多、多对一、多对多）
+    private Class<?> targetEntity; // 关联的目标实体类
+    private String mappedBy; // 双向关系的映射字段
+    private String foreignKeyName; // 外键约束名称
+    private boolean nullable; // 字段是否可为空
+    private String joinTableName; // 多对多关系的关联表名
+    private JoinColumn[] joinColumns; // 多对多关系的主表连接列
+    private JoinColumn[] inverseJoinColumns; // 多对多关系的从表连接列
 
     public Property(String name, String column, String type) {
         this.name = name;
