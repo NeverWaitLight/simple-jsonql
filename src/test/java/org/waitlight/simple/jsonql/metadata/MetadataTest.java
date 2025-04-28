@@ -1,10 +1,10 @@
 package org.waitlight.simple.jsonql.metadata;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.waitlight.simple.jsonql.entity.Blog;
 import org.waitlight.simple.jsonql.entity.User;
 
-public class MetadataTests {
+public class MetadataTest {
 
     @Test
     public void test() {

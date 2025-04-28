@@ -47,60 +47,36 @@ public class SelectExecutor extends StatementExecutor {
         List<String> selectFields = new ArrayList<>(selectStatement.getSelect());
         PersistentClass entity = metadata.getEntityBinding(selectStatement.getFrom());
 
-        StringBuilder sql = new StringBuilder();
-        StringBuilder join = new StringBuilder();
-
-        // 替换关联字段为实际的表字段
+        // 创建字段列表副本，避免修改原selectFields
+        List<String> finalSelectFields = new ArrayList<>(selectFields);
+        
+        // 处理关联字段
         for (Property prop : entity.getProperties()) {
-            if (selectFields.contains(prop.getName()) && prop.getRelationshipType() != null) {
-                selectFields.remove(prop.getName());
+            if (finalSelectFields.contains(prop.getName()) && prop.getRelationshipType() != null) {
+                finalSelectFields.remove(prop.getName());
                 PersistentClass targetEntity = metadata.getEntityBinding(prop.getTargetEntity().getSimpleName().toLowerCase());
 
-                // 添加目标表字段
+                // 添加目标表字段到副本
                 for (Property targetProp : targetEntity.getProperties()) {
                     if (!"relationshipType".equals(targetProp.getName())) {
-                        selectFields.add(String.format("%s.%s as %s_%s",
+                        finalSelectFields.add(String.format("%s.%s as %s_%s",
                                 targetEntity.getTableName().toLowerCase(),
                                 targetProp.getColumn(),
                                 prop.getName(),
                                 targetProp.getName()));
                     }
                 }
-
-                join.append(" LEFT JOIN ")
-                        .append(targetEntity.getTableName().toLowerCase())
-                        .append(" ON ")
-                        .append(targetEntity.getTableName().toLowerCase())
-                        .append(".")
-                        .append(prop.getForeignKeyName())
-                        .append(" = ")
-                        .append(entity.getTableName().toLowerCase())
-                        .append(".id");
             }
         }
 
+        StringBuilder sql = new StringBuilder();
         sql.append("SELECT ")
-                .append(String.join(", ", selectFields))
+                .append(String.join(", ", finalSelectFields))
                 .append(" FROM ")
                 .append(entity.getTableName().toLowerCase());
 
-        // 处理WHERE/JOIN/ORDER BY
-        if (selectStatement.getWhere() != null ||
-                (selectStatement.getJoins() != null && !selectStatement.getJoins().isEmpty()) ||
-                selectStatement.getOrderBy() != null) {
-
-            clauseExecutor.process(selectStatement, sql);
-        } else if (join.length() > 0) {
-            sql.append(join);
-        }
-
-        // 处理 LIMIT 和 OFFSET
-        if (selectStatement.getLimit() != null) {
-            sql.append(" LIMIT ").append(selectStatement.getLimit());
-            if (selectStatement.getOffset() != null) {
-                sql.append(" OFFSET ").append(selectStatement.getOffset());
-            }
-        }
+        // 处理所有子句
+        clauseExecutor.process(selectStatement, sql);
 
         return new SqlAndParameters(sql.toString(), null);
     }

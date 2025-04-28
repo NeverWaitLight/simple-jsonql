@@ -1,7 +1,7 @@
 package org.waitlight.simple.jsonql.engine;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.waitlight.simple.jsonql.entity.Blog;
 import org.waitlight.simple.jsonql.entity.User;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
@@ -11,12 +11,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class JsonQLEngineTest {
     private static JsonQLEngine engine;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() {
         MetadataSources metadataSources = new MetadataSources();
         metadataSources.addAnnotatedClass(User.class);
@@ -38,9 +38,9 @@ public class JsonQLEngineTest {
                 """.formatted(randomName);
 
         Object result = engine.execute(jsonQuery);
-        assertNotNull("Insert result should not be null", result);
-        assertTrue("Insert result should be a number", result instanceof Number);
-        assertEquals("Insert should affect 1 row", 1, ((Number) result).intValue());
+        assertNotNull(result, "Insert result should not be null");
+        assertTrue(result instanceof Number, "Insert result should be a number");
+        assertEquals(1, ((Number) result).intValue(), "Insert should affect 1 row");
 
         // Verify the inserted data
         String selectQuery = """
@@ -58,12 +58,13 @@ public class JsonQLEngineTest {
                 """.formatted(randomName);
 
         Object selectResult = engine.execute(selectQuery);
-        assertNotNull("Select result should not be null", selectResult);
-        assertTrue("Select result should be a list", selectResult instanceof List);
+        assertNotNull(selectResult, "Select result should not be null");
+        assertTrue(selectResult instanceof List, "Select result should be a list");
 
+        @SuppressWarnings("unchecked")
         List<Map<String, Object>> resultList = (List<Map<String, Object>>) selectResult;
-        assertEquals("Should find exactly one record", 1, resultList.size());
-        assertEquals("Name should match", randomName, resultList.get(0).get("name"));
+        assertEquals(1, resultList.size(), "Should find exactly one record");
+        assertEquals(randomName, resultList.get(0).get("name"), "Name should match");
     }
 
     @Test
@@ -96,9 +97,9 @@ public class JsonQLEngineTest {
                 """.formatted(randomName);
 
         Object result = engine.execute(deleteQuery);
-        assertNotNull("Delete result should not be null", result);
-        assertTrue("Delete result should be a number", result instanceof Number);
-        assertEquals("Delete should affect 1 row", 1, ((Number) result).intValue());
+        assertNotNull(result, "Delete result should not be null");
+        assertTrue(result instanceof Number, "Delete result should be a number");
+        assertEquals(1, ((Number) result).intValue(), "Delete should affect 1 row");
 
         // Verify the record is deleted
         String selectQuery = """
@@ -116,11 +117,12 @@ public class JsonQLEngineTest {
                 """.formatted(randomName);
 
         Object selectResult = engine.execute(selectQuery);
-        assertNotNull("Select result should not be null", selectResult);
-        assertTrue("Select result should be a list", selectResult instanceof List);
+        assertNotNull(selectResult, "Select result should not be null");
+        assertTrue(selectResult instanceof List, "Select result should be a list");
 
+        @SuppressWarnings("unchecked")
         List<Map<String, Object>> resultList = (List<Map<String, Object>>) selectResult;
-        assertTrue("Should find no records", resultList.isEmpty());
+        assertTrue(resultList.isEmpty(), "Should find no records");
     }
 
     @Test
@@ -134,16 +136,17 @@ public class JsonQLEngineTest {
                 """;
 
         Object result = engine.execute(jsonQuery);
-        assertNotNull("Select result should not be null", result);
-        assertTrue("Select result should be a list", result instanceof List);
+        assertNotNull(result, "Select result should not be null");
+        assertTrue(result instanceof List, "Select result should be a list");
 
+        @SuppressWarnings("unchecked")
         List<Map<String, Object>> resultList = (List<Map<String, Object>>) result;
-        assertFalse("Result list should not be empty", resultList.isEmpty());
+        assertFalse(resultList.isEmpty(), "Result list should not be empty");
 
         // Verify each record has the expected structure
         for (Map<String, Object> record : resultList) {
-            assertTrue("Each record should have a name field", record.containsKey("name"));
-            assertNotNull("Name field should not be null", record.get("name"));
+            assertTrue(record.containsKey("name"), "Each record should have a name field");
+            assertNotNull(record.get("name"), "Name field should not be null");
         }
     }
 
@@ -158,18 +161,19 @@ public class JsonQLEngineTest {
                 """;
 
         Object result = engine.execute(jsonQuery);
-        assertNotNull("Select result should not be null", result);
-        assertTrue("Select result should be a list", result instanceof List);
+        assertNotNull(result, "Select result should not be null");
+        assertTrue(result instanceof List, "Select result should be a list");
 
+        @SuppressWarnings("unchecked")
         List<Map<String, Object>> resultList = (List<Map<String, Object>>) result;
-        assertFalse("Result list should not be empty", resultList.isEmpty());
+        assertFalse(resultList.isEmpty(), "Result list should not be empty");
 
         // Verify each record has the expected structure
         for (Map<String, Object> record : resultList) {
-            assertTrue("Each record should have a name field", record.containsKey("name"));
-            assertTrue("Each record should have a blogs field", record.containsKey("blogs"));
-            assertNotNull("Name field should not be null", record.get("name"));
-            assertTrue("Blogs field should be a list", record.get("blogs") instanceof LinkedHashMap<?, ?>);
+            assertTrue(record.containsKey("name"), "Each record should have a name field");
+            assertTrue(record.containsKey("blogs"), "Each record should have a blogs field");
+            assertNotNull(record.get("name"), "Name field should not be null");
+            assertTrue(record.get("blogs") instanceof LinkedHashMap<?, ?>, "Blogs field should be a list");
         }
     }
 }

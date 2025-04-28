@@ -3,25 +3,36 @@ package org.waitlight.simple.jsonql.engine;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 
 public class ClauseExecutor extends AbstractClauseExecutor {
-    private final WhereClauseExecutor whereClauseExecutor;
-    private final JoinClauseExecutor joinClauseExecutor;
-    private final OrderByClauseExecutor orderByClauseExecutor;
+    private WhereClauseExecutor whereExecutor;
+    private JoinClauseExecutor joinExecutor;
+    private OrderByClauseExecutor orderByExecutor;
+    private LimitClauseExecutor limitExecutor;
+    protected final MetadataSources metadataSources;
 
     public ClauseExecutor(MetadataSources metadataSources) {
         super(metadataSources);
-        this.whereClauseExecutor = new WhereClauseExecutor(metadataSources);
-        this.joinClauseExecutor = new JoinClauseExecutor(metadataSources);
-        this.orderByClauseExecutor = new OrderByClauseExecutor(metadataSources);
+        this.metadataSources = metadataSources;
+    }
 
-        // 构建责任链
-        whereClauseExecutor.setNext(joinClauseExecutor)
-                .setNext(orderByClauseExecutor);
+    private void initChain() {
+        if (whereExecutor == null) {
+            this.whereExecutor = new WhereClauseExecutor(metadataSources);
+            this.joinExecutor = new JoinClauseExecutor(metadataSources);
+            this.orderByExecutor = new OrderByClauseExecutor(metadataSources);
+            this.limitExecutor = new LimitClauseExecutor(metadataSources);
+            
+            // 构建责任链
+            whereExecutor.setNext(joinExecutor)
+                       .setNext(orderByExecutor)
+                       .setNext(limitExecutor);
+        }
     }
 
     @Override
     public String buildClause(Object condition) {
+        initChain();
         StringBuilder sql = new StringBuilder();
-        whereClauseExecutor.process(condition, sql);
+        whereExecutor.process(condition, sql);
         return sql.toString();
     }
 }
