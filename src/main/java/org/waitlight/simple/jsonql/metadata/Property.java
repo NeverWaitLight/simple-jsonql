@@ -12,7 +12,7 @@ public class Property {
     private String name;
     private String column;
     private String type;
-    private String relationshipType; // OneToMany, ManyToOne, etc
+    private RelationshipType relationshipType; // 使用枚举替代字符串
     private Class<?> targetEntity; // For relationships
     private String mappedBy; // For bidirectional relationships
     private String foreignKeyName; // For foreign key constraints
@@ -25,17 +25,5 @@ public class Property {
         this.name = name;
         this.column = column;
         this.type = type;
-    }
-
-    public void setJoinTableName(String joinTableName) {
-        this.joinTableName = joinTableName;
-    }
-
-    public void setJoinColumns(JoinColumn[] joinColumns) {
-        this.joinColumns = joinColumns;
-    }
-
-    public void setInverseJoinColumns(JoinColumn[] inverseJoinColumns) {
-        this.inverseJoinColumns = inverseJoinColumns;
     }
 }

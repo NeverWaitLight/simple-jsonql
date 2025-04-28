@@ -5,7 +5,7 @@ import org.waitlight.simple.jsonql.statement.model.*;
 
 import java.util.List;
 
-public class WhereClauseExecutor extends ClauseExecutor {
+public class WhereClauseExecutor extends AbstractClauseExecutor {
 
     public WhereClauseExecutor(MetadataSources metadataSources) {
         super(metadataSources);
@@ -13,10 +13,12 @@ public class WhereClauseExecutor extends ClauseExecutor {
 
     @Override
     public String buildClause(Object condition) {
-        if (condition instanceof SelectStatement) {
-            SelectStatement select = (SelectStatement) condition;
-            if (select.getWhere() == null) return "";
-            return " WHERE " + buildWhereCondition(select.getWhere());
+        if (condition instanceof SelectStatement selectStatement) {
+            if (selectStatement.getWhere() == null) return "";
+            return " WHERE " + buildWhereCondition(selectStatement.getWhere());
+        }
+        if (condition instanceof WhereCondition whereCondition) {
+            return buildWhereCondition(whereCondition);
         }
         return "";
     }

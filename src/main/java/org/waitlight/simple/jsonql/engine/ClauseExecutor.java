@@ -2,37 +2,31 @@ package org.waitlight.simple.jsonql.engine;
 
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 
-public class ClauseExecutor extends AbstractClauseExecutor {
-    private WhereClauseExecutor whereExecutor;
-    private JoinClauseExecutor joinExecutor;
-    private OrderByClauseExecutor orderByExecutor;
-    private LimitClauseExecutor limitExecutor;
+import java.util.ArrayList;
+import java.util.List;
+
+public class ClauseExecutor {
+    private final List<AbstractClauseExecutor> executors;
     protected final MetadataSources metadataSources;
 
     public ClauseExecutor(MetadataSources metadataSources) {
-        super(metadataSources);
         this.metadataSources = metadataSources;
+        this.executors = new ArrayList<>();
+        initExecutors();
     }
 
-    private void initChain() {
-        if (whereExecutor == null) {
-            this.whereExecutor = new WhereClauseExecutor(metadataSources);
-            this.joinExecutor = new JoinClauseExecutor(metadataSources);
-            this.orderByExecutor = new OrderByClauseExecutor(metadataSources);
-            this.limitExecutor = new LimitClauseExecutor(metadataSources);
-            
-            // 构建责任链
-            whereExecutor.setNext(joinExecutor)
-                       .setNext(orderByExecutor)
-                       .setNext(limitExecutor);
+    private void initExecutors() {
+        // 按照 SQL 子句的执行顺序添加执行器
+        executors.add(new WhereClauseExecutor(metadataSources));
+        executors.add(new JoinClauseExecutor(metadataSources));
+        executors.add(new OrderByClauseExecutor(metadataSources));
+        executors.add(new LimitClauseExecutor(metadataSources));
+    }
+
+    public void buildClause(Object condition, StringBuilder sql) {
+        // 按顺序执行所有子句执行器
+        for (AbstractClauseExecutor executor : executors) {
+            executor.process(condition, sql);
         }
-    }
-
-    @Override
-    public String buildClause(Object condition) {
-        initChain();
-        StringBuilder sql = new StringBuilder();
-        whereExecutor.process(condition, sql);
-        return sql.toString();
     }
 }

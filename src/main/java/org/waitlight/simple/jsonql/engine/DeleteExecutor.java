@@ -41,14 +41,12 @@ public class DeleteExecutor extends StatementExecutor {
         }
         DeleteStatement deleteStatement = (DeleteStatement) statement;
         StringBuilder sql = new StringBuilder();
-        sql.append("DELETE FROM ")
-                .append(deleteStatement.getFrom());
+        sql.append("DELETE FROM ").append(deleteStatement.getFrom());
 
         // 处理 WHERE 子句
         WhereCondition where = deleteStatement.getWhere();
         if (where != null) {
-            sql.append(" WHERE ")
-                    .append(whereClauseExecutor.buildClause(where));
+            sql.append(" WHERE ").append(whereClauseExecutor.buildClause(where));
         }
         return new SqlAndParameters(sql.toString(), null);
     }

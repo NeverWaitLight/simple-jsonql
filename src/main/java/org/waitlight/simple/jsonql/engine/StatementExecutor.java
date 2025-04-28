@@ -1,6 +1,7 @@
 package org.waitlight.simple.jsonql.engine;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.waitlight.simple.jsonql.metadata.Metadata;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.statement.model.JsonqlStatement;
@@ -25,7 +26,10 @@ public abstract class StatementExecutor {
 
     public Object execute(Connection conn, JsonqlStatement statement) throws SQLException {
         SqlAndParameters sqlAndParameters = parseSql(statement);
-        log.info(sqlAndParameters.sql());
+        log.info("SQL: {}", sqlAndParameters.sql());
+        if (CollectionUtils.isNotEmpty(sqlAndParameters.parameters())) {
+            log.info("Parameters: {}", sqlAndParameters.parameters());
+        }
         return doExecute(conn, sqlAndParameters);
     }
 

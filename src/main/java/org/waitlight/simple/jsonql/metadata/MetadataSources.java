@@ -15,8 +15,7 @@ public class MetadataSources {
         Metadata metadata = new Metadata();
         AnnotationBinder binder = new AnnotationBinder();
         for (Class<?> entityClass : entityClasses) {
-            PersistentClass persistentClass = new PersistentClass();
-            binder.bindEntity(entityClass, persistentClass);
+            PersistentClass persistentClass = binder.bindEntity(entityClass);
             metadata.addEntityBinding(entityClass.getSimpleName().toLowerCase(), persistentClass);
         }
         return metadata;

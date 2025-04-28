@@ -3,7 +3,7 @@ package org.waitlight.simple.jsonql.engine;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.statement.model.SelectStatement;
 
-public class OrderByClauseExecutor extends ClauseExecutor {
+public class OrderByClauseExecutor extends AbstractClauseExecutor {
 
     public OrderByClauseExecutor(MetadataSources metadataSources) {
         super(metadataSources);
