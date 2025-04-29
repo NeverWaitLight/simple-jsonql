@@ -5,7 +5,7 @@ import org.waitlight.simple.jsonql.config.DBConfig;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.statement.model.JsonqlStatement;
 import org.waitlight.simple.jsonql.statement.model.StatementType;
-import org.waitlight.simple.jsonql.statement.parser.JsonQLParser;
+import org.waitlight.simple.jsonql.statement.JsonQLParser;
 
 import java.sql.Connection;
 import java.sql.ResultSet;

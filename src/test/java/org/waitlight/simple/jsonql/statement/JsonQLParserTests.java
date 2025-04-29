@@ -2,8 +2,6 @@ package org.waitlight.simple.jsonql.statement;
 
 import org.junit.jupiter.api.Test;
 import org.waitlight.simple.jsonql.statement.model.*;
-import org.waitlight.simple.jsonql.statement.parser.JsonQLParser;
-import org.waitlight.simple.jsonql.statement.parser.JsonqlParseException;
 
 import java.util.List;
 

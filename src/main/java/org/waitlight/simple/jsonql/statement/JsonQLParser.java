@@ -1,4 +1,4 @@
-package org.waitlight.simple.jsonql.statement.parser;
+package org.waitlight.simple.jsonql.statement;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.waitlight.simple.jsonql.statement.model.*;

@@ -1,4 +1,4 @@
-package org.waitlight.simple.jsonql.statement.parser;
+package org.waitlight.simple.jsonql.statement;
 
 public class JsonqlParseException extends Exception {
     public JsonqlParseException(String message) {
