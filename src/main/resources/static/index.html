@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理系统</title>
+    <!-- 引入Element UI样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <style>
+        :root {
+            --morandi-green: #8BA888;
+            --morandi-green-light: #A5B5A3;
+            --morandi-green-dark: #6B8A6B;
+            --morandi-blue: #A5B5C8;
+            --morandi-blue-light: #B5C5D3;
+            --morandi-blue-dark: #8B9AAB;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+        }
+        
+        .el-button {
+            border-radius: 20px;
+        }
+        
+        .el-header {
+            background-color: var(--morandi-green);
+            color: white;
+            line-height: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+        
+        .el-aside {
+            background-color: #f5f7fa;
+            border-right: solid 1px #e6e6e6;
+        }
+        
+        .el-menu {
+            border-right: none;
+        }
+        
+        .el-main {
+            padding: 20px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .add-page-btn {
+            margin-right: 20px;
+            padding: 5px 15px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <el-container style="height: 100vh;">
+            <el-header>
+                <div style="display: flex; justify-content: flex-end; width: 100%;">
+                    <el-button type="primary" class="add-page-btn" @click="goToLayoutEditor">新增页面</el-button>
+                    <el-dropdown>
+                        <span class="el-dropdown-link">
+                            {{ username }}<i class="el-icon-arrow-down el-icon--right"></i>
+                        </span>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item>个人信息</el-dropdown-item>
+                            <el-dropdown-item>退出登录</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </div>
+            </el-header>
+            
+            <el-container>
+                <el-aside width="200px">
+                    <el-menu
+                        default-active="1"
+                        class="el-menu-vertical"
+                        background-color="#f5f7fa"
+                        text-color="#303133"
+                        active-text-color="#409EFF">
+                        <el-menu-item index="1">
+                            <i class="el-icon-goods"></i>
+                            <span slot="title">库存管理</span>
+                        </el-menu-item>
+                        <el-menu-item index="2">
+                            <i class="el-icon-s-custom"></i>
+                            <span slot="title">组织架构</span>
+                        </el-menu-item>
+                        <el-menu-item index="3">
+                            <i class="el-icon-lock"></i>
+                            <span slot="title">权限管理</span>
+                        </el-menu-item>
+                        <el-menu-item index="4">
+                            <i class="el-icon-user"></i>
+                            <span slot="title">账号管理</span>
+                        </el-menu-item>
+                    </el-menu>
+                </el-aside>
+                
+                <el-main>
+                    <el-card>
+                        <div slot="header">
+                            <span>库存列表</span>
+                        </div>
+                        <el-table :data="tableData" style="width: 100%">
+                            <el-table-column prop="id" label="ID" width="180"></el-table-column>
+                            <el-table-column prop="name" label="名称" width="180"></el-table-column>
+                            <el-table-column prop="quantity" label="数量"></el-table-column>
+                            <el-table-column prop="status" label="状态"></el-table-column>
+                            <el-table-column label="操作">
+                                <template slot-scope="scope">
+                                    <el-button size="mini" @click="handleEdit(scope.row)">编辑</el-button>
+                                    <el-button size="mini" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                        <div style="margin-top: 20px">
+                            <el-pagination
+                                @size-change="handleSizeChange"
+                                @current-change="handleCurrentChange"
+                                :current-page="currentPage"
+                                :page-sizes="[10, 20, 30, 40]"
+                                :page-size="pageSize"
+                                layout="total, sizes, prev, pager, next, jumper"
+                                :total="total">
+                            </el-pagination>
+                        </div>
+                    </el-card>
+                </el-main>
+            </el-container>
+        </el-container>
+    </div>
+
+    <!-- 引入Vue和Element UI -->
+    <script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    username: '管理员',
+                    tableData: [
+                        { id: 1, name: '商品1', quantity: 100, status: '正常' },
+                        { id: 2, name: '商品2', quantity: 200, status: '正常' },
+                        { id: 3, name: '商品3', quantity: 300, status: '正常' }
+                    ],
+                    currentPage: 1,
+                    pageSize: 10,
+                    total: 100
+                }
+            },
+            methods: {
+                goToLayoutEditor() {
+                    window.location.href = 'ai-generator.html';
+                },
+                handleEdit(row) {
+                    console.log('编辑', row);
+                },
+                handleDelete(row) {
+                    console.log('删除', row);
+                },
+                handleSizeChange(val) {
+                    this.pageSize = val;
+                },
+                handleCurrentChange(val) {
+                    this.currentPage = val;
+                }
+            }
+        })
+    </script>
+</body>
+</html> 

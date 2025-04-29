@@ -2,8 +2,6 @@ package org.waitlight.simple.jsonql.engine;
 
 import lombok.extern.slf4j.Slf4j;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
-import org.waitlight.simple.jsonql.metadata.PersistentClass;
-import org.waitlight.simple.jsonql.metadata.Property;
 import org.waitlight.simple.jsonql.statement.QueryStatement;
 import org.waitlight.simple.jsonql.statement.model.*;
 
@@ -11,18 +9,18 @@ import java.sql.*;
 import java.util.*;
 
 @Slf4j
-public class SelectExecutor extends StatementExecutor {
-    private static SelectExecutor instance;
+public class QueryExecutor extends StatementExecutor {
+    private static QueryExecutor instance;
     private final ClauseExecutor clauseExecutor;
 
-    private SelectExecutor(MetadataSources metadataSources) {
+    private QueryExecutor(MetadataSources metadataSources) {
         super(metadataSources);
         this.clauseExecutor = new ClauseExecutor(metadataSources);
     }
 
-    public static synchronized SelectExecutor getInstance(MetadataSources metadataSources) {
+    public static synchronized QueryExecutor getInstance(MetadataSources metadataSources) {
         if (instance == null) {
-            instance = new SelectExecutor(metadataSources);
+            instance = new QueryExecutor(metadataSources);
         }
         return instance;
     }

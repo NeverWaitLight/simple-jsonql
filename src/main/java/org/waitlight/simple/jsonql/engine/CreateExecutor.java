@@ -13,16 +13,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-public class InsertExecutor extends StatementExecutor {
-    private static InsertExecutor instance;
+public class CreateExecutor extends StatementExecutor {
+    private static CreateExecutor instance;
 
-    private InsertExecutor(MetadataSources metadataSources) {
+    private CreateExecutor(MetadataSources metadataSources) {
         super(metadataSources);
     }
 
-    public static synchronized InsertExecutor getInstance(MetadataSources metadataSources) {
+    public static synchronized CreateExecutor getInstance(MetadataSources metadataSources) {
         if (instance == null) {
-            instance = new InsertExecutor(metadataSources);
+            instance = new CreateExecutor(metadataSources);
         }
         return instance;
     }
