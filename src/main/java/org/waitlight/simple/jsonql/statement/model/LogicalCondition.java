@@ -8,7 +8,7 @@ import java.util.List;
 @Getter
 @Setter
 public class LogicalCondition implements WhereCondition {
-    private OperatorType operator;
+    private MethodType operator;
     private List<WhereCondition> conditions;
 
     @Override

@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.metadata.PersistentClass;
 import org.waitlight.simple.jsonql.metadata.Property;
+import org.waitlight.simple.jsonql.statement.QueryStatement;
 import org.waitlight.simple.jsonql.statement.model.*;
 
 import java.sql.*;
@@ -35,61 +36,107 @@ public class SelectExecutor extends StatementExecutor {
     }
 
     @Override
-    protected SqlAndParameters parseSql(JsonqlStatement statement) {
-        if (!(statement instanceof SelectStatement selectStatement))
+    protected SqlAndParameters parseSql(JsonQLStatement statement) {
+        if (!(statement instanceof QueryStatement queryStatement))
             throw new IllegalArgumentException(
-                    "Expected SelectStatement but got " + statement.getClass().getSimpleName());
-
-        List<String> selectFields = new ArrayList<>(selectStatement.getSelect());
-        PersistentClass entity = metadata.getEntityBinding(selectStatement.getFrom());
-
-        // 处理关联字段
-        for (Property prop : entity.getProperties()) {
-            if (!selectFields.contains(prop.getName()) || Objects.isNull(prop.getRelationshipType())) continue;
-
-            selectFields.remove(prop.getName());
-            PersistentClass targetEntity = metadata.getEntityBinding(prop.getJoinTableName());
-
-            // 添加目标表字段
-            for (Property targetProp : targetEntity.getProperties()) {
-                if (!"relationshipType".equals(targetProp.getName())) {
-                    selectFields.add(String.format("%s.%s as %s_%s",
-                            targetEntity.getTableName().toLowerCase(),
-                            targetProp.getColumn(),
-                            prop.getName(),
-                            targetProp.getName()));
-                }
-            }
-
-            // 添加 JOIN 信息
-            Join join = new Join();
-            join.setType(JoinType.LEFT); // 默认使用 LEFT JOIN
-            join.setTable(targetEntity.getTableName().toLowerCase());
-
-            // 构建 ON 条件
-            ComparisonCondition onCondition = new ComparisonCondition();
-            onCondition.setField(prop.getForeignKeyName());
-            onCondition.setOperatorType(OperatorType.EQ);
-            onCondition.setValue(targetEntity.getTableName().toLowerCase() + ".id");
-            join.setOn(onCondition);
-
-            // 添加到 joins 列表
-            if (selectStatement.getJoins() == null) {
-                selectStatement.setJoins(new ArrayList<>());
-            }
-            selectStatement.getJoins().add(join);
-        }
+                    "Expected QueryStatement but got " + statement.getClass().getSimpleName());
 
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT ")
-                .append(String.join(", ", selectFields))
-                .append(" FROM ")
-                .append(entity.getTableName().toLowerCase());
+        List<Object> parameters = new ArrayList<>();
 
-        // 处理所有子句
-        clauseExecutor.buildClause(selectStatement, sql);
+        // 获取页面设置和筛选条件
+        Page page = queryStatement.getPage();
+        Filter filters = queryStatement.getFilters();
+        List<Sort> sort = queryStatement.getSort();
 
-        return new SqlAndParameters(sql.toString(), null);
+        // 确定查询的实体/表名
+        String entityId = queryStatement.getEntityId();
+        if (entityId == null) {
+            throw new IllegalArgumentException("EntityId is required for query");
+        }
+
+        // 构建基本 SELECT 语句
+        sql.append("SELECT * FROM ").append(entityId);
+
+        // 处理 WHERE 子句 (filters)
+        if (filters != null && filters.getConditions() != null && !filters.getConditions().isEmpty()) {
+            sql.append(" WHERE ");
+
+            List<Condition> conditions = filters.getConditions();
+            String rel = filters.getRel() != null ? filters.getRel().toUpperCase() : "AND";
+            
+            for (int i = 0; i < conditions.size(); i++) {
+                Condition condition = conditions.get(i);
+                
+                if (i > 0) {
+                    sql.append(" ").append(rel).append(" ");
+                }
+                
+                sql.append(condition.getField()).append(" ");
+                
+                // 根据方法类型添加操作符
+                switch (condition.getMethod()) {
+                    case EQ -> sql.append("= ?");
+                    case NE -> sql.append("<> ?");
+                    case GT -> sql.append("> ?");
+                    case GE -> sql.append(">= ?");
+                    case LT -> sql.append("< ?");
+                    case LE -> sql.append("<= ?");
+                    case LIKE -> sql.append("LIKE ?");
+                    case IN -> {
+                        sql.append("IN (");
+                        List<Object> values = condition.getValues();
+                        if (values != null && !values.isEmpty()) {
+                            for (int j = 0; j < values.size(); j++) {
+                                if (j > 0) {
+                                    sql.append(", ");
+                                }
+                                sql.append("?");
+                                parameters.add(values.get(j));
+                            }
+                        } else {
+                            sql.append("?");
+                            parameters.add(condition.getValue());
+                        }
+                        sql.append(")");
+                        continue; // 跳过下面的单值参数添加
+                    }
+                    default -> sql.append("= ?");
+                }
+                
+                // 添加参数（针对非IN条件）
+                if (condition.getMethod() != MethodType.IN) {
+                    parameters.add(condition.getValue());
+                }
+            }
+        }
+
+        // 处理 ORDER BY 子句 (sort)
+        if (sort != null && !sort.isEmpty()) {
+            sql.append(" ORDER BY ");
+            for (int i = 0; i < sort.size(); i++) {
+                Sort sortItem = sort.get(i);
+                if (i > 0) {
+                    sql.append(", ");
+                }
+                sql.append(sortItem.getField()).append(" ").append(sortItem.getDirection());
+            }
+        }
+
+        // 处理 LIMIT 和 OFFSET 子句 (page)
+        if (page != null) {
+            if (page.getSize() != null) {
+                sql.append(" LIMIT ").append(page.getSize());
+            }
+            if (page.getNumber() != null && page.getSize() != null) {
+                int offset = (page.getNumber() - 1) * page.getSize();
+                if (offset > 0) {
+                    sql.append(" OFFSET ").append(offset);
+                }
+            }
+        }
+
+        return new SqlAndParameters(sql.toString(), parameters);
     }
 
     private List<Map<String, Object>> processResultSet(ResultSet rs) throws SQLException {
@@ -126,4 +173,4 @@ public class SelectExecutor extends StatementExecutor {
         }
         return result;
     }
-}
+} 

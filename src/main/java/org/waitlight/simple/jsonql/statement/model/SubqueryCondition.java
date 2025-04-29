@@ -1,5 +1,7 @@
 package org.waitlight.simple.jsonql.statement.model;
 
+import org.waitlight.simple.jsonql.statement.QueryStatement;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,7 +12,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SubqueryCondition implements WhereCondition {
-    private SelectStatement subquery;
+    private QueryStatement subquery;
     private boolean not;
 
     @Override

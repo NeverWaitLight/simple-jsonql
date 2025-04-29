@@ -1,5 +1,6 @@
 package org.waitlight.simple.jsonql.statement.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,7 +12,10 @@ import lombok.Setter;
 @Setter
 public class ComparisonCondition implements WhereCondition {
     private String field;
-    private OperatorType operatorType;
+    
+    @JsonProperty("operator")
+    private MethodType operatorType;
+    
     private Object value;
     private boolean not;
 

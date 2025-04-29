@@ -2,8 +2,8 @@ package org.waitlight.simple.jsonql.engine;
 
 import lombok.extern.slf4j.Slf4j;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
-import org.waitlight.simple.jsonql.statement.model.DeleteStatement;
-import org.waitlight.simple.jsonql.statement.model.JsonqlStatement;
+import org.waitlight.simple.jsonql.statement.DeleteStatement;
+import org.waitlight.simple.jsonql.statement.model.JsonQLStatement;
 import org.waitlight.simple.jsonql.statement.model.WhereCondition;
 
 import java.sql.Connection;
@@ -35,13 +35,13 @@ public class DeleteExecutor extends StatementExecutor {
     }
 
     @Override
-    protected SqlAndParameters parseSql(JsonqlStatement statement) {
+    protected SqlAndParameters parseSql(JsonQLStatement statement) {
         if (!(statement instanceof DeleteStatement)) {
             throw new IllegalArgumentException("Expected DeleteStatement but got " + statement.getClass().getSimpleName());
         }
         DeleteStatement deleteStatement = (DeleteStatement) statement;
         StringBuilder sql = new StringBuilder();
-        sql.append("DELETE FROM ").append(deleteStatement.getFrom());
+        sql.append("DELETE FROM ").append(deleteStatement.getEntityId());
 
         // 处理 WHERE 子句
         WhereCondition where = deleteStatement.getWhere();

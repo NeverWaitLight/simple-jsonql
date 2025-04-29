@@ -3,7 +3,7 @@ package org.waitlight.simple.jsonql.engine;
 import lombok.extern.slf4j.Slf4j;
 import org.waitlight.simple.jsonql.config.DBConfig;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
-import org.waitlight.simple.jsonql.statement.model.JsonqlStatement;
+import org.waitlight.simple.jsonql.statement.model.JsonQLStatement;
 import org.waitlight.simple.jsonql.statement.model.StatementType;
 import org.waitlight.simple.jsonql.statement.JsonQLParser;
 
@@ -28,21 +28,21 @@ public class JsonQLEngine {
 
     private Map<StatementType, StatementExecutor> initializeExecutors() {
         Map<StatementType, StatementExecutor> executors = new HashMap<>();
-        executors.put(StatementType.SELECT, SelectExecutor.getInstance(metadataSources));
-        executors.put(StatementType.INSERT, InsertExecutor.getInstance(metadataSources));
+        executors.put(StatementType.QUERY, SelectExecutor.getInstance(metadataSources));
+        executors.put(StatementType.CREATE, InsertExecutor.getInstance(metadataSources));
         executors.put(StatementType.UPDATE, UpdateExecutor.getInstance(metadataSources));
         executors.put(StatementType.DELETE, DeleteExecutor.getInstance(metadataSources));
         return executors;
     }
 
     public Object execute(String jsonQuery) throws Exception {
-        JsonqlStatement statement = parser.parse(jsonQuery);
+        JsonQLStatement statement = parser.parse(jsonQuery);
         try (Connection conn = DBConfig.getConnection()) {
             return execute(conn, statement);
         }
     }
 
-    private Object execute(Connection conn, JsonqlStatement statement) throws SQLException {
+    private Object execute(Connection conn, JsonQLStatement statement) throws SQLException {
         StatementExecutor executor = executors.get(statement.getStatement());
         if (executor == null) {
             throw new IllegalStateException("Unsupported statement type: " + statement.getStatement());

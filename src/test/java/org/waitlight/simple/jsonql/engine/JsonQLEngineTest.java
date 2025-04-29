@@ -29,7 +29,7 @@ public class JsonQLEngineTest {
         String randomName = "张三" + new Random().nextInt();
         String jsonQuery = """
                 {
-                    "statement": "insert",
+                    "statement": "create",
                     "into": "user",
                     "values": {
                         "name": "%s"
@@ -45,7 +45,7 @@ public class JsonQLEngineTest {
         // Verify the inserted data
         String selectQuery = """
                 {
-                    "statement": "SELECT",
+                    "statement": "query",
                     "select": ["name"],
                     "from": "user",
                     "where": {
@@ -73,7 +73,7 @@ public class JsonQLEngineTest {
         String randomName = "张三" + new Random().nextInt();
         String insertQuery = """
                 {
-                    "statement": "insert",
+                    "statement": "create",
                     "into": "user",
                     "values": {
                         "name": "%s"
@@ -104,7 +104,7 @@ public class JsonQLEngineTest {
         // Verify the record is deleted
         String selectQuery = """
                 {
-                    "statement": "SELECT",
+                    "statement": "query",
                     "select": ["name"],
                     "from": "user",
                     "where": {
@@ -129,7 +129,7 @@ public class JsonQLEngineTest {
     public void selectSingleTable() throws Exception {
         String jsonQuery = """
                 {
-                    "statement": "SELECT",
+                    "statement": "query",
                     "select": ["name"],
                     "from": "user"
                 }
@@ -154,7 +154,7 @@ public class JsonQLEngineTest {
     public void selectAndJoin() throws Exception {
         String jsonQuery = """
                 {
-                    "statement": "SELECT",
+                    "statement": "query",
                     "select": ["name", "blogs"],
                     "from": "user"
                 }

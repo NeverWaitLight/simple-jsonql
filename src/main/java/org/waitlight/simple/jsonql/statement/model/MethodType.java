@@ -3,7 +3,7 @@ package org.waitlight.simple.jsonql.statement.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum OperatorType {
+public enum MethodType {
     EQ("="),
     NE("<>"),
     GT(">"),
@@ -22,7 +22,7 @@ public enum OperatorType {
 
     private final String symbol;
 
-    OperatorType(String symbol) {
+    MethodType(String symbol) {
         this.symbol = symbol;
     }
 
@@ -36,7 +36,7 @@ public enum OperatorType {
     }
 
     @JsonCreator
-    public static OperatorType fromValue(String value) {
+    public static MethodType fromValue(String value) {
         try {
             return valueOf(value.toUpperCase());
         } catch (IllegalArgumentException e) {

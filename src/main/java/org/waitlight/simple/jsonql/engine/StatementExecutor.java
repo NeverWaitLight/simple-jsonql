@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.waitlight.simple.jsonql.metadata.Metadata;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
-import org.waitlight.simple.jsonql.statement.model.JsonqlStatement;
+import org.waitlight.simple.jsonql.statement.model.JsonQLStatement;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -24,7 +24,7 @@ public abstract class StatementExecutor {
         this.metadata = metadataSources.buildMetadata();
     }
 
-    public Object execute(Connection conn, JsonqlStatement statement) throws SQLException {
+    public Object execute(Connection conn, JsonQLStatement statement) throws SQLException {
         SqlAndParameters sqlAndParameters = parseSql(statement);
         log.info("SQL: {}", sqlAndParameters.sql());
         if (CollectionUtils.isNotEmpty(sqlAndParameters.parameters())) {
@@ -44,7 +44,7 @@ public abstract class StatementExecutor {
      * @param statement SQL 语句对象
      * @return 解析后的 SQL 语句
      */
-    protected abstract SqlAndParameters parseSql(JsonqlStatement statement);
+    protected abstract SqlAndParameters parseSql(JsonQLStatement statement);
 
     public record SqlAndParameters(
             String sql,

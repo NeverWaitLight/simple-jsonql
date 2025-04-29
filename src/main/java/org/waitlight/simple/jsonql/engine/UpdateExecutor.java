@@ -2,13 +2,15 @@ package org.waitlight.simple.jsonql.engine;
 
 import lombok.extern.slf4j.Slf4j;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
-import org.waitlight.simple.jsonql.statement.model.JsonqlStatement;
-import org.waitlight.simple.jsonql.statement.model.UpdateStatement;
-import org.waitlight.simple.jsonql.statement.model.WhereCondition;
+import org.waitlight.simple.jsonql.statement.UpdateStatement;
+import org.waitlight.simple.jsonql.statement.model.*;
+import org.waitlight.simple.jsonql.statement.model.Field;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 public class UpdateExecutor extends StatementExecutor {
@@ -35,29 +37,36 @@ public class UpdateExecutor extends StatementExecutor {
     }
 
     @Override
-    protected SqlAndParameters parseSql(JsonqlStatement statement) {
+    protected SqlAndParameters parseSql(JsonQLStatement statement) {
         if (!(statement instanceof UpdateStatement)) {
             throw new IllegalArgumentException("Expected UpdateStatement but got " + statement.getClass().getSimpleName());
         }
         UpdateStatement updateStatement = (UpdateStatement) statement;
         StringBuilder sql = new StringBuilder();
         sql.append("UPDATE ")
-                .append(updateStatement.getUpdate())
+                .append(updateStatement.getEntityId())
                 .append(" SET ");
 
         // 处理 SET 子句
-        String[] setClauses = updateStatement.getSet().entrySet().stream()
-                .map(entry -> entry.getKey() + " = ?")
-                .toArray(String[]::new);
+        List<String> setClauses = new ArrayList<>();
+        List<Object> parameters = new ArrayList<>();
+        
+        for (Field field : updateStatement.getFields()) {
+            if (field.getValues() != null) {
+                // 处理嵌套实体
+                log.warn("Nested entity updates are not supported in SQL: {}", field.getField());
+                continue;
+            }
+            setClauses.add(field.getField() + " = ?");
+            parameters.add(field.getValue());
+        }
+        
         sql.append(String.join(", ", setClauses));
 
-        // 处理 WHERE 子句
-        WhereCondition where = updateStatement.getWhere();
-        if (where != null) {
-            sql.append(" WHERE ")
-                    .append(whereClauseExecutor.buildClause(where));
-        }
+        // 添加 WHERE 子句
+        sql.append(" WHERE id = ?");
+        parameters.add(updateStatement.getDataId());
 
-        return new SqlAndParameters(sql.toString(), null);
+        return new SqlAndParameters(sql.toString(), parameters);
     }
 }
