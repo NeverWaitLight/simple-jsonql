@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>组织架构管理</title>
+    <!-- 引入Element UI样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <style>
+        :root {
+            --morandi-green: #8BA888;
+            --morandi-green-light: #A5B5A3;
+            --morandi-green-dark: #6B8A6B;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+        }
+        
+        .el-container {
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .el-header {
+            background-color: var(--morandi-green);
+            color: white;
+            line-height: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            height: 60px !important;
+        }
+        
+        .el-aside {
+            background-color: #f5f7fa;
+            border-right: solid 1px #e6e6e6;
+            height: calc(100vh - 60px);
+        }
+        
+        .el-menu {
+            border-right: none;
+        }
+        
+        .el-main {
+            padding: 20px;
+            background-color: #f5f7fa;
+            height: calc(100vh - 60px);
+        }
+        
+        .el-button {
+            border-radius: 20px;
+        }
+        
+        .org-tree {
+            padding: 20px;
+        }
+        
+        .org-content {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
+        }
+        
+        .search-bar {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .search-bar .el-input {
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <el-container>
+            <el-header>
+                <div style="display: flex; justify-content: space-between; width: 100%;">
+                    <el-button type="primary" @click="goBack">返回</el-button>
+                    <div>
+                        <el-button type="primary" @click="handleAdd">新增部门</el-button>
+                    </div>
+                </div>
+            </el-header>
+            
+            <el-container>
+                <el-aside width="300px">
+                    <div class="org-tree">
+                        <el-tree
+                            :data="treeData"
+                            :props="defaultProps"
+                            @node-click="handleNodeClick"
+                            default-expand-all>
+                        </el-tree>
+                    </div>
+                </el-aside>
+                
+                <el-main>
+                    <div class="org-content">
+                        <div class="search-bar">
+                            <el-input
+                                placeholder="请输入部门名称"
+                                v-model="searchQuery"
+                                clearable>
+                            </el-input>
+                            <el-button type="primary" @click="handleSearch">搜索</el-button>
+                        </div>
+                        
+                        <el-table :data="tableData" style="width: 100%">
+                            <el-table-column prop="name" label="部门名称" width="180"></el-table-column>
+                            <el-table-column prop="code" label="部门编码" width="180"></el-table-column>
+                            <el-table-column prop="leader" label="负责人"></el-table-column>
+                            <el-table-column prop="phone" label="联系电话"></el-table-column>
+                            <el-table-column prop="status" label="状态">
+                                <template slot-scope="scope">
+                                    <el-tag :type="scope.row.status === '启用' ? 'success' : 'info'">
+                                        {{ scope.row.status }}
+                                    </el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="操作" width="200">
+                                <template slot-scope="scope">
+                                    <el-button size="mini" @click="handleEdit(scope.row)">编辑</el-button>
+                                    <el-button size="mini" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                        
+                        <div style="margin-top: 20px">
+                            <el-pagination
+                                @size-change="handleSizeChange"
+                                @current-change="handleCurrentChange"
+                                :current-page="currentPage"
+                                :page-sizes="[10, 20, 30, 40]"
+                                :page-size="pageSize"
+                                layout="total, sizes, prev, pager, next, jumper"
+                                :total="total">
+                            </el-pagination>
+                        </div>
+                    </div>
+                </el-main>
+            </el-container>
+        </el-container>
+    </div>
+
+    <!-- 引入Vue和Element UI -->
+    <script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    searchQuery: '',
+                    currentPage: 1,
+                    pageSize: 10,
+                    total: 100,
+                    treeData: [{
+                        label: '总公司',
+                        children: [{
+                            label: '研发部',
+                            children: [{
+                                label: '前端组'
+                            }, {
+                                label: '后端组'
+                            }]
+                        }, {
+                            label: '市场部',
+                            children: [{
+                                label: '销售组'
+                            }, {
+                                label: '推广组'
+                            }]
+                        }]
+                    }],
+                    defaultProps: {
+                        children: 'children',
+                        label: 'label'
+                    },
+                    tableData: [{
+                        name: '研发部',
+                        code: 'DEV001',
+                        leader: '张三',
+                        phone: '13800138000',
+                        status: '启用'
+                    }, {
+                        name: '市场部',
+                        code: 'MKT001',
+                        leader: '李四',
+                        phone: '13800138001',
+                        status: '启用'
+                    }]
+                }
+            },
+            methods: {
+                goBack() {
+                    window.location.href = 'index.html';
+                },
+                handleNodeClick(data) {
+                    console.log(data);
+                },
+                handleSearch() {
+                    console.log('搜索:', this.searchQuery);
+                },
+                handleAdd() {
+                    this.$message.success('新增部门功能开发中...');
+                },
+                handleEdit(row) {
+                    console.log('编辑:', row);
+                },
+                handleDelete(row) {
+                    this.$confirm('确认删除该部门吗？', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        this.$message.success('删除成功');
+                    }).catch(() => {});
+                },
+                handleSizeChange(val) {
+                    this.pageSize = val;
+                },
+                handleCurrentChange(val) {
+                    this.currentPage = val;
+                }
+            }
+        })
+    </script>
+</body>
+</html> 

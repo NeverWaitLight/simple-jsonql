@@ -34,6 +34,46 @@
             justify-content: space-between;
             align-items: center;
             padding: 0 20px;
+            height: 60px !important;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+            margin-right: 20px;
+        }
+        
+        .logo span {
+            color: var(--morandi-green-light);
+        }
+        
+        .el-menu--horizontal {
+            border-bottom: none;
+            background-color: transparent;
+        }
+        
+        .el-menu--horizontal > .el-menu-item {
+            height: 60px;
+            line-height: 60px;
+            color: white;
+        }
+        
+        .el-menu--horizontal > .el-menu-item:hover,
+        .el-menu--horizontal > .el-menu-item.is-active {
+            background-color: var(--morandi-green-dark);
+            color: white;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
         }
         
         .el-aside {
@@ -64,7 +104,10 @@
     <div id="app">
         <el-container style="height: 100vh;">
             <el-header>
-                <div style="display: flex; justify-content: flex-end; width: 100%;">
+                <div class="header-left">
+                    <a href="#" class="logo">A<span>Xi</span></a>
+                </div>
+                <div class="header-right">
                     <el-button type="primary" class="add-page-btn" @click="goToLayoutEditor">新增页面</el-button>
                     <el-dropdown>
                         <span class="el-dropdown-link">
@@ -90,11 +133,11 @@
                             <i class="el-icon-goods"></i>
                             <span slot="title">库存管理</span>
                         </el-menu-item>
-                        <el-menu-item index="2">
+                        <el-menu-item index="2" @click="goToOrganization">
                             <i class="el-icon-s-custom"></i>
                             <span slot="title">组织架构</span>
                         </el-menu-item>
-                        <el-menu-item index="3">
+                        <el-menu-item index="3" @click="goToPermission">
                             <i class="el-icon-lock"></i>
                             <span slot="title">权限管理</span>
                         </el-menu-item>
@@ -161,6 +204,12 @@
             methods: {
                 goToLayoutEditor() {
                     window.location.href = 'ai-generator.html';
+                },
+                goToOrganization() {
+                    window.location.href = 'organization.html';
+                },
+                goToPermission() {
+                    window.location.href = 'permission.html';
                 },
                 handleEdit(row) {
                     console.log('编辑', row);
