@@ -38,7 +38,181 @@
         .el-main {
             padding: 20px;
             height: calc(100vh - 60px);
+            overflow: hidden;
+            display: flex;
+            gap: 20px;
+        }
+        
+        .data-pool {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #e4e7ed;
+            width: 360px;
+            height: calc(100vh - 100px);
+            overflow-y: visible;
+            flex-shrink: 0;
+        }
+        
+        .data-pool-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .data-pool-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--morandi-green);
+        }
+        
+        .data-pool-content {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .data-card {
+            background: white;
+            border-radius: 4px;
+            padding: 15px;
+            border: 1px solid #ebeef5;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .data-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ebeef5;
+        }
+        
+        .data-card-title {
+            font-weight: bold;
+            color: #303133;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .data-preview {
+            font-size: 12px;
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 4px;
+            max-height: 160px;
             overflow: auto;
+            flex: 1;
+        }
+        
+        .data-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid #ebeef5;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .data-item:hover {
+            background-color: #f5f7fa;
+        }
+        
+        .data-item:last-child {
+            border-bottom: none;
+        }
+        
+        .data-label {
+            color: #303133;
+            flex: 1;
+        }
+        
+        .data-value {
+            color: var(--morandi-green);
+            font-family: monospace;
+            padding: 3px 8px;
+            background: #f5f7fa;
+            border-radius: 4px;
+            font-size: 12px;
+            word-break: break-all;
+        }
+        
+        .data-group-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: #606266;
+            margin: 12px 0 8px;
+            padding-left: 8px;
+            border-left: 3px solid var(--morandi-green);
+        }
+        
+        .data-group-title:first-child {
+            margin-top: 0;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        
+        .data-table th {
+            background: #f5f7fa;
+            padding: 8px;
+            text-align: left;
+            color: #909399;
+            font-weight: normal;
+        }
+        
+        .data-table td {
+            padding: 8px;
+            border-bottom: 1px solid #ebeef5;
+            color: #303133;
+        }
+        
+        .data-tag {
+            display: inline-block;
+            padding: 2px 6px;
+            background: var(--morandi-green-light);
+            color: white;
+            border-radius: 4px;
+            margin: 2px;
+            font-size: 11px;
+        }
+        
+        .data-status {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+        
+        .data-status.pending {
+            background: #e6a23c1a;
+            color: #e6a23c;
+        }
+        
+        .data-status.success {
+            background: #67c23a1a;
+            color: #67c23a;
+        }
+        
+        .copy-button {
+            padding: 2px 5px;
+            font-size: 12px;
+        }
+        
+        .main-content {
+            flex: 1;
+            min-width: 0;
+            height: calc(100vh - 100px);
+            overflow-y: auto;
         }
         
         .dataflow-container {
@@ -46,6 +220,7 @@
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
+            height: 100%;
         }
         
         .dataflow-header {
@@ -65,6 +240,8 @@
         
         .node-list {
             margin: 20px 0;
+            overflow-y: auto;
+            max-height: calc(100vh - 300px);
         }
         
         .node-item {
@@ -123,17 +300,6 @@
             border-top: 1px solid #ebeef5;
         }
         
-        .data-preview {
-            margin-top: 10px;
-            max-height: 200px;
-            overflow: auto;
-            font-family: monospace;
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 4px;
-            font-size: 12px;
-        }
-        
         .node-status {
             display: flex;
             align-items: center;
@@ -158,6 +324,24 @@
         .status-dot.error {
             background-color: #F56C6C;
         }
+
+        /* 确保表单元素正确显示 */
+        .el-form {
+            margin-bottom: 20px;
+        }
+
+        .el-form-item {
+            margin-bottom: 18px;
+        }
+
+        .el-form-item__label {
+            font-weight: normal;
+            color: #606266;
+        }
+
+        .el-select {
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -174,95 +358,270 @@
             </el-header>
             
             <el-main>
-                <div class="dataflow-container">
-                    <div class="dataflow-header">
-                        <h1 class="dataflow-title">
-                            <i :class="dataflowData.icon"></i>
-                            {{ dataflowData.name }}
-                        </h1>
-                        <el-row :gutter="20" style="margin-top: 20px;">
-                            <el-col :span="8">
-                                <el-form-item label="流程类型">
-                                    <el-select v-model="dataflowData.type" style="width: 100%;">
-                                        <el-option label="同步流程" value="同步流程"></el-option>
-                                        <el-option label="处理流程" value="处理流程"></el-option>
-                                    </el-select>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="8">
-                                <el-form-item label="数据源">
-                                    <el-input v-model="dataflowData.source"></el-input>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="8">
-                                <el-form-item label="状态">
-                                    <el-tag :type="dataflowData.status === '运行中' ? 'success' : 'info'">
-                                        {{ dataflowData.status }}
-                                    </el-tag>
-                                </el-form-item>
-                            </el-col>
-                        </el-row>
+                <!-- 左侧数据池 -->
+                <div class="data-pool">
+                    <div class="data-pool-header">
+                        <div class="data-pool-title">
+                            <i class="el-icon-coin"></i> 数据池
+                        </div>
+                        <el-tooltip content="数据池中的变量可在节点配置中通过 {{variable}} 语法引用" placement="top">
+                            <i class="el-icon-question"></i>
+                        </el-tooltip>
                     </div>
-                    
-                    <div class="node-list">
-                        <div v-for="(node, index) in nodes" :key="index" class="node-item">
-                            <div class="node-header">
-                                <div class="node-title">
-                                    <i :class="node.icon"></i>
-                                    {{ node.title }}
-                                    <div class="node-status">
-                                        <span class="status-dot" :class="node.status"></span>
-                                        {{ node.statusText }}
-                                    </div>
-                                </div>
-                                <div class="node-actions">
-                                    <el-button size="mini" type="text" @click="previewData(index)">预览数据</el-button>
-                                    <el-button size="mini" type="text" @click="editNode(index)">编辑</el-button>
-                                    <el-button size="mini" type="text" style="color: #F56C6C;" @click="deleteNode(index)">删除</el-button>
+                    <div class="data-pool-content">
+                        <div class="data-card">
+                            <div class="data-card-header">
+                                <div class="data-card-title">
+                                    <i class="el-icon-shopping-cart-full"></i>
+                                    订单数据
                                 </div>
                             </div>
-                            <div class="node-content">
-                                <p>数据源：{{ node.source }}</p>
-                                <p>处理方式：{{ node.processType }}</p>
-                                <p v-if="node.showPreview" class="data-preview">{{ node.previewData }}</p>
+                            <div class="data-preview">
+                                <div class="data-group-title">基础信息</div>
+                                <div class="data-item" @click="copyReference('order.order_id')">
+                                    <span class="data-label">订单编号</span>
+                                    <span class="data-value">order.order_id</span>
+                                </div>
+                                <div class="data-item" @click="copyReference('order.customer_id')">
+                                    <span class="data-label">客户编号</span>
+                                    <span class="data-value">order.customer_id</span>
+                                </div>
+                                <div class="data-item" @click="copyReference('order.status')">
+                                    <span class="data-label">订单状态</span>
+                                    <span class="data-value">order.status</span>
+                                </div>
+                                <div class="data-group-title">商品信息</div>
+                                <div class="data-item" @click="copyReference('order.items[0].product_id')">
+                                    <span class="data-label">商品编号</span>
+                                    <span class="data-value">order.items[0].product_id</span>
+                                </div>
+                                <div class="data-item" @click="copyReference('order.items[0].quantity')">
+                                    <span class="data-label">商品数量</span>
+                                    <span class="data-value">order.items[0].quantity</span>
+                                </div>
+                                <div class="data-item" @click="copyReference('order.total_amount')">
+                                    <span class="data-label">订单金额</span>
+                                    <span class="data-value">order.total_amount</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="data-card">
+                            <div class="data-card-header">
+                                <div class="data-card-title">
+                                    <i class="el-icon-box"></i>
+                                    库存数据
+                                </div>
+                            </div>
+                            <div class="data-preview">
+                                <div class="data-group-title">仓库信息</div>
+                                <div class="data-item" @click="copyReference('inventory.warehouse_id')">
+                                    <span class="data-label">仓库编号</span>
+                                    <span class="data-value">inventory.warehouse_id</span>
+                                </div>
+                                <div class="data-group-title">物料信息</div>
+                                <div class="data-item" @click="copyReference('inventory.materials[0].material_id')">
+                                    <span class="data-label">物料编号</span>
+                                    <span class="data-value">inventory.materials[0].material_id</span>
+                                </div>
+                                <div class="data-item" @click="copyReference('inventory.materials[0].current_stock')">
+                                    <span class="data-label">当前库存</span>
+                                    <span class="data-value">inventory.materials[0].current_stock</span>
+                                </div>
+                                <div class="data-item" @click="copyReference('inventory.materials[0].min_stock')">
+                                    <span class="data-label">最低库存</span>
+                                    <span class="data-value">inventory.materials[0].min_stock</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="data-card">
+                            <div class="data-card-header">
+                                <div class="data-card-title">
+                                    <i class="el-icon-user"></i>
+                                    供应商数据
+                                </div>
+                            </div>
+                            <div class="data-preview">
+                                <div class="data-group-title">基础信息</div>
+                                <div class="data-item" @click="copyReference('supplier.supplier_id')">
+                                    <span class="data-label">供应商编号</span>
+                                    <span class="data-value">supplier.supplier_id</span>
+                                </div>
+                                <div class="data-item" @click="copyReference('supplier.name')">
+                                    <span class="data-label">供应商名称</span>
+                                    <span class="data-value">supplier.name</span>
+                                </div>
+                                <div class="data-group-title">联系方式</div>
+                                <div class="data-item" @click="copyReference('supplier.contact.name')">
+                                    <span class="data-label">联系人</span>
+                                    <span class="data-value">supplier.contact.name</span>
+                                </div>
+                                <div class="data-item" @click="copyReference('supplier.contact.phone')">
+                                    <span class="data-label">联系电话</span>
+                                    <span class="data-value">supplier.contact.phone</span>
+                                </div>
+                                <div class="data-item" @click="copyReference('supplier.contact.email')">
+                                    <span class="data-label">电子邮箱</span>
+                                    <span class="data-value">supplier.contact.email</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="action-bar">
-                        <el-button type="primary" icon="el-icon-plus" @click="addNode">添加节点</el-button>
+                </div>
+
+                <!-- 右侧主内容区域 -->
+                <div class="main-content">
+                    <div class="dataflow-container">
+                        <div class="dataflow-header">
+                            <h1 class="dataflow-title">
+                                <i :class="dataflowData.icon"></i>
+                                {{ dataflowData.name }}
+                            </h1>
+                            <el-row :gutter="20" style="margin-top: 20px;">
+                                <el-col :span="8">
+                                    <el-form-item label="流程类型">
+                                        <el-select v-model="dataflowData.type" style="width: 100%;">
+                                            <el-option label="同步流程" value="同步流程"></el-option>
+                                            <el-option label="处理流程" value="处理流程"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="8">
+                                    <el-form-item label="数据源">
+                                        <el-input v-model="dataflowData.source"></el-input>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="8">
+                                    <el-form-item label="状态">
+                                        <el-tag :type="dataflowData.status === '运行中' ? 'success' : 'info'">
+                                            {{ dataflowData.status }}
+                                        </el-tag>
+                                    </el-form-item>
+                                </el-col>
+                            </el-row>
+                        </div>
+                        
+                        <div class="node-list">
+                            <div v-for="(node, index) in nodes" :key="index" class="node-item">
+                                <div class="node-header">
+                                    <div class="node-title">
+                                        <i :class="node.icon"></i>
+                                        {{ node.title }}
+                                        <div class="node-status">
+                                            <span class="status-dot" :class="node.status"></span>
+                                            {{ node.statusText }}
+                                        </div>
+                                    </div>
+                                    <div class="node-actions">
+                                        <el-button size="mini" type="text" @click="previewData(index)">预览数据</el-button>
+                                        <el-button size="mini" type="text" @click="editNode(index)">编辑</el-button>
+                                        <el-button size="mini" type="text" style="color: #F56C6C;" @click="deleteNode(index)">删除</el-button>
+                                    </div>
+                                </div>
+                                <div class="node-content">
+                                    <p>数据源：{{ node.source }}</p>
+                                    <p>处理方式：{{ node.processType }}</p>
+                                    <p v-if="node.showPreview" class="data-preview">{{ node.previewData }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="action-bar">
+                            <el-button type="primary" icon="el-icon-plus" @click="addNode">添加节点</el-button>
+                        </div>
                     </div>
                 </div>
             </el-main>
             
             <!-- 节点编辑对话框 -->
-            <el-dialog :title="dialogTitle" :visible.sync="showNodeDialog" width="600px">
+            <el-dialog :title="dialogTitle" :visible.sync="showNodeDialog" width="60%">
                 <el-form :model="currentNode" label-width="100px">
                     <el-form-item label="节点名称">
                         <el-input v-model="currentNode.title"></el-input>
                     </el-form-item>
-                    <el-form-item label="数据源">
-                        <el-select v-model="currentNode.source" style="width: 100%;">
-                            <el-option label="MySQL" value="MySQL"></el-option>
-                            <el-option label="PostgreSQL" value="PostgreSQL"></el-option>
-                            <el-option label="MongoDB" value="MongoDB"></el-option>
-                            <el-option label="Redis" value="Redis"></el-option>
-                            <el-option label="API" value="API"></el-option>
+                    <el-form-item label="模块类型">
+                        <el-cascader
+                            v-model="currentNode.moduleType"
+                            :options="Object.entries(moduleTypes).map(([group, items]) => ({
+                                label: group,
+                                value: group,
+                                children: items
+                            }))"
+                            @change="handleModuleTypeChange"
+                            placeholder="请选择模块类型">
+                        </el-cascader>
+                    </el-form-item>
+                    
+                    <!-- 动态配置表单 -->
+                    <template v-if="currentNode.processType === 'HTTPRequest'">
+                        <el-form-item label="请求URL">
+                            <el-input v-model="currentNode.config.url" placeholder="https://api.example.com/data"></el-input>
+                        </el-form-item>
+                        <el-form-item label="请求方法">
+                            <el-select v-model="currentNode.config.method">
+                                <el-option label="GET" value="GET"></el-option>
+                                <el-option label="POST" value="POST"></el-option>
+                                <el-option label="PUT" value="PUT"></el-option>
+                                <el-option label="DELETE" value="DELETE"></el-option>
+                            </el-select>
+                        </el-form-item>
+                    </template>
+
+                    <template v-if="currentNode.processType === 'DatabaseQuery'">
+                        <el-form-item label="数据源">
+                            <el-select v-model="currentNode.config.database">
+                                <el-option label="MySQL" value="MySQL"></el-option>
+                                <el-option label="PostgreSQL" value="PostgreSQL"></el-option>
+                                <el-option label="MongoDB" value="MongoDB"></el-option>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="SQL语句">
+                            <el-input type="textarea" v-model="currentNode.config.query" :rows="4"></el-input>
+                        </el-form-item>
+                    </template>
+
+                    <template v-if="currentNode.processType === 'Transform'">
+                        <el-form-item label="转换类型">
+                            <el-select v-model="currentNode.config.transformType">
+                                <el-option label="JSON转XML" value="json_to_xml"></el-option>
+                                <el-option label="XML转JSON" value="xml_to_json"></el-option>
+                                <el-option label="CSV转JSON" value="csv_to_json"></el-option>
+                            </el-select>
+                        </el-form-item>
+                    </template>
+
+                    <!-- 错误处理配置 -->
+                    <el-divider>错误处理</el-divider>
+                    <el-form-item label="重试次数">
+                        <el-input-number 
+                            v-model="currentNode.error_handling.retry.max_attempts" 
+                            :min="1" 
+                            :max="10">
+                        </el-input-number>
+                    </el-form-item>
+                    <el-form-item label="重试策略">
+                        <el-select v-model="currentNode.error_handling.retry.backoff">
+                            <el-option label="线性增长" value="linear"></el-option>
+                            <el-option label="指数增长" value="exponential"></el-option>
                         </el-select>
                     </el-form-item>
-                    <el-form-item label="处理方式">
-                        <el-select v-model="currentNode.processType" style="width: 100%;">
-                            <el-option label="数据抽取" value="数据抽取"></el-option>
-                            <el-option label="数据转换" value="数据转换"></el-option>
-                            <el-option label="数据清洗" value="数据清洗"></el-option>
-                            <el-option label="数据加载" value="数据加载"></el-option>
+                    <el-form-item label="失败处理">
+                        <el-select v-model="currentNode.error_handling.fallback.action">
+                            <el-option label="返回默认值" value="return_default"></el-option>
+                            <el-option label="调用备选模块" value="call_alternative_module"></el-option>
                         </el-select>
                     </el-form-item>
-                    <el-form-item label="执行配置" v-if="currentNode.source === 'API'">
-                        <el-input v-model="currentNode.config.url" placeholder="API URL"></el-input>
-                    </el-form-item>
-                    <el-form-item label="SQL语句" v-if="['MySQL', 'PostgreSQL'].includes(currentNode.source)">
-                        <el-input type="textarea" v-model="currentNode.config.sql" :rows="4"></el-input>
+
+                    <!-- 依赖节点配置 -->
+                    <el-divider>节点依赖</el-divider>
+                    <el-form-item label="依赖节点">
+                        <el-select v-model="currentNode.depends_on" multiple placeholder="选择依赖节点">
+                            <el-option
+                                v-for="node in nodes"
+                                :key="node.title"
+                                :label="node.title"
+                                :value="node.title">
+                            </el-option>
+                        </el-select>
                     </el-form-item>
                 </el-form>
                 <div slot="footer">
@@ -299,10 +658,86 @@
                         statusText: '正常',
                         icon: 'el-icon-data-line',
                         showPreview: false,
-                        previewData: ''
+                        previewData: '',
+                        error_handling: {
+                            retry: {
+                                max_attempts: 3,
+                                backoff: 'exponential'
+                            },
+                            fallback: {
+                                action: 'return_default'
+                            }
+                        },
+                        depends_on: []
+                    },
+                    moduleTypes: {
+                        '数据操作': [
+                            { label: '数据转换', value: 'Transform', icon: 'el-icon-refresh' },
+                            { label: '数据提取', value: 'Extract', icon: 'el-icon-download' }
+                        ],
+                        '网络请求': [
+                            { label: 'HTTP请求', value: 'HTTPRequest', icon: 'el-icon-connection' },
+                            { label: 'Webhook触发器', value: 'WebhookTrigger', icon: 'el-icon-bell' }
+                        ],
+                        '文件存储': [
+                            { label: '文件读取', value: 'FileRead', icon: 'el-icon-document' },
+                            { label: '文件写入', value: 'FileWrite', icon: 'el-icon-document-add' },
+                            { label: '数据库查询', value: 'DatabaseQuery', icon: 'el-icon-data-analysis' }
+                        ],
+                        '逻辑控制': [
+                            { label: '条件判断', value: 'Condition', icon: 'el-icon-switch-button' },
+                            { label: '循环处理', value: 'Loop', icon: 'el-icon-refresh-right' }
+                        ],
+                        '消息通知': [
+                            { label: '邮件发送', value: 'SendEmail', icon: 'el-icon-message' },
+                            { label: 'Slack通知', value: 'SlackNotification', icon: 'el-icon-chat-dot-square' }
+                        ],
+                        '错误处理': [
+                            { label: '重试机制', value: 'Retry', icon: 'el-icon-refresh-left' },
+                            { label: '错误日志', value: 'ErrorLogger', icon: 'el-icon-warning' }
+                        ]
                     },
                     editingNodeIndex: -1,
-                    isTesting: false
+                    isTesting: false,
+                    
+                    // 添加数据池示例
+                    order: {
+                        order_id: 'ORD20240321001',
+                        customer_id: 'CUST001',
+                        status: 'pending_production',
+                        items: [
+                            {
+                                product_id: 'PROD001',
+                                quantity: 100,
+                                unit_price: 50.00
+                            }
+                        ],
+                        total_amount: 5000.00
+                    },
+                    inventory: {
+                        warehouse_id: 'WH001',
+                        materials: [
+                            {
+                                material_id: 'MAT001',
+                                name: '原料A',
+                                current_stock: 1000,
+                                min_stock: 200,
+                                unit: 'kg'
+                            }
+                        ],
+                        last_updated: '2024-03-21 09:30:00'
+                    },
+                    supplier: {
+                        supplier_id: 'SUP001',
+                        name: '供应商A',
+                        materials: ['MAT001', 'MAT002'],
+                        contact: {
+                            name: '张经理',
+                            phone: '13800138000',
+                            email: 'supplier_a@example.com'
+                        },
+                        lead_time_days: 3
+                    }
                 }
             },
             computed: {
@@ -314,39 +749,79 @@
                 // 从URL参数获取流程数据
                 const params = new URLSearchParams(window.location.search);
                 const dataflowData = {
-                    name: params.get('name') || '未命名流程',
-                    type: params.get('type') || '同步流程',
-                    source: params.get('source') || '数据中心',
+                    name: params.get('name') || '订单生产流程',
+                    type: params.get('type') || '处理流程',
+                    source: params.get('source') || '订单系统',
                     status: params.get('status') || '已停止',
-                    icon: params.get('icon') || 'el-icon-data-line'
+                    icon: params.get('icon') || 'el-icon-shopping-cart-full'
                 };
                 this.dataflowData = dataflowData;
                 
                 // 初始化示例节点
                 this.nodes = [
                     {
-                        title: '数据抽取',
+                        title: '订单数据获取',
                         source: 'MySQL',
                         processType: '数据抽取',
                         config: {
-                            sql: 'SELECT * FROM users WHERE created_at > :lastSyncTime'
+                            sql: 'SELECT o.*, c.contact_info FROM orders o LEFT JOIN customers c ON o.customer_id = c.id WHERE o.status = "pending_production"'
                         },
                         status: 'success',
                         statusText: '正常',
-                        icon: 'el-icon-upload',
+                        icon: 'el-icon-shopping-cart-full',
                         showPreview: false,
                         previewData: ''
                     },
                     {
-                        title: '数据清洗',
+                        title: '库存检查',
                         source: 'API',
-                        processType: '数据清洗',
+                        processType: '数据验证',
                         config: {
-                            url: 'https://api.example.com/clean'
+                            url: 'https://api.inventory/check-materials'
                         },
                         status: 'warning',
-                        statusText: '部分成功',
-                        icon: 'el-icon-magic-stick',
+                        statusText: '部分材料不足',
+                        icon: 'el-icon-box',
+                        showPreview: false,
+                        previewData: ''
+                    },
+                    {
+                        title: '生产计划生成',
+                        source: 'MongoDB',
+                        processType: '数据转换',
+                        config: {
+                            collection: 'production_plans',
+                            operation: 'aggregate'
+                        },
+                        status: 'success',
+                        statusText: '正常',
+                        icon: 'el-icon-time',
+                        showPreview: false,
+                        previewData: ''
+                    },
+                    {
+                        title: '供应商通知',
+                        source: 'API',
+                        processType: '数据推送',
+                        config: {
+                            url: 'https://api.supplier/material-request'
+                        },
+                        status: 'success',
+                        statusText: '正常',
+                        icon: 'el-icon-message',
+                        showPreview: false,
+                        previewData: ''
+                    },
+                    {
+                        title: '生产任务分配',
+                        source: 'PostgreSQL',
+                        processType: '数据加载',
+                        config: {
+                            sql: 'INSERT INTO production_tasks (plan_id, workshop_id, start_time) VALUES (:plan_id, :workshop_id, :start_time)'
+                        },
+                        status: 'success',
+                        statusText: '正常',
+                        icon: 'el-icon-s-operation',
                         showPreview: false,
                         previewData: ''
                     }
@@ -367,7 +842,17 @@
                         statusText: '正常',
                         icon: 'el-icon-data-line',
                         showPreview: false,
-                        previewData: ''
+                        previewData: '',
+                        error_handling: {
+                            retry: {
+                                max_attempts: 3,
+                                backoff: 'exponential'
+                            },
+                            fallback: {
+                                action: 'return_default'
+                            }
+                        },
+                        depends_on: []
                     };
                     this.showNodeDialog = true;
                 },
@@ -386,29 +871,65 @@
                         this.$message.success('删除成功');
                     }).catch(() => {});
                 },
+                handleModuleTypeChange(value) {
+                    if (value && value.length === 2) {
+                        const [group, module] = value;
+                        const moduleInfo = this.moduleTypes[group].find(m => m.value === module.value);
+                        if (moduleInfo) {
+                            this.currentNode.processType = moduleInfo.value;
+                            this.currentNode.icon = moduleInfo.icon;
+                            // 重置配置
+                            this.currentNode.config = {};
+                        }
+                    }
+                },
                 saveNode() {
-                    if (!this.currentNode.title || !this.currentNode.source || !this.currentNode.processType) {
+                    if (!this.currentNode.title || !this.currentNode.processType) {
                         this.$message.warning('请填写完整信息');
                         return;
                     }
                     
-                    // 根据处理方式设置图标
-                    const iconMap = {
-                        '数据抽取': 'el-icon-upload',
-                        '数据转换': 'el-icon-refresh',
-                        '数据清洗': 'el-icon-magic-stick',
-                        '数据加载': 'el-icon-download'
-                    };
-                    this.currentNode.icon = iconMap[this.currentNode.processType] || 'el-icon-data-line';
+                    // 验证依赖关系是否形成循环
+                    if (this.hasCircularDependency(this.currentNode)) {
+                        this.$message.error('检测到循环依赖，请重新选择依赖节点');
+                        return;
+                    }
+
+                    const node = { ...this.currentNode };
                     
                     if (this.editingNodeIndex === -1) {
-                        this.nodes.push({ ...this.currentNode });
+                        this.nodes.push(node);
                     } else {
-                        this.nodes[this.editingNodeIndex] = { ...this.currentNode };
+                        this.nodes[this.editingNodeIndex] = node;
                     }
                     
                     this.showNodeDialog = false;
                     this.$message.success('保存成功');
+                },
+                hasCircularDependency(node) {
+                    const visited = new Set();
+                    const recStack = new Set();
+                    
+                    const dfs = (nodeName) => {
+                        if (!nodeName) return false;
+                        if (recStack.has(nodeName)) return true;
+                        if (visited.has(nodeName)) return false;
+                        
+                        visited.add(nodeName);
+                        recStack.add(nodeName);
+                        
+                        const currentNode = this.nodes.find(n => n.title === nodeName);
+                        if (currentNode && currentNode.depends_on) {
+                            for (const dep of currentNode.depends_on) {
+                                if (dfs(dep)) return true;
+                            }
+                        }
+                        
+                        recStack.delete(nodeName);
+                        return false;
+                    };
+                    
+                    return node.depends_on && node.depends_on.some(dep => dfs(dep));
                 },
                 previewData(index) {
                     const node = this.nodes[index];
@@ -443,6 +964,17 @@
                         this.isTesting = false;
                         this.$message.success('测试完成');
                     }, 2000);
+                },
+                copyReference(text) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        this.$message({
+                            message: '变量引用已复制到剪贴板',
+                            type: 'success',
+                            duration: 1500
+                        });
+                    }).catch(() => {
+                        this.$message.error('复制失败，请手动复制');
+                    });
                 }
             }
         })
