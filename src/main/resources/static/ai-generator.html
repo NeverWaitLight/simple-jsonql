@@ -384,10 +384,14 @@
         
         .tab-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: center;
             margin-bottom: 20px;
-            padding: 0;
+            padding: 0 5%;
+        }
+        
+        .tab-header .el-button {
+            min-width: 120px;
         }
         
         .el-tabs {
@@ -535,7 +539,7 @@
             <el-header>
                 <div style="display: flex; justify-content: space-between; width: 100%;">
                     <el-button @click="goBack">返回</el-button>
-                    <el-button type="primary" @click="goToEditor">手动编辑</el-button>
+                    <div></div>
                 </div>
             </el-header>
             
@@ -544,7 +548,6 @@
                     <el-tabs v-model="activeTab" type="card" class="tab-content">
                         <el-tab-pane label="页面列表" name="pages">
                             <div class="tab-header">
-                                <div></div>
                                 <el-button type="primary" icon="el-icon-plus" @click="showAiDialog = true">新增页面</el-button>
                             </div>
                             <el-table :data="pageList" 
@@ -552,7 +555,7 @@
                                      border
                                      row-key="name"
                                      :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
-                                     height="calc(100vh - 220px)">  <!-- 调整表格高度 -->
+                                     height="calc(100vh - 280px)">  <!-- 调整表格高度，为分页留出空间 -->
                                 <el-table-column prop="name" label="页面名称">
                                     <template slot-scope="scope">
                                         <span :style="{ paddingLeft: (scope.row.level - 1) * 20 + 'px' }">
@@ -582,19 +585,29 @@
                                     </template>
                                 </el-table-column>
                             </el-table>
+                            <div style="margin-top: 20px; text-align: right;">
+                                <el-pagination
+                                    @size-change="handlePageSizeChange"
+                                    @current-change="handlePageChange"
+                                    :current-page="pageConfig.pages.currentPage"
+                                    :page-sizes="[10, 20, 30, 50]"
+                                    :page-size="pageConfig.pages.pageSize"
+                                    layout="total, sizes, prev, pager, next, jumper"
+                                    :total="pageConfig.pages.total">
+                                </el-pagination>
+                            </div>
                         </el-tab-pane>
                         
-                        <el-tab-pane label="流程列表" name="workflows">
+                        <el-tab-pane label="审批流程" name="workflows">
                             <div class="tab-header">
-                                <div></div>
-                                <el-button type="primary" icon="el-icon-plus" @click="showWorkflowAiDialog = true">新增流程</el-button>
+                                <el-button type="primary" icon="el-icon-plus" @click="showWorkflowAiDialog = true">新增审批流程</el-button>
                             </div>
                             <el-table :data="workflowList" 
                                      style="width: 100%;" 
                                      border
                                      row-key="name"
                                      :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
-                                     height="calc(100vh - 220px)">  <!-- 调整表格高度 -->
+                                     height="calc(100vh - 280px)">  <!-- 调整表格高度，为分页留出空间 -->
                                 <el-table-column prop="name" label="流程名称">
                                     <template slot-scope="scope">
                                         <span :style="{ paddingLeft: (scope.row.level - 1) * 20 + 'px' }">
@@ -632,6 +645,77 @@
                                     </template>
                                 </el-table-column>
                             </el-table>
+                            <div style="margin-top: 20px; text-align: right;">
+                                <el-pagination
+                                    @size-change="handleWorkflowPageSizeChange"
+                                    @current-change="handleWorkflowPageChange"
+                                    :current-page="pageConfig.workflows.currentPage"
+                                    :page-sizes="[10, 20, 30, 50]"
+                                    :page-size="pageConfig.workflows.pageSize"
+                                    layout="total, sizes, prev, pager, next, jumper"
+                                    :total="pageConfig.workflows.total">
+                                </el-pagination>
+                            </div>
+                        </el-tab-pane>
+
+                        <el-tab-pane label="数据流程" name="dataflows">
+                            <div class="tab-header">
+                                <el-button type="primary" icon="el-icon-plus" @click="showDataflowAiDialog = true">新增数据流程</el-button>
+                            </div>
+                            <el-table :data="dataflowList" 
+                                     style="width: 100%;" 
+                                     border
+                                     row-key="name"
+                                     :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
+                                     height="calc(100vh - 280px)">  <!-- 调整表格高度，为分页留出空间 -->
+                                <el-table-column prop="name" label="流程名称">
+                                    <template slot-scope="scope">
+                                        <span :style="{ paddingLeft: (scope.row.level - 1) * 20 + 'px' }">
+                                            <i :class="scope.row.icon" style="margin-right: 5px"></i>
+                                            {{ scope.row.name }}
+                                        </span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="type" label="数据类型" width="120">
+                                    <template slot-scope="scope">
+                                        <el-tag :type="scope.row.type === '同步流程' ? 'warning' : 'success'" size="small">
+                                            {{ scope.row.type }}
+                                        </el-tag>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="source" label="数据源"></el-table-column>
+                                <el-table-column prop="createTime" label="创建时间" width="180"></el-table-column>
+                                <el-table-column prop="status" label="状态" width="100">
+                                    <template slot-scope="scope">
+                                        <el-tag :type="scope.row.status === '运行中' ? 'success' : 'info'">
+                                            {{ scope.row.status }}
+                                        </el-tag>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="操作" width="280">
+                                    <template slot-scope="scope">
+                                        <el-button size="mini" @click="handlePreviewDataflow(scope.row)">预览</el-button>
+                                        <el-button size="mini" type="primary" @click="editDataflow(scope.row)">编辑</el-button>
+                                        <el-button 
+                                            size="mini" 
+                                            :type="scope.row.status === '运行中' ? 'danger' : 'success'"
+                                            @click="handleDataflowStatus(scope.row)">
+                                            {{ scope.row.status === '运行中' ? '停止' : '启动' }}
+                                        </el-button>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                            <div style="margin-top: 20px; text-align: right;">
+                                <el-pagination
+                                    @size-change="handleDataflowPageSizeChange"
+                                    @current-change="handleDataflowPageChange"
+                                    :current-page="pageConfig.dataflows.currentPage"
+                                    :page-sizes="[10, 20, 30, 50]"
+                                    :page-size="pageConfig.dataflows.pageSize"
+                                    layout="total, sizes, prev, pager, next, jumper"
+                                    :total="pageConfig.dataflows.total">
+                                </el-pagination>
+                            </div>
                         </el-tab-pane>
                     </el-tabs>
                 </div>
@@ -745,6 +829,61 @@
                         </div>
                     </div>
                 </el-dialog>
+
+                <!-- AI 数据流程生成对话框 -->
+                <el-dialog
+                    title="AI 数据流程生成器"
+                    :visible.sync="showDataflowAiDialog"
+                    custom-class="workflow-dialog"
+                    :close-on-click-modal="false"
+                    :close-on-press-escape="false"
+                    :show-close="!isGeneratingDataflow"
+                    @open="handleDataflowDialogOpen">
+                    <div class="ai-container">
+                        <div class="generation-process" :class="{ 'show': showDataflowProcess }">
+                            <div class="process-step" :class="{ 'active': currentDataflowStep >= 1 }">
+                                <div class="step-icon">
+                                    <i class="el-icon-share"></i>
+                                </div>
+                                <div class="step-text">分析需求</div>
+                            </div>
+                            <div class="process-step" :class="{ 'active': currentDataflowStep >= 2 }">
+                                <div class="step-icon">
+                                    <i class="el-icon-connection"></i>
+                                </div>
+                                <div class="step-text">生成节点</div>
+                            </div>
+                            <div class="process-step" :class="{ 'active': currentDataflowStep >= 3 }">
+                                <div class="step-icon">
+                                    <i class="el-icon-refresh"></i>
+                                </div>
+                                <div class="step-text">配置数据源</div>
+                            </div>
+                            <div class="process-step" :class="{ 'active': currentDataflowStep >= 4 }">
+                                <div class="step-icon">
+                                    <i class="el-icon-success"></i>
+                                </div>
+                                <div class="step-text">生成完成</div>
+                            </div>
+                        </div>
+
+                        <div class="ai-content" :class="{ 'no-margin': !showDataflowProcess }">
+                            <div v-for="(message, index) in dataflowAiMessages" 
+                                 :key="index" 
+                                 class="ai-message"
+                                 :class="{ 'user': message.isUser }">
+                                {{ message.content }}
+                            </div>
+                        </div>
+                        <div class="ai-input">
+                            <el-input v-model="dataflowAiInput" 
+                                     placeholder="请描述您想要的数据流程"
+                                     @keyup.enter="generateDataflow">
+                            </el-input>
+                            <el-button type="primary" @click="generateDataflow">生成</el-button>
+                        </div>
+                    </div>
+                </el-dialog>
             </el-main>
         </el-container>
     </div>
@@ -761,20 +900,93 @@
                     aiMessages: [],
                     workflowAiInput: '',
                     workflowAiMessages: [],
+                    dataflowAiInput: '',
+                    dataflowAiMessages: [],
                     currentStep: 0,
                     currentWorkflowStep: 0,
+                    currentDataflowStep: 0,
                     showProcess: false,
                     showWorkflowProcess: false,
+                    showDataflowProcess: false,
                     showResult: false,
                     showWorkflowResult: false,
-                    generatedPageName: '',
-                    generatedWorkflowName: '',
+                    showDataflowResult: false,
                     isGenerating: false,
                     isGeneratingWorkflow: false,
+                    isGeneratingDataflow: false,
                     activeTab: 'pages',
                     showAiDialog: false,
                     showWorkflowAiDialog: false,
                     showWorkflowDialog: false,
+                    showDataflowAiDialog: false,
+                    pageConfig: {
+                        pages: {
+                            currentPage: 1,
+                            pageSize: 10,
+                            total: 0
+                        },
+                        workflows: {
+                            currentPage: 1,
+                            pageSize: 10,
+                            total: 0
+                        },
+                        dataflows: {
+                            currentPage: 1,
+                            pageSize: 10,
+                            total: 0
+                        }
+                    },
+                    dataflowList: [
+                        {
+                            name: '客户数据同步流程',
+                            type: '同步流程',
+                            source: 'CRM系统',
+                            createTime: '2024-03-20 10:30:00',
+                            status: '运行中',
+                            icon: 'el-icon-refresh',
+                            level: 1,
+                            children: [
+                                {
+                                    name: '基础信息同步',
+                                    type: '同步流程',
+                                    source: 'CRM系统',
+                                    createTime: '2024-03-20 10:35:00',
+                                    status: '运行中',
+                                    icon: 'el-icon-data-line',
+                                    level: 2
+                                },
+                                {
+                                    name: '交易记录同步',
+                                    type: '同步流程',
+                                    source: 'CRM系统',
+                                    createTime: '2024-03-20 10:40:00',
+                                    status: '运行中',
+                                    icon: 'el-icon-money',
+                                    level: 2
+                                }
+                            ]
+                        },
+                        {
+                            name: '订单数据处理流程',
+                            type: '处理流程',
+                            source: '订单系统',
+                            createTime: '2024-03-19 15:45:00',
+                            status: '已停止',
+                            icon: 'el-icon-shopping-cart-full',
+                            level: 1,
+                            children: [
+                                {
+                                    name: '订单清洗',
+                                    type: '处理流程',
+                                    source: '订单系统',
+                                    createTime: '2024-03-19 15:50:00',
+                                    status: '已停止',
+                                    icon: 'el-icon-magic-stick',
+                                    level: 2
+                                }
+                            ]
+                        }
+                    ],
                     newWorkflow: {
                         name: '',
                         type: '工作流程',
@@ -1066,8 +1278,14 @@
                 },
                 
                 editWorkflow(row) {
-                    this.$message('编辑流程：' + row.name);
-                    // 这里可以添加跳转到流程编辑器的逻辑
+                    const params = new URLSearchParams({
+                        name: row.name,
+                        type: row.type,
+                        department: row.department,
+                        status: row.status,
+                        icon: row.icon
+                    });
+                    window.location.href = `workflow-editor.html?${params.toString()}`;
                 },
                 
                 handleWorkflowStatus(row) {
@@ -1194,6 +1412,174 @@
                             });
                         }, 500);
                     }
+                },
+                handlePreviewDataflow(row) {
+                    this.$message('预览数据流程：' + row.name);
+                },
+                
+                editDataflow(row) {
+                    const params = new URLSearchParams({
+                        name: row.name,
+                        type: row.type,
+                        source: row.source,
+                        status: row.status,
+                        icon: row.icon
+                    });
+                    window.location.href = `dataflow-editor.html?${params.toString()}`;
+                },
+                
+                handleDataflowStatus(row) {
+                    const action = row.status === '运行中' ? '停止' : '启动';
+                    this.$confirm(`确认${action}该数据流程吗？`, '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        row.status = row.status === '运行中' ? '已停止' : '运行中';
+                        this.$message.success(`${action}成功`);
+                    }).catch(() => {});
+                },
+                handleDataflowDialogOpen() {
+                    // 重置所有状态
+                    this.isGeneratingDataflow = false;
+                    this.showDataflowProcess = false;
+                    this.showDataflowResult = false;
+                    this.dataflowAiMessages = [];
+                    this.dataflowAiInput = '';
+                    this.currentDataflowStep = 0;
+                    
+                    // 添加欢迎消息
+                    setTimeout(() => {
+                        this.dataflowAiMessages = [{
+                            content: '欢迎使用 AI 数据流程生成器，请描述您想要的数据流程，我会帮您生成对应的流程。',
+                            isUser: false
+                        }];
+                    }, 300);
+                },
+                generateDataflow() {
+                    this.isGeneratingDataflow = true;
+                    const message = this.dataflowAiInput.trim();
+                    if (message) {
+                        this.dataflowAiMessages.push({
+                            content: message,
+                            isUser: true
+                        });
+                        this.dataflowAiInput = '';
+                        
+                        // 先添加AI响应消息
+                        this.dataflowAiMessages.push({
+                            content: '正在分析您的数据流程需求...',
+                            isUser: false
+                        });
+                        
+                        // 延迟显示进度条，产生渐入效果
+                        setTimeout(() => {
+                            this.showDataflowProcess = true;
+                            
+                            // 开始生成流程
+                            this.currentDataflowStep = 1;
+                            
+                            // 模拟生成流程
+                            const steps = [
+                                '正在分析数据结构...',
+                                '正在生成流程节点...',
+                                '正在配置数据源...',
+                                '流程生成完成！'
+                            ];
+                            
+                            steps.forEach((step, index) => {
+                                setTimeout(() => {
+                                    this.currentDataflowStep = index + 1;
+                                    this.dataflowAiMessages.push({
+                                        content: step,
+                                        isUser: false
+                                    });
+                                    
+                                    // 在最后一步完成后显示结果
+                                    if (index === steps.length - 1) {
+                                        setTimeout(() => {
+                                            this.showDataflowProcess = false;
+                                            setTimeout(() => {
+                                                // 创建新的数据流程
+                                                const dataflow = {
+                                                    name: message.length > 30 ? message.substring(0, 30) + '...' : message,
+                                                    type: message.includes('同步') ? '同步流程' : '处理流程',
+                                                    source: '数据中心',
+                                                    createTime: new Date().toLocaleString(),
+                                                    status: '已停止',
+                                                    icon: message.includes('同步') ? 'el-icon-refresh' : 'el-icon-data-line',
+                                                    level: 1,
+                                                    children: []
+                                                };
+                                                
+                                                this.dataflowList.unshift(dataflow);
+                                                this.showDataflowAiDialog = false;
+                                                this.$message.success('数据流程生成成功！');
+                                            }, 300);
+                                        }, 500);
+                                    }
+                                }, (index + 1) * 1500);
+                            });
+                        }, 500);
+                    }
+                },
+                handlePageSizeChange(val) {
+                    this.pageConfig.pages.pageSize = val;
+                    this.updatePageList();
+                },
+                handlePageChange(val) {
+                    this.pageConfig.pages.currentPage = val;
+                    this.updatePageList();
+                },
+                handleWorkflowPageSizeChange(val) {
+                    this.pageConfig.workflows.pageSize = val;
+                    this.updateWorkflowList();
+                },
+                handleWorkflowPageChange(val) {
+                    this.pageConfig.workflows.currentPage = val;
+                    this.updateWorkflowList();
+                },
+                handleDataflowPageSizeChange(val) {
+                    this.pageConfig.dataflows.pageSize = val;
+                    this.updateDataflowList();
+                },
+                handleDataflowPageChange(val) {
+                    this.pageConfig.dataflows.currentPage = val;
+                    this.updateDataflowList();
+                },
+                updatePageList() {
+                    // Update total count
+                    this.pageConfig.pages.total = this.pageList.length;
+                },
+                updateWorkflowList() {
+                    // Update total count
+                    this.pageConfig.workflows.total = this.workflowList.length;
+                },
+                updateDataflowList() {
+                    // Update total count
+                    this.pageConfig.dataflows.total = this.dataflowList.length;
+                },
+                created() {
+                    // 从URL参数获取流程数据
+                    const params = new URLSearchParams(window.location.search);
+                    const dataflowData = {
+                        name: params.get('name') || '未命名流程',
+                        type: params.get('type') || '同步流程',
+                        source: params.get('source') || '数据中心',
+                        status: params.get('status') || '已停止',
+                        icon: params.get('icon') || 'el-icon-data-line'
+                    };
+                    this.dataflowData = dataflowData;
+                    
+                    // 初始化示例节点
+                    this.nodes = [
+                        // ... existing nodes ...
+                    ];
+
+                    // 初始化分页数据
+                    this.updatePageList();
+                    this.updateWorkflowList();
+                    this.updateDataflowList();
                 }
             }
         })

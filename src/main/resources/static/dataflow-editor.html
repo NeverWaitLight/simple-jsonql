@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据流程编辑器</title>
+    <!-- 引入Element UI样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <style>
+        :root {
+            --morandi-green: #8BA888;
+            --morandi-green-light: #A5B5A3;
+            --morandi-green-dark: #6B8A6B;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+            background-color: #f5f7fa;
+        }
+        
+        .el-container {
+            height: 100vh;
+        }
+        
+        .el-header {
+            background-color: var(--morandi-green);
+            color: white;
+            line-height: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            height: 60px !important;
+        }
+        
+        .el-main {
+            padding: 20px;
+            height: calc(100vh - 60px);
+            overflow: auto;
+        }
+        
+        .dataflow-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
+        }
+        
+        .dataflow-header {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ebeef5;
+        }
+        
+        .dataflow-title {
+            font-size: 24px;
+            color: #303133;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .node-list {
+            margin: 20px 0;
+        }
+        
+        .node-item {
+            background: #f5f7fa;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        .node-item::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: -15px;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 15px;
+            background-color: #dcdfe6;
+        }
+        
+        .node-item:last-child::after {
+            display: none;
+        }
+        
+        .node-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .node-title {
+            font-weight: bold;
+            color: #303133;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .node-content {
+            color: #606266;
+        }
+        
+        .node-details {
+            background: white;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        
+        .action-bar {
+            margin-top: 20px;
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #ebeef5;
+        }
+        
+        .data-preview {
+            margin-top: 10px;
+            max-height: 200px;
+            overflow: auto;
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .node-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        
+        .status-dot.success {
+            background-color: #67C23A;
+        }
+        
+        .status-dot.warning {
+            background-color: #E6A23C;
+        }
+        
+        .status-dot.error {
+            background-color: #F56C6C;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <el-container>
+            <el-header>
+                <div class="header-left">
+                    <el-button @click="goBack">返回</el-button>
+                </div>
+                <div class="header-right">
+                    <el-button type="warning" @click="testDataflow" :loading="isTesting">测试</el-button>
+                    <el-button type="primary" @click="saveDataflow">保存</el-button>
+                </div>
+            </el-header>
+            
+            <el-main>
+                <div class="dataflow-container">
+                    <div class="dataflow-header">
+                        <h1 class="dataflow-title">
+                            <i :class="dataflowData.icon"></i>
+                            {{ dataflowData.name }}
+                        </h1>
+                        <el-row :gutter="20" style="margin-top: 20px;">
+                            <el-col :span="8">
+                                <el-form-item label="流程类型">
+                                    <el-select v-model="dataflowData.type" style="width: 100%;">
+                                        <el-option label="同步流程" value="同步流程"></el-option>
+                                        <el-option label="处理流程" value="处理流程"></el-option>
+                                    </el-select>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="8">
+                                <el-form-item label="数据源">
+                                    <el-input v-model="dataflowData.source"></el-input>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="8">
+                                <el-form-item label="状态">
+                                    <el-tag :type="dataflowData.status === '运行中' ? 'success' : 'info'">
+                                        {{ dataflowData.status }}
+                                    </el-tag>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                    </div>
+                    
+                    <div class="node-list">
+                        <div v-for="(node, index) in nodes" :key="index" class="node-item">
+                            <div class="node-header">
+                                <div class="node-title">
+                                    <i :class="node.icon"></i>
+                                    {{ node.title }}
+                                    <div class="node-status">
+                                        <span class="status-dot" :class="node.status"></span>
+                                        {{ node.statusText }}
+                                    </div>
+                                </div>
+                                <div class="node-actions">
+                                    <el-button size="mini" type="text" @click="previewData(index)">预览数据</el-button>
+                                    <el-button size="mini" type="text" @click="editNode(index)">编辑</el-button>
+                                    <el-button size="mini" type="text" style="color: #F56C6C;" @click="deleteNode(index)">删除</el-button>
+                                </div>
+                            </div>
+                            <div class="node-content">
+                                <p>数据源：{{ node.source }}</p>
+                                <p>处理方式：{{ node.processType }}</p>
+                                <p v-if="node.showPreview" class="data-preview">{{ node.previewData }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="action-bar">
+                        <el-button type="primary" icon="el-icon-plus" @click="addNode">添加节点</el-button>
+                    </div>
+                </div>
+            </el-main>
+            
+            <!-- 节点编辑对话框 -->
+            <el-dialog :title="dialogTitle" :visible.sync="showNodeDialog" width="600px">
+                <el-form :model="currentNode" label-width="100px">
+                    <el-form-item label="节点名称">
+                        <el-input v-model="currentNode.title"></el-input>
+                    </el-form-item>
+                    <el-form-item label="数据源">
+                        <el-select v-model="currentNode.source" style="width: 100%;">
+                            <el-option label="MySQL" value="MySQL"></el-option>
+                            <el-option label="PostgreSQL" value="PostgreSQL"></el-option>
+                            <el-option label="MongoDB" value="MongoDB"></el-option>
+                            <el-option label="Redis" value="Redis"></el-option>
+                            <el-option label="API" value="API"></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="处理方式">
+                        <el-select v-model="currentNode.processType" style="width: 100%;">
+                            <el-option label="数据抽取" value="数据抽取"></el-option>
+                            <el-option label="数据转换" value="数据转换"></el-option>
+                            <el-option label="数据清洗" value="数据清洗"></el-option>
+                            <el-option label="数据加载" value="数据加载"></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="执行配置" v-if="currentNode.source === 'API'">
+                        <el-input v-model="currentNode.config.url" placeholder="API URL"></el-input>
+                    </el-form-item>
+                    <el-form-item label="SQL语句" v-if="['MySQL', 'PostgreSQL'].includes(currentNode.source)">
+                        <el-input type="textarea" v-model="currentNode.config.sql" :rows="4"></el-input>
+                    </el-form-item>
+                </el-form>
+                <div slot="footer">
+                    <el-button @click="showNodeDialog = false">取消</el-button>
+                    <el-button type="primary" @click="saveNode">确定</el-button>
+                </div>
+            </el-dialog>
+        </el-container>
+    </div>
+
+    <!-- 引入Vue和Element UI -->
+    <script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    dataflowData: {
+                        name: '',
+                        type: '',
+                        source: '',
+                        status: '',
+                        icon: ''
+                    },
+                    nodes: [],
+                    showNodeDialog: false,
+                    currentNode: {
+                        title: '',
+                        source: '',
+                        processType: '',
+                        config: {},
+                        status: 'success',
+                        statusText: '正常',
+                        icon: 'el-icon-data-line',
+                        showPreview: false,
+                        previewData: ''
+                    },
+                    editingNodeIndex: -1,
+                    isTesting: false
+                }
+            },
+            computed: {
+                dialogTitle() {
+                    return this.editingNodeIndex === -1 ? '添加节点' : '编辑节点'
+                }
+            },
+            created() {
+                // 从URL参数获取流程数据
+                const params = new URLSearchParams(window.location.search);
+                const dataflowData = {
+                    name: params.get('name') || '未命名流程',
+                    type: params.get('type') || '同步流程',
+                    source: params.get('source') || '数据中心',
+                    status: params.get('status') || '已停止',
+                    icon: params.get('icon') || 'el-icon-data-line'
+                };
+                this.dataflowData = dataflowData;
+                
+                // 初始化示例节点
+                this.nodes = [
+                    {
+                        title: '数据抽取',
+                        source: 'MySQL',
+                        processType: '数据抽取',
+                        config: {
+                            sql: 'SELECT * FROM users WHERE created_at > :lastSyncTime'
+                        },
+                        status: 'success',
+                        statusText: '正常',
+                        icon: 'el-icon-upload',
+                        showPreview: false,
+                        previewData: ''
+                    },
+                    {
+                        title: '数据清洗',
+                        source: 'API',
+                        processType: '数据清洗',
+                        config: {
+                            url: 'https://api.example.com/clean'
+                        },
+                        status: 'warning',
+                        statusText: '部分成功',
+                        icon: 'el-icon-magic-stick',
+                        showPreview: false,
+                        previewData: ''
+                    }
+                ];
+            },
+            methods: {
+                goBack() {
+                    window.location.href = 'ai-generator.html';
+                },
+                addNode() {
+                    this.editingNodeIndex = -1;
+                    this.currentNode = {
+                        title: '',
+                        source: '',
+                        processType: '',
+                        config: {},
+                        status: 'success',
+                        statusText: '正常',
+                        icon: 'el-icon-data-line',
+                        showPreview: false,
+                        previewData: ''
+                    };
+                    this.showNodeDialog = true;
+                },
+                editNode(index) {
+                    this.editingNodeIndex = index;
+                    this.currentNode = { ...this.nodes[index] };
+                    this.showNodeDialog = true;
+                },
+                deleteNode(index) {
+                    this.$confirm('确认删除该节点吗？', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        this.nodes.splice(index, 1);
+                        this.$message.success('删除成功');
+                    }).catch(() => {});
+                },
+                saveNode() {
+                    if (!this.currentNode.title || !this.currentNode.source || !this.currentNode.processType) {
+                        this.$message.warning('请填写完整信息');
+                        return;
+                    }
+                    
+                    // 根据处理方式设置图标
+                    const iconMap = {
+                        '数据抽取': 'el-icon-upload',
+                        '数据转换': 'el-icon-refresh',
+                        '数据清洗': 'el-icon-magic-stick',
+                        '数据加载': 'el-icon-download'
+                    };
+                    this.currentNode.icon = iconMap[this.currentNode.processType] || 'el-icon-data-line';
+                    
+                    if (this.editingNodeIndex === -1) {
+                        this.nodes.push({ ...this.currentNode });
+                    } else {
+                        this.nodes[this.editingNodeIndex] = { ...this.currentNode };
+                    }
+                    
+                    this.showNodeDialog = false;
+                    this.$message.success('保存成功');
+                },
+                previewData(index) {
+                    const node = this.nodes[index];
+                    node.showPreview = !node.showPreview;
+                    if (node.showPreview && !node.previewData) {
+                        // 模拟数据预览
+                        const previewData = {
+                            'MySQL': '{\n  "id": 1,\n  "name": "John Doe",\n  "email": "john@example.com"\n}',
+                            'API': '{\n  "status": "success",\n  "data": [\n    {"field": "value"}\n  ]\n}',
+                            'PostgreSQL': '[\n  {"id": 1, "data": "sample"}\n]',
+                            'MongoDB': '{\n  "_id": "123",\n  "data": "value"\n}',
+                            'Redis': 'key: "value"'
+                        };
+                        node.previewData = previewData[node.source] || '无预览数据';
+                    }
+                },
+                saveDataflow() {
+                    this.$message.success('保存成功');
+                },
+                testDataflow() {
+                    this.isTesting = true;
+                    // 模拟测试过程
+                    setTimeout(() => {
+                        this.nodes.forEach(node => {
+                            node.status = ['success', 'warning', 'error'][Math.floor(Math.random() * 3)];
+                            node.statusText = {
+                                'success': '正常',
+                                'warning': '部分成功',
+                                'error': '异常'
+                            }[node.status];
+                        });
+                        this.isTesting = false;
+                        this.$message.success('测试完成');
+                    }, 2000);
+                }
+            }
+        })
+    </script>
+</body>
+</html> 
