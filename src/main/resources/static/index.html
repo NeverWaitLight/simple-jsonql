@@ -98,6 +98,29 @@
             margin-right: 20px;
             padding: 5px 15px;
         }
+        
+        .coming-soon {
+            text-align: center;
+            padding: 100px 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
+        }
+        
+        .coming-soon img {
+            width: 200px;
+            margin-bottom: 20px;
+        }
+        
+        .coming-soon h2 {
+            color: var(--morandi-green);
+            margin-bottom: 10px;
+        }
+        
+        .coming-soon p {
+            color: #909399;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -108,7 +131,7 @@
                     <a href="#" class="logo">A<span>Xi</span></a>
                 </div>
                 <div class="header-right">
-                    <el-button type="primary" class="add-page-btn" @click="goToLayoutEditor">新增页面</el-button>
+                    <el-button type="primary" class="add-page-btn" @click="goToLayoutEditor">页面管理</el-button>
                     <el-dropdown>
                         <span class="el-dropdown-link">
                             {{ username }}<i class="el-icon-arrow-down el-icon--right"></i>
@@ -124,32 +147,166 @@
             <el-container>
                 <el-aside width="200px">
                     <el-menu
-                        default-active="1"
+                        :default-active="activeMenu"
                         class="el-menu-vertical"
                         background-color="#f5f7fa"
                         text-color="#303133"
-                        active-text-color="#409EFF">
-                        <el-menu-item index="1">
-                            <i class="el-icon-goods"></i>
-                            <span slot="title">库存管理</span>
-                        </el-menu-item>
-                        <el-menu-item index="2" @click="goToOrganization">
-                            <i class="el-icon-s-custom"></i>
-                            <span slot="title">组织架构</span>
-                        </el-menu-item>
-                        <el-menu-item index="3" @click="goToPermission">
-                            <i class="el-icon-lock"></i>
-                            <span slot="title">权限管理</span>
-                        </el-menu-item>
-                        <el-menu-item index="4">
-                            <i class="el-icon-user"></i>
-                            <span slot="title">账号管理</span>
-                        </el-menu-item>
+                        active-text-color="#409EFF"
+                        @select="handleMenuSelect">
+                        <el-submenu index="1">
+                            <template slot="title">
+                                <i class="el-icon-s-home"></i>
+                                <span>工作台</span>
+                            </template>
+                            <el-menu-item index="1-1">
+                                <i class="el-icon-data-line"></i>
+                                <span>数据概览</span>
+                            </el-menu-item>
+                            <el-menu-item index="1-2">
+                                <i class="el-icon-bell"></i>
+                                <span>消息中心</span>
+                            </el-menu-item>
+                            <el-menu-item index="1-3">
+                                <i class="el-icon-s-claim"></i>
+                                <span>待办事项</span>
+                            </el-menu-item>
+                        </el-submenu>
+
+                        <el-submenu index="2">
+                            <template slot="title">
+                                <i class="el-icon-s-goods"></i>
+                                <span>商品管理</span>
+                            </template>
+                            <el-menu-item index="2-1">
+                                <i class="el-icon-goods"></i>
+                                <span>商品列表</span>
+                            </el-menu-item>
+                            <el-menu-item index="2-2">
+                                <i class="el-icon-shopping-cart-full"></i>
+                                <span>库存管理</span>
+                            </el-menu-item>
+                            <el-menu-item index="2-3">
+                                <i class="el-icon-collection-tag"></i>
+                                <span>分类管理</span>
+                            </el-menu-item>
+                            <el-menu-item index="2-4">
+                                <i class="el-icon-price-tag"></i>
+                                <span>标签管理</span>
+                            </el-menu-item>
+                        </el-submenu>
+
+                        <el-submenu index="3">
+                            <template slot="title">
+                                <i class="el-icon-s-order"></i>
+                                <span>订单管理</span>
+                            </template>
+                            <el-menu-item index="3-1">
+                                <i class="el-icon-document"></i>
+                                <span>订单列表</span>
+                            </el-menu-item>
+                            <el-menu-item index="3-2">
+                                <i class="el-icon-finished"></i>
+                                <span>退款管理</span>
+                            </el-menu-item>
+                            <el-menu-item index="3-3">
+                                <i class="el-icon-truck"></i>
+                                <span>物流管理</span>
+                            </el-menu-item>
+                        </el-submenu>
+
+                        <el-submenu index="4">
+                            <template slot="title">
+                                <i class="el-icon-s-marketing"></i>
+                                <span>营销管理</span>
+                            </template>
+                            <el-menu-item index="4-1">
+                                <i class="el-icon-present"></i>
+                                <span>优惠券</span>
+                            </el-menu-item>
+                            <el-menu-item index="4-2">
+                                <i class="el-icon-shopping-bag-1"></i>
+                                <span>秒杀活动</span>
+                            </el-menu-item>
+                            <el-menu-item index="4-3">
+                                <i class="el-icon-box"></i>
+                                <span>满减活动</span>
+                            </el-menu-item>
+                        </el-submenu>
+
+                        <el-submenu index="5">
+                            <template slot="title">
+                                <i class="el-icon-s-custom"></i>
+                                <span>客户管理</span>
+                            </template>
+                            <el-menu-item index="5-1">
+                                <i class="el-icon-user"></i>
+                                <span>客户列表</span>
+                            </el-menu-item>
+                            <el-menu-item index="5-2">
+                                <i class="el-icon-chat-dot-round"></i>
+                                <span>客户反馈</span>
+                            </el-menu-item>
+                            <el-menu-item index="5-3">
+                                <i class="el-icon-medal"></i>
+                                <span>会员等级</span>
+                            </el-menu-item>
+                        </el-submenu>
+
+                        <el-submenu index="6">
+                            <template slot="title">
+                                <i class="el-icon-s-data"></i>
+                                <span>数据中心</span>
+                            </template>
+                            <el-menu-item index="6-1">
+                                <i class="el-icon-data-analysis"></i>
+                                <span>销售分析</span>
+                            </el-menu-item>
+                            <el-menu-item index="6-2">
+                                <i class="el-icon-pie-chart"></i>
+                                <span>商品分析</span>
+                            </el-menu-item>
+                            <el-menu-item index="6-3">
+                                <i class="el-icon-trend-charts"></i>
+                                <span>用户分析</span>
+                            </el-menu-item>
+                        </el-submenu>
+
+                        <el-submenu index="7">
+                            <template slot="title">
+                                <i class="el-icon-s-tools"></i>
+                                <span>系统设置</span>
+                            </template>
+                            <el-menu-item index="7-1" @click="goToOrganization">
+                                <i class="el-icon-office-building"></i>
+                                <span>组织架构</span>
+                            </el-menu-item>
+                            <el-menu-item index="7-2" @click="goToPermission">
+                                <i class="el-icon-lock"></i>
+                                <span>权限管理</span>
+                            </el-menu-item>
+                            <el-menu-item index="7-3">
+                                <i class="el-icon-user"></i>
+                                <span>账号管理</span>
+                            </el-menu-item>
+                            <el-menu-item index="7-4">
+                                <i class="el-icon-setting"></i>
+                                <span>系统配置</span>
+                            </el-menu-item>
+                            <el-menu-item index="7-5">
+                                <i class="el-icon-notebook-2"></i>
+                                <span>操作日志</span>
+                            </el-menu-item>
+                        </el-submenu>
                     </el-menu>
                 </el-aside>
                 
                 <el-main>
-                    <el-card>
+                    <div v-if="showComingSoon" class="coming-soon">
+                        <img src="https://cdn.jsdelivr.net/gh/apache/incubator-seata@develop/saga/seata-saga-statemachine-designer/src/assets/images/coming-soon.png" alt="Coming Soon">
+                        <h2>功能即将上线</h2>
+                        <p>我们正在努力开发中，敬请期待...</p>
+                    </div>
+                    <el-card v-else>
                         <div slot="header">
                             <span>库存列表</span>
                         </div>
@@ -198,10 +355,29 @@
                     ],
                     currentPage: 1,
                     pageSize: 10,
-                    total: 100
+                    total: 100,
+                    activeMenu: '2-2',  // 默认选中库存管理
+                    showComingSoon: false,
+                    implementedMenus: ['2-2', '7-1', '7-2']  // 已实现的菜单项
                 }
             },
             methods: {
+                handleMenuSelect(index, indexPath) {
+                    this.activeMenu = index;
+                    
+                    // 检查是否是已实现的菜单
+                    if (this.implementedMenus.includes(index)) {
+                        this.showComingSoon = false;
+                        // 处理特定页面跳转
+                        if (index === '7-1') {
+                            this.goToOrganization();
+                        } else if (index === '7-2') {
+                            this.goToPermission();
+                        }
+                    } else {
+                        this.showComingSoon = true;
+                    }
+                },
                 goToLayoutEditor() {
                     window.location.href = 'ai-generator.html';
                 },
