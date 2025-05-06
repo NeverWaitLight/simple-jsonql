@@ -1,23 +1,23 @@
 package org.waitlight.simple.jsonql.engine;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.statement.DeleteStatement;
 import org.waitlight.simple.jsonql.statement.model.JsonQLStatement;
-import org.waitlight.simple.jsonql.statement.model.WhereCondition;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 public class DeleteExecutor extends StatementExecutor {
     private static DeleteExecutor instance;
-    private final WhereClauseExecutor whereClauseExecutor;
 
     private DeleteExecutor(MetadataSources metadataSources) {
         super(metadataSources);
-        this.whereClauseExecutor = new WhereClauseExecutor(metadataSources);
     }
 
     public static synchronized DeleteExecutor getInstance(MetadataSources metadataSources) {
@@ -28,26 +28,57 @@ public class DeleteExecutor extends StatementExecutor {
     }
 
     @Override
-    protected Object doExecute(Connection conn, SqlAndParameters sqlAndParameters) throws SQLException {
-        try (PreparedStatement stmt = conn.prepareStatement(sqlAndParameters.sql())) {
-            return stmt.executeUpdate();
+    protected Object doExecute(Connection conn, PreparedSql<?> preparedSql) throws SQLException {
+         if (preparedSql.statementType() != DeleteStatement.class) {
+             throw new IllegalArgumentException("DeleteExecutor can only execute DeleteStatements");
+         }
+
+         if (!preparedSql.nestedCreateStatements().isEmpty()) {
+             log.warn("Nested statements found in a DELETE operation, they will be ignored.");
+         }
+
+        try (PreparedStatement preparedStatement = conn.prepareStatement(preparedSql.sql())) {
+            List<Object> parameters = preparedSql.parameters();
+            for (int i = 0; i < parameters.size(); i++) {
+                preparedStatement.setObject(i + 1, parameters.get(i));
+            }
+            return preparedStatement.executeUpdate();
         }
     }
 
     @Override
-    protected SqlAndParameters parseSql(JsonQLStatement statement) {
-        if (!(statement instanceof DeleteStatement)) {
+    protected PreparedSql<DeleteStatement> parseSql(JsonQLStatement statement) {
+        if (!(statement instanceof DeleteStatement deleteStatement)) {
             throw new IllegalArgumentException("Expected DeleteStatement but got " + statement.getClass().getSimpleName());
         }
-        DeleteStatement deleteStatement = (DeleteStatement) statement;
-        StringBuilder sql = new StringBuilder();
-        sql.append("DELETE FROM ").append(deleteStatement.getEntityId());
 
-        // 处理 WHERE 子句
-        WhereCondition where = deleteStatement.getWhere();
-        if (where != null) {
-            sql.append(" WHERE ").append(whereClauseExecutor.buildClause(where));
+        String entityId = deleteStatement.getEntityId();
+        if (entityId == null || entityId.isBlank()) {
+            throw new IllegalArgumentException("entityId is required for delete statements");
         }
-        return new SqlAndParameters(sql.toString(), null);
+
+        StringBuilder sql = new StringBuilder();
+        List<Object> parameters = new ArrayList<>();
+
+        // DELETE FROM clause
+        sql.append("DELETE FROM ").append(entityId);
+
+        // WHERE clause (优先处理 ids 列表)
+        List<String> idsToDelete = deleteStatement.getIds();
+
+        if (CollectionUtils.isNotEmpty(idsToDelete)) {
+            // Build WHERE id IN (?, ?, ...) clause
+            sql.append("\nWHERE id IN ("); // Assuming the primary key column is named 'id'
+            sql.append(String.join(", ", java.util.Collections.nCopies(idsToDelete.size(), "?")));
+            sql.append(")");
+            parameters.addAll(idsToDelete); // Add all IDs as parameters
+        } else {
+            // Safety measure: Prevent accidental deletion of all rows if no condition specified
+            log.error("Executing DELETE statement without a WHERE clause (no 'ids' provided) for entity: {}. Aborting.", entityId);
+            // Throw an error to prevent deleting all records
+            throw new IllegalArgumentException("WHERE clause (using 'ids') is mandatory for DELETE statements to prevent accidental data loss.");
+        }
+
+        return new PreparedSql<>(sql.toString(), parameters, DeleteStatement.class);
     }
 }

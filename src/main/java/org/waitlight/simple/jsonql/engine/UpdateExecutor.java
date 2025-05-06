@@ -30,24 +30,35 @@ public class UpdateExecutor extends StatementExecutor {
     }
 
     @Override
-    protected Object doExecute(Connection conn, SqlAndParameters sqlAndParameters) throws SQLException {
-        try (PreparedStatement stmt = conn.prepareStatement(sqlAndParameters.sql())) {
+    protected Object doExecute(Connection conn, PreparedSql<?> preparedSql) throws SQLException {
+        if (preparedSql.statementType() != UpdateStatement.class) {
+            throw new IllegalArgumentException("UpdateExecutor can only execute UpdateStatements");
+        }
+
+        if (!preparedSql.nestedCreateStatements().isEmpty()) {
+            log.warn("Nested statements found in an UPDATE operation, they will be ignored.");
+        }
+
+        try (PreparedStatement stmt = conn.prepareStatement(preparedSql.sql())) {
+            List<Object> parameters = preparedSql.parameters();
+            for (int i = 0; i < parameters.size(); i++) {
+                stmt.setObject(i + 1, parameters.get(i));
+            }
             return stmt.executeUpdate();
         }
     }
 
     @Override
-    protected SqlAndParameters parseSql(JsonQLStatement statement) {
-        if (!(statement instanceof UpdateStatement)) {
+    protected PreparedSql<UpdateStatement> parseSql(JsonQLStatement statement) {
+        if (!(statement instanceof UpdateStatement updateStatement)) {
             throw new IllegalArgumentException("Expected UpdateStatement but got " + statement.getClass().getSimpleName());
         }
-        UpdateStatement updateStatement = (UpdateStatement) statement;
+
         StringBuilder sql = new StringBuilder();
         sql.append("UPDATE ")
                 .append(updateStatement.getEntityId())
                 .append(" SET ");
 
-        // 处理 SET 子句
         List<String> setClauses = new ArrayList<>();
         List<Object> parameters = new ArrayList<>();
         
@@ -67,6 +78,6 @@ public class UpdateExecutor extends StatementExecutor {
         sql.append(" WHERE id = ?");
         parameters.add(updateStatement.getDataId());
 
-        return new SqlAndParameters(sql.toString(), parameters);
+        return new PreparedSql<>(sql.toString(), parameters, UpdateStatement.class);
     }
 }

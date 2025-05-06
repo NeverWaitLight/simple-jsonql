@@ -29,18 +29,31 @@ public class QueryExecutor extends StatementExecutor {
     }
 
     @Override
-    protected Object doExecute(Connection conn, SqlAndParameters sqlAndParameters) throws SQLException {
-        try (PreparedStatement stmt = conn.prepareStatement(sqlAndParameters.sql());
-             ResultSet rs = stmt.executeQuery()) {
-            return processResultSet(rs);
+    protected Object doExecute(Connection conn, PreparedSql<?> preparedSql) throws SQLException {
+        if (preparedSql.statementType() != QueryStatement.class) {
+            throw new IllegalArgumentException("QueryExecutor can only execute QueryStatements");
+        }
+
+        if (!preparedSql.nestedCreateStatements().isEmpty()) {
+            log.warn("Nested statements found in a QUERY operation, they will be ignored.");
+        }
+
+        try (PreparedStatement stmt = conn.prepareStatement(preparedSql.sql())) {
+            List<Object> parameters = preparedSql.parameters();
+            for (int i = 0; i < parameters.size(); i++) {
+                stmt.setObject(i + 1, parameters.get(i));
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                return processResultSet(rs);
+            }
         }
     }
 
     @Override
-    protected SqlAndParameters parseSql(JsonQLStatement statement) {
-        if (!(statement instanceof QueryStatement queryStatement))
-            throw new IllegalArgumentException(
-                    "Expected QueryStatement but got " + statement.getClass().getSimpleName());
+    protected PreparedSql<QueryStatement> parseSql(JsonQLStatement statement) {
+        if (!(statement instanceof QueryStatement queryStatement)) {
+            throw new IllegalArgumentException("Expected QueryStatement but got " + statement.getClass().getSimpleName());
+        }
 
         StringBuilder sql = new StringBuilder();
         List<Object> parameters = new ArrayList<>();
@@ -65,7 +78,7 @@ public class QueryExecutor extends StatementExecutor {
 
             List<Condition> conditions = filters.getConditions();
             String rel = filters.getRel() != null ? filters.getRel().toUpperCase() : "AND";
-            
+     
             for (int i = 0; i < conditions.size(); i++) {
                 Condition condition = conditions.get(i);
                 
@@ -112,66 +125,43 @@ public class QueryExecutor extends StatementExecutor {
             }
         }
 
-        // 处理 ORDER BY 子句 (sort)
+        // 处理排序
         if (sort != null && !sort.isEmpty()) {
             sql.append(" ORDER BY ");
-            for (int i = 0; i < sort.size(); i++) {
-                Sort sortItem = sort.get(i);
-                if (i > 0) {
-                    sql.append(", ");
-                }
-                sql.append(sortItem.getField()).append(" ").append(sortItem.getDirection());
+            List<String> sortClauses = new ArrayList<>();
+            for (Sort sortItem : sort) {
+                String direction = sortItem.getDirection() != null ? 
+                    sortItem.getDirection().toUpperCase() : "ASC";
+                sortClauses.add(sortItem.getField() + " " + direction);
             }
+            sql.append(String.join(", ", sortClauses));
         }
 
-        // 处理 LIMIT 和 OFFSET 子句 (page)
+        // 处理分页
         if (page != null) {
-            if (page.getSize() != null) {
-                sql.append(" LIMIT ").append(page.getSize());
-            }
-            if (page.getNumber() != null && page.getSize() != null) {
-                int offset = (page.getNumber() - 1) * page.getSize();
-                if (offset > 0) {
-                    sql.append(" OFFSET ").append(offset);
-                }
-            }
+            int pageSize = page.getSize() > 0 ? page.getSize() : 10;
+            int offset = (page.getNumber() - 1) * pageSize;
+            sql.append(" LIMIT ? OFFSET ?");
+            parameters.add(pageSize);
+            parameters.add(offset);
         }
 
-        return new SqlAndParameters(sql.toString(), parameters);
+        return new PreparedSql<>(sql.toString(), parameters, QueryStatement.class);
     }
 
     private List<Map<String, Object>> processResultSet(ResultSet rs) throws SQLException {
-        List<Map<String, Object>> result = new ArrayList<>();
+        List<Map<String, Object>> results = new ArrayList<>();
         ResultSetMetaData metaData = rs.getMetaData();
         int columnCount = metaData.getColumnCount();
 
         while (rs.next()) {
             Map<String, Object> row = new LinkedHashMap<>();
-            Map<String, Map<String, Object>> relationData = new LinkedHashMap<>();
-
             for (int i = 1; i <= columnCount; i++) {
-                String columnName = metaData.getColumnLabel(i);
-                Object value = rs.getObject(i);
-
-                // 处理关联字段 (格式: relation_field)
-                if (columnName.contains("_")) {
-                    String[] parts = columnName.split("_", 2);
-                    String relation = parts[0];
-                    String field = parts[1];
-
-                    relationData.computeIfAbsent(relation, k -> new LinkedHashMap<>())
-                            .put(field, value);
-                } else {
-                    // 普通字段直接放入row
-                    row.put(columnName, value);
-                }
+                row.put(metaData.getColumnName(i), rs.getObject(i));
             }
-
-            // 合并关联数据到结果
-            relationData.forEach(row::put);
-
-            result.add(row);
+            results.add(row);
         }
-        return result;
+
+        return results;
     }
 } 
