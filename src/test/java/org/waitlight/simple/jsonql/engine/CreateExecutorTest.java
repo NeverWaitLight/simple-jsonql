@@ -29,7 +29,6 @@ public class CreateExecutorTest {
                     "formId": "89757",
                     "entityId": "user",
                     "fields": [
-                        {"field": "id", "value": 1},
                         {"field": "name", "value": "tom"}
                     ]
                 }
