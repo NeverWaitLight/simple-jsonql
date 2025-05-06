@@ -29,12 +29,12 @@ public class DeleteExecutor extends StatementExecutor<DeleteStatement> {
 
     @Override
     protected Object doExecute(Connection conn, PreparedSql<?> preparedSql) throws SQLException {
-         if (preparedSql.statementType() != DeleteStatement.class) {
+         if (preparedSql.getStatementType() != DeleteStatement.class) {
              throw new IllegalArgumentException("DeleteExecutor can only execute DeleteStatements");
          }
 
-        try (PreparedStatement preparedStatement = conn.prepareStatement(preparedSql.sql())) {
-            List<Object> parameters = preparedSql.parameters();
+        try (PreparedStatement preparedStatement = conn.prepareStatement(preparedSql.getSql())) {
+            List<Object> parameters = preparedSql.getParameters();
             for (int i = 0; i < parameters.size(); i++) {
                 preparedStatement.setObject(i + 1, parameters.get(i));
             }
@@ -76,7 +76,11 @@ public class DeleteExecutor extends StatementExecutor<DeleteStatement> {
         }
 
         List<PreparedSql<DeleteStatement>> result = new ArrayList<>();
-        result.add(new PreparedSql<>(sql.toString(), parameters, DeleteStatement.class));
+        PreparedSql<DeleteStatement> sqlObj = new PreparedSql<>();
+        sqlObj.setSql(sql.toString());
+        sqlObj.setParameters(parameters);
+        sqlObj.setStatementType(DeleteStatement.class);
+        result.add(sqlObj);
         return result;
     }
 }

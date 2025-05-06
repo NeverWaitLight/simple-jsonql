@@ -30,12 +30,12 @@ public class QueryExecutor extends StatementExecutor<QueryStatement> {
 
     @Override
     protected Object doExecute(Connection conn, PreparedSql<?> preparedSql) throws SQLException {
-        if (preparedSql.statementType() != QueryStatement.class) {
+        if (preparedSql.getStatementType() != QueryStatement.class) {
             throw new IllegalArgumentException("QueryExecutor can only execute QueryStatements");
         }
 
-        try (PreparedStatement stmt = conn.prepareStatement(preparedSql.sql())) {
-            List<Object> parameters = preparedSql.parameters();
+        try (PreparedStatement stmt = conn.prepareStatement(preparedSql.getSql())) {
+            List<Object> parameters = preparedSql.getParameters();
             for (int i = 0; i < parameters.size(); i++) {
                 stmt.setObject(i + 1, parameters.get(i));
             }
@@ -135,7 +135,11 @@ public class QueryExecutor extends StatementExecutor<QueryStatement> {
         }
 
         List<PreparedSql<QueryStatement>> result = new ArrayList<>();
-        result.add(new PreparedSql<>(sql.toString(), parameters, QueryStatement.class));
+        PreparedSql<QueryStatement> sqlObj = new PreparedSql<>();
+        sqlObj.setSql(sql.toString());
+        sqlObj.setParameters(parameters);
+        sqlObj.setStatementType(QueryStatement.class);
+        result.add(sqlObj);
         return result;
     }
 

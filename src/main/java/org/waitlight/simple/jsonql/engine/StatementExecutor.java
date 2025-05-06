@@ -31,9 +31,9 @@ public abstract class StatementExecutor<T extends JsonQLStatement> {
         int totalAffectedRows = 0;
         
         for (PreparedSql<?> preparedSql : preparedSqls) {
-            log.info("SQL: {}", preparedSql.sql());
-            if (CollectionUtils.isNotEmpty(preparedSql.parameters())) {
-                log.info("Parameters: {}", preparedSql.parameters());
+            log.info("SQL: {}", preparedSql.getSql());
+            if (CollectionUtils.isNotEmpty(preparedSql.getParameters())) {
+                log.info("Parameters: {}", preparedSql.getParameters());
             }
             Object result = doExecute(conn, preparedSql);
             if (result instanceof Integer) {

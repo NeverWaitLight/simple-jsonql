@@ -31,12 +31,12 @@ public class UpdateExecutor extends StatementExecutor<UpdateStatement> {
 
     @Override
     protected Object doExecute(Connection conn, PreparedSql<?> preparedSql) throws SQLException {
-        if (preparedSql.statementType() != UpdateStatement.class) {
+        if (preparedSql.getStatementType() != UpdateStatement.class) {
             throw new IllegalArgumentException("UpdateExecutor can only execute UpdateStatements");
         }
 
-        try (PreparedStatement stmt = conn.prepareStatement(preparedSql.sql())) {
-            List<Object> parameters = preparedSql.parameters();
+        try (PreparedStatement stmt = conn.prepareStatement(preparedSql.getSql())) {
+            List<Object> parameters = preparedSql.getParameters();
             for (int i = 0; i < parameters.size(); i++) {
                 stmt.setObject(i + 1, parameters.get(i));
             }
@@ -70,7 +70,11 @@ public class UpdateExecutor extends StatementExecutor<UpdateStatement> {
         parameters.add(updateStatement.getDataId());
 
         List<PreparedSql<UpdateStatement>> result = new ArrayList<>();
-        result.add(new PreparedSql<>(sql.toString(), parameters, UpdateStatement.class));
+        PreparedSql<UpdateStatement> sqlObj = new PreparedSql<>();
+        sqlObj.setSql(sql.toString());
+        sqlObj.setParameters(parameters);
+        sqlObj.setStatementType(UpdateStatement.class);
+        result.add(sqlObj);
         return result;
     }
 }
