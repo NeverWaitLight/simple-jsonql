@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class CreateExecutor extends StatementExecutor {
+public class CreateExecutor extends StatementExecutor<CreateStatement> {
     private static CreateExecutor instance;
     private final ObjectMapper objectMapper = new ObjectMapper(); 
 
@@ -35,13 +35,13 @@ public class CreateExecutor extends StatementExecutor {
     }
 
     @Override
-    protected List<PreparedSql<?>> parseSql(JsonQLStatement statement) {
+    protected List<PreparedSql<CreateStatement>> parseSql(JsonQLStatement statement) {
         if (!(statement instanceof CreateStatement createStatement)) {
             throw new IllegalArgumentException(
                     "Expected CreateStatement but got " + statement.getClass().getSimpleName());
         }
 
-        List<PreparedSql<?>> allPreparedSqls = new ArrayList<>();
+        List<PreparedSql<CreateStatement>> allPreparedSqls = new ArrayList<>();
 
         // 1. 处理主实体
         List<Field> directFields = new ArrayList<>();

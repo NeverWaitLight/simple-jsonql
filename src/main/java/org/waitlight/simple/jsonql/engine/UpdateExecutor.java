@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-public class UpdateExecutor extends StatementExecutor {
+public class UpdateExecutor extends StatementExecutor<UpdateStatement> {
     private static UpdateExecutor instance;
     private final WhereClauseExecutor whereClauseExecutor;
 
@@ -45,7 +45,7 @@ public class UpdateExecutor extends StatementExecutor {
     }
 
     @Override
-    protected List<PreparedSql<?>> parseSql(JsonQLStatement statement) {
+    protected List<PreparedSql<UpdateStatement>> parseSql(JsonQLStatement statement) {
         if (!(statement instanceof UpdateStatement updateStatement)) {
             throw new IllegalArgumentException("Expected UpdateStatement but got " + statement.getClass().getSimpleName());
         }
@@ -69,7 +69,7 @@ public class UpdateExecutor extends StatementExecutor {
         sql.append(" WHERE id = ?");
         parameters.add(updateStatement.getDataId());
 
-        List<PreparedSql<?>> result = new ArrayList<>();
+        List<PreparedSql<UpdateStatement>> result = new ArrayList<>();
         result.add(new PreparedSql<>(sql.toString(), parameters, UpdateStatement.class));
         return result;
     }

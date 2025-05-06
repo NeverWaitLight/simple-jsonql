@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-public class QueryExecutor extends StatementExecutor {
+public class QueryExecutor extends StatementExecutor<QueryStatement> {
     private static QueryExecutor instance;
     private final ClauseExecutor clauseExecutor;
 
@@ -46,7 +46,7 @@ public class QueryExecutor extends StatementExecutor {
     }
 
     @Override
-    protected List<PreparedSql<?>> parseSql(JsonQLStatement statement) {
+    protected List<PreparedSql<QueryStatement>> parseSql(JsonQLStatement statement) {
         if (!(statement instanceof QueryStatement queryStatement)) {
             throw new IllegalArgumentException("Expected QueryStatement but got " + statement.getClass().getSimpleName());
         }
@@ -134,7 +134,7 @@ public class QueryExecutor extends StatementExecutor {
             parameters.add(offset);
         }
 
-        List<PreparedSql<?>> result = new ArrayList<>();
+        List<PreparedSql<QueryStatement>> result = new ArrayList<>();
         result.add(new PreparedSql<>(sql.toString(), parameters, QueryStatement.class));
         return result;
     }

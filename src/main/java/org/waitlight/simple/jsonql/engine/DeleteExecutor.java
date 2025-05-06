@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-public class DeleteExecutor extends StatementExecutor {
+public class DeleteExecutor extends StatementExecutor<DeleteStatement> {
     private static DeleteExecutor instance;
 
     private DeleteExecutor(MetadataSources metadataSources) {
@@ -43,7 +43,7 @@ public class DeleteExecutor extends StatementExecutor {
     }
 
     @Override
-    protected List<PreparedSql<?>> parseSql(JsonQLStatement statement) {
+    protected List<PreparedSql<DeleteStatement>> parseSql(JsonQLStatement statement) {
         if (!(statement instanceof DeleteStatement deleteStatement)) {
             throw new IllegalArgumentException("Expected DeleteStatement but got " + statement.getClass().getSimpleName());
         }
@@ -75,7 +75,7 @@ public class DeleteExecutor extends StatementExecutor {
             throw new IllegalArgumentException("WHERE clause (using 'ids') is mandatory for DELETE statements to prevent accidental data loss.");
         }
 
-        List<PreparedSql<?>> result = new ArrayList<>();
+        List<PreparedSql<DeleteStatement>> result = new ArrayList<>();
         result.add(new PreparedSql<>(sql.toString(), parameters, DeleteStatement.class));
         return result;
     }

@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
  * 用于处理不同类型的 SQL 语句执行
  */
 @Slf4j
-public abstract class StatementExecutor {
+public abstract class StatementExecutor<T extends JsonQLStatement> {
     protected final Metadata metadata;
     protected final MetadataSources metadataSources;
 
@@ -27,7 +27,7 @@ public abstract class StatementExecutor {
 
     // execute 方法签名调整
     public Object execute(Connection conn, JsonQLStatement statement) throws SQLException {
-        List<PreparedSql<?>> preparedSqls = parseSql(statement);
+        List<PreparedSql<T>> preparedSqls = parseSql(statement);
         int totalAffectedRows = 0;
         
         for (PreparedSql<?> preparedSql : preparedSqls) {
@@ -55,5 +55,5 @@ public abstract class StatementExecutor {
      * @param statement SQL 语句对象
      * @return 解析后的 SQL 语句列表
      */
-    protected abstract List<PreparedSql<?>> parseSql(JsonQLStatement statement);
+    protected abstract List<PreparedSql<T>> parseSql(JsonQLStatement statement);
 } 
