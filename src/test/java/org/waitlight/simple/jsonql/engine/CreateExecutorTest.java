@@ -52,7 +52,6 @@ public class CreateExecutorTest {
                     "formId": "89757",
                     "entityId": "user",
                     "fields": [
-                        {"field": "id", "value": 2},
                         {"field": "name", "value": "jerry"},
                         {
                             "field": "blogs",
@@ -62,7 +61,6 @@ public class CreateExecutorTest {
                                     "formId": "89758",
                                     "entityId": "blog",
                                     "fields": [
-                                        {"field": "id", "value": 1},
                                         {"field": "title", "value": "太阳照常升起"},
                                         {"field": "content", "value": "这是一篇博客内容"}
                                     ]

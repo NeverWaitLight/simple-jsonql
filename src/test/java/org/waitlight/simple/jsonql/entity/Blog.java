@@ -1,8 +1,6 @@
 package org.waitlight.simple.jsonql.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,4 +16,9 @@ public class Blog {
     private String title;
     @Column
     private String content;
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    private User user;
 }

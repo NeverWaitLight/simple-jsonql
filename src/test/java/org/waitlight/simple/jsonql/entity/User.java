@@ -1,10 +1,7 @@
 package org.waitlight.simple.jsonql.entity;
 
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.Data;
 
 import java.util.List;
@@ -16,6 +13,6 @@ public class User {
     private Long id;
     @Column
     private String name;
-    @OneToMany(mappedBy = "Blog", targetEntity = org.waitlight.simple.jsonql.entity.Blog.class)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Blog> blogs;
 }
