@@ -46,7 +46,7 @@ public class QueryExecutor extends StatementExecutor<QueryStatement> {
     }
 
     @Override
-    protected List<PreparedSql<QueryStatement>> parseSql(JsonQLStatement statement) {
+    protected PreparedSql<QueryStatement> parseSql(JsonQLStatement statement) {
         if (!(statement instanceof QueryStatement queryStatement)) {
             throw new IllegalArgumentException("Expected QueryStatement but got " + statement.getClass().getSimpleName());
         }
@@ -134,13 +134,11 @@ public class QueryExecutor extends StatementExecutor<QueryStatement> {
             parameters.add(offset);
         }
 
-        List<PreparedSql<QueryStatement>> result = new ArrayList<>();
         PreparedSql<QueryStatement> sqlObj = new PreparedSql<>();
         sqlObj.setSql(sql.toString());
         sqlObj.setParameters(parameters);
         sqlObj.setStatementType(QueryStatement.class);
-        result.add(sqlObj);
-        return result;
+        return sqlObj;
     }
 
     private List<Map<String, Object>> processResultSet(ResultSet rs) throws SQLException {

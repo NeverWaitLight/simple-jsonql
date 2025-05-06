@@ -52,7 +52,8 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
             PreparedSql<CreateStatement> mainSql = preparedSqls.get(0);
             Long generatedId = null;
 
-            try (PreparedStatement ps = conn.prepareStatement(mainSql.getSql(), PreparedStatement.RETURN_GENERATED_KEYS)) {
+            try (PreparedStatement ps = conn.prepareStatement(mainSql.getSql(),
+                    PreparedStatement.RETURN_GENERATED_KEYS)) {
                 // 设置主实体的参数
                 for (int i = 0; i < mainSql.getParameters().size(); i++) {
                     ps.setObject(i + 1, mainSql.getParameters().get(i));
@@ -125,13 +126,11 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
     }
 
     @Override
-    protected List<PreparedSql<CreateStatement>> parseSql(JsonQLStatement statement) {
+    protected PreparedSql<CreateStatement> parseSql(JsonQLStatement statement) {
         if (!(statement instanceof CreateStatement createStatement)) {
             throw new IllegalArgumentException(
                     "Expected CreateStatement but got " + statement.getClass().getSimpleName());
         }
-
-        List<PreparedSql<CreateStatement>> allPreparedSqls = new ArrayList<>();
 
         // 1. 处理主实体
         List<Field> directFields = new ArrayList<>();
@@ -149,9 +148,6 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
         // 2. 生成主实体的SQL
         createStatement.setFields(directFields);
         PreparedSql<CreateStatement> mainSql = buildInsertSql(createStatement);
-        if (mainSql.getSql() != null && !mainSql.getSql().isEmpty()) {
-            allPreparedSqls.add(mainSql);
-        }
 
         // 3. 处理嵌套实体，使用ForeignKeyPlaceholder标记需要替换的外键
         for (Field nestedField : nestedFields) {
@@ -184,16 +180,17 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
 
                 PreparedSql<CreateStatement> nestedSql = buildInsertSql(nestedCreate);
                 if (nestedSql.getSql() != null && !nestedSql.getSql().isEmpty()) {
-                    allPreparedSqls.add(nestedSql);
+                    mainSql.addNestedSqls(nestedSql);
                 }
             }
         }
 
-        return allPreparedSqls;
+        return mainSql;
     }
 
     /**
      * 构建INSERT SQL语句
+     * 
      * @param createStatement 创建语句
      * @return PreparedSql对象
      */
@@ -235,13 +232,15 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
 
     /**
      * 将嵌套对象转换为CreateStatement
+     * 
      * @param nestedValue 嵌套对象值
      * @return CreateStatement对象，如果转换失败返回null
      */
     private CreateStatement convertToCreateStatement(Object nestedValue) {
         try {
             Map<String, Object> nestedMap = objectMapper.convertValue(nestedValue,
-                    new TypeReference<Map<String, Object>>() {});
+                    new TypeReference<Map<String, Object>>() {
+                    });
             return objectMapper.convertValue(nestedMap, CreateStatement.class);
         } catch (IllegalArgumentException e) {
             log.error("Failed to convert nested value to CreateStatement: {}", e.getMessage());
@@ -269,7 +268,8 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
             throw new IllegalArgumentException("CreateExecutor can only execute CreateStatements");
         }
 
-        try (PreparedStatement ps = conn.prepareStatement(preparedSql.getSql(), PreparedStatement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement ps = conn.prepareStatement(preparedSql.getSql(),
+                PreparedStatement.RETURN_GENERATED_KEYS)) {
             // 设置参数
             List<Object> parameters = preparedSql.getParameters();
             for (int i = 0; i < parameters.size(); i++) {
@@ -279,10 +279,10 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
                 }
                 ps.setObject(i + 1, param);
             }
-            
+
             // 执行插入
             int affectedRows = ps.executeUpdate();
-            
+
             // 如果需要获取生成的主键，可以通过ResultSet rs = ps.getGeneratedKeys()获取
             // 但在这里我们只返回影响的行数
             return affectedRows;

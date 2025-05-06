@@ -45,7 +45,7 @@ public class UpdateExecutor extends StatementExecutor<UpdateStatement> {
     }
 
     @Override
-    protected List<PreparedSql<UpdateStatement>> parseSql(JsonQLStatement statement) {
+    protected PreparedSql<UpdateStatement> parseSql(JsonQLStatement statement) {
         if (!(statement instanceof UpdateStatement updateStatement)) {
             throw new IllegalArgumentException("Expected UpdateStatement but got " + statement.getClass().getSimpleName());
         }
@@ -69,12 +69,10 @@ public class UpdateExecutor extends StatementExecutor<UpdateStatement> {
         sql.append(" WHERE id = ?");
         parameters.add(updateStatement.getDataId());
 
-        List<PreparedSql<UpdateStatement>> result = new ArrayList<>();
         PreparedSql<UpdateStatement> sqlObj = new PreparedSql<>();
         sqlObj.setSql(sql.toString());
         sqlObj.setParameters(parameters);
         sqlObj.setStatementType(UpdateStatement.class);
-        result.add(sqlObj);
-        return result;
+        return sqlObj;
     }
 }

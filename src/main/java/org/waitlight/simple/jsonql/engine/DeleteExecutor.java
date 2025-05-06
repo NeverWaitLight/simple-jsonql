@@ -43,7 +43,7 @@ public class DeleteExecutor extends StatementExecutor<DeleteStatement> {
     }
 
     @Override
-    protected List<PreparedSql<DeleteStatement>> parseSql(JsonQLStatement statement) {
+    protected PreparedSql<DeleteStatement> parseSql(JsonQLStatement statement) {
         if (!(statement instanceof DeleteStatement deleteStatement)) {
             throw new IllegalArgumentException("Expected DeleteStatement but got " + statement.getClass().getSimpleName());
         }
@@ -75,12 +75,10 @@ public class DeleteExecutor extends StatementExecutor<DeleteStatement> {
             throw new IllegalArgumentException("WHERE clause (using 'ids') is mandatory for DELETE statements to prevent accidental data loss.");
         }
 
-        List<PreparedSql<DeleteStatement>> result = new ArrayList<>();
         PreparedSql<DeleteStatement> sqlObj = new PreparedSql<>();
         sqlObj.setSql(sql.toString());
         sqlObj.setParameters(parameters);
         sqlObj.setStatementType(DeleteStatement.class);
-        result.add(sqlObj);
-        return result;
+        return sqlObj;
     }
 }

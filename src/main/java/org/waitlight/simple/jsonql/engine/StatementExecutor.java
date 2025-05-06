@@ -27,21 +27,61 @@ public abstract class StatementExecutor<T extends JsonQLStatement> {
 
     // execute 方法签名调整
     public Object execute(Connection conn, JsonQLStatement statement) throws SQLException {
-        List<PreparedSql<T>> preparedSqls = parseSql(statement);
+        PreparedSql<T> preparedSql = parseSql(statement);
         int totalAffectedRows = 0;
         
-        for (PreparedSql<?> preparedSql : preparedSqls) {
-            log.info("SQL: {}", preparedSql.getSql());
-            if (CollectionUtils.isNotEmpty(preparedSql.getParameters())) {
-                log.info("Parameters: {}", preparedSql.getParameters());
-            }
-            Object result = doExecute(conn, preparedSql);
-            if (result instanceof Integer) {
-                totalAffectedRows += (Integer) result;
+        // 记录主SQL
+        log.info("SQL: {}", preparedSql.getSql());
+        if (CollectionUtils.isNotEmpty(preparedSql.getParameters())) {
+            log.info("Parameters: {}", preparedSql.getParameters());
+        }
+        
+        // 执行主SQL
+        Object result = doExecute(conn, preparedSql);
+        if (result instanceof Integer) {
+            totalAffectedRows += (Integer) result;
+        }
+        
+        // 执行嵌套SQL
+        if (CollectionUtils.isNotEmpty(preparedSql.getNestedSqls())) {
+            for (PreparedSql<?> nestedSql : preparedSql.getNestedSqls()) {
+                totalAffectedRows += executeNestedSql(conn, nestedSql);
             }
         }
         
         return totalAffectedRows;
+    }
+    
+    /**
+     * 递归执行嵌套SQL
+     * 
+     * @param conn 数据库连接
+     * @param sql 要执行的SQL
+     * @return 受影响的行数
+     */
+    private int executeNestedSql(Connection conn, PreparedSql<?> sql) throws SQLException {
+        int affectedRows = 0;
+        
+        // 记录SQL
+        log.info("Nested SQL: {}", sql.getSql());
+        if (CollectionUtils.isNotEmpty(sql.getParameters())) {
+            log.info("Nested Parameters: {}", sql.getParameters());
+        }
+        
+        // 执行SQL
+        Object result = doExecute(conn, sql);
+        if (result instanceof Integer) {
+            affectedRows += (Integer) result;
+        }
+        
+        // 递归执行更深层嵌套SQL
+        if (CollectionUtils.isNotEmpty(sql.getNestedSqls())) {
+            for (PreparedSql<?> nestedSql : sql.getNestedSqls()) {
+                affectedRows += executeNestedSql(conn, nestedSql);
+            }
+        }
+        
+        return affectedRows;
     }
 
     /**
@@ -53,7 +93,7 @@ public abstract class StatementExecutor<T extends JsonQLStatement> {
      * 解析 SQL 语句
      *
      * @param statement SQL 语句对象
-     * @return 解析后的 SQL 语句列表
+     * @return 解析后的 SQL 语句对象，其中嵌套子SQL保存在nestedSqls字段
      */
-    protected abstract List<PreparedSql<T>> parseSql(JsonQLStatement statement);
+    protected abstract PreparedSql<T> parseSql(JsonQLStatement statement);
 } 
