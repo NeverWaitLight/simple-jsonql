@@ -2,9 +2,7 @@ package org.waitlight.simple.jsonql.statement;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.waitlight.simple.jsonql.statement.model.*;
-import org.waitlight.simple.jsonql.statement.QueryStatement;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 

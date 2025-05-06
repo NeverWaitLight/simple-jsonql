@@ -1,9 +1,8 @@
 package org.waitlight.simple.jsonql.statement.model;
 
-import org.waitlight.simple.jsonql.statement.QueryStatement;
-
 import lombok.Getter;
 import lombok.Setter;
+import org.waitlight.simple.jsonql.statement.QueryStatement;
 
 /**
  * 子查询条件类

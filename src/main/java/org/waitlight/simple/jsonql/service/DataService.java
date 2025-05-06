@@ -1,10 +1,6 @@
 package org.waitlight.simple.jsonql.service;
 
-import org.waitlight.simple.jsonql.model.dto.CreateRequest;
-import org.waitlight.simple.jsonql.model.dto.PageRequest;
-import org.waitlight.simple.jsonql.model.dto.PageResult;
-import org.waitlight.simple.jsonql.model.dto.RemoveRequest;
-import org.waitlight.simple.jsonql.model.dto.UpdateRequest;
+import org.waitlight.simple.jsonql.model.dto.*;
 
 import java.util.Map;
 

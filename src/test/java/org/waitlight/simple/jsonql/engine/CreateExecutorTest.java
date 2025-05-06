@@ -6,10 +6,6 @@ import org.waitlight.simple.jsonql.entity.Blog;
 import org.waitlight.simple.jsonql.entity.User;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 public class CreateExecutorTest {

@@ -3,11 +3,10 @@ package org.waitlight.simple.jsonql.statement;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.util.List;
-
 import org.waitlight.simple.jsonql.statement.model.Field;
 import org.waitlight.simple.jsonql.statement.model.JsonQLStatement;
+
+import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)

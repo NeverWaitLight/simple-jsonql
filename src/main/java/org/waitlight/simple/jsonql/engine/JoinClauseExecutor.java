@@ -2,10 +2,7 @@ package org.waitlight.simple.jsonql.engine;
 
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.statement.QueryStatement;
-import org.waitlight.simple.jsonql.statement.model.ComparisonCondition;
 import org.waitlight.simple.jsonql.statement.model.Filter;
-import org.waitlight.simple.jsonql.statement.model.Join;
-import org.waitlight.simple.jsonql.statement.model.WhereCondition;
 
 public class JoinClauseExecutor extends AbstractClauseExecutor {
 

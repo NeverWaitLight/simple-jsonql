@@ -3,9 +3,9 @@ package org.waitlight.simple.jsonql.engine;
 import lombok.extern.slf4j.Slf4j;
 import org.waitlight.simple.jsonql.config.DBConfig;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.statement.JsonQLParser;
 import org.waitlight.simple.jsonql.statement.model.JsonQLStatement;
 import org.waitlight.simple.jsonql.statement.model.StatementType;
-import org.waitlight.simple.jsonql.statement.JsonQLParser;
 
 import java.sql.Connection;
 import java.sql.ResultSet;

@@ -1,20 +1,12 @@
 package org.waitlight.simple.jsonql.service.impl;
 
 import org.springframework.stereotype.Service;
-import org.waitlight.simple.jsonql.model.dto.CreateRequest;
-import org.waitlight.simple.jsonql.model.dto.PageRequest;
-import org.waitlight.simple.jsonql.model.dto.PageResult;
-import org.waitlight.simple.jsonql.model.dto.RemoveRequest;
-import org.waitlight.simple.jsonql.model.dto.UpdateRequest;
+import org.waitlight.simple.jsonql.model.dto.*;
 import org.waitlight.simple.jsonql.service.DataService;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 /**
  * 数据操作服务实现类
