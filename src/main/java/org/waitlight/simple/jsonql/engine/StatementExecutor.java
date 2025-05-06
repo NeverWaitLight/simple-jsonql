@@ -2,6 +2,7 @@ package org.waitlight.simple.jsonql.engine;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.waitlight.simple.jsonql.metadata.Metadata;
@@ -26,12 +27,21 @@ public abstract class StatementExecutor {
 
     // execute 方法签名调整
     public Object execute(Connection conn, JsonQLStatement statement) throws SQLException {
-        PreparedSql<?> preparedSql = parseSql(statement);
-        log.info("SQL: {}", preparedSql.sql());
-        if (CollectionUtils.isNotEmpty(preparedSql.parameters())) {
-            log.info("Parameters: {}", preparedSql.parameters());
+        List<PreparedSql<?>> preparedSqls = parseSql(statement);
+        int totalAffectedRows = 0;
+        
+        for (PreparedSql<?> preparedSql : preparedSqls) {
+            log.info("SQL: {}", preparedSql.sql());
+            if (CollectionUtils.isNotEmpty(preparedSql.parameters())) {
+                log.info("Parameters: {}", preparedSql.parameters());
+            }
+            Object result = doExecute(conn, preparedSql);
+            if (result instanceof Integer) {
+                totalAffectedRows += (Integer) result;
+            }
         }
-        return doExecute(conn, preparedSql);
+        
+        return totalAffectedRows;
     }
 
     /**
@@ -43,8 +53,7 @@ public abstract class StatementExecutor {
      * 解析 SQL 语句
      *
      * @param statement SQL 语句对象
-     * @return 解析后的 SQL 语句
+     * @return 解析后的 SQL 语句列表
      */
-    protected abstract PreparedSql<?> parseSql(JsonQLStatement statement);
-
+    protected abstract List<PreparedSql<?>> parseSql(JsonQLStatement statement);
 } 

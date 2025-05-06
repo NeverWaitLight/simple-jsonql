@@ -1,13 +1,5 @@
 package org.waitlight.simple.jsonql.engine;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
-import org.waitlight.simple.jsonql.metadata.MetadataSources;
-import org.waitlight.simple.jsonql.statement.CreateStatement;
-import org.waitlight.simple.jsonql.statement.model.Field;
-import org.waitlight.simple.jsonql.statement.model.JsonQLStatement;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -16,10 +8,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.statement.CreateStatement;
+import org.waitlight.simple.jsonql.statement.model.Field;
+import org.waitlight.simple.jsonql.statement.model.JsonQLStatement;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.extern.slf4j.Slf4j;
+
 @Slf4j
 public class CreateExecutor extends StatementExecutor {
     private static CreateExecutor instance;
-    private final ObjectMapper objectMapper = new ObjectMapper(); // Jackson mapper
+    private final ObjectMapper objectMapper = new ObjectMapper(); 
 
     private CreateExecutor(MetadataSources metadataSources) {
         super(metadataSources);
@@ -33,107 +35,166 @@ public class CreateExecutor extends StatementExecutor {
     }
 
     @Override
-    protected PreparedSql<CreateStatement> parseSql(JsonQLStatement statement) {
+    protected List<PreparedSql<?>> parseSql(JsonQLStatement statement) {
         if (!(statement instanceof CreateStatement createStatement)) {
             throw new IllegalArgumentException(
                     "Expected CreateStatement but got " + statement.getClass().getSimpleName());
         }
 
-        // 2. 提取父实体的 ID (假设它存在且为 Long 类型)
-        Long parentId = extractParentId(createStatement);
+        List<PreparedSql<?>> allPreparedSqls = new ArrayList<>();
 
-        // 3. 准备父实体 SQL 和参数，并收集嵌套语句
-        StringBuilder sql = new StringBuilder("INSERT INTO ")
-                .append(createStatement.getEntityId())
-                .append(" (");
-        List<Object> parameters = new ArrayList<>();
-        List<String> fieldNames = new ArrayList<>();
-        List<CreateStatement> nestedStatements = new ArrayList<>();
+        // 1. 处理主实体
+        List<Field> directFields = new ArrayList<>();
+        List<Field> nestedFields = new ArrayList<>();
 
+        // 分离直接字段和嵌套字段
         for (Field field : createStatement.getFields()) {
-            // 如果字段包含 'values'，则认为是嵌套实体列表
             if (field.getValues() != null && !field.getValues().isEmpty()) {
-                log.info("Processing nested field: {}", field.getField());
-
-                for (Object nestedValue : field.getValues()) {
-                    try {
-                        // 将嵌套的 Map 转换为 CreateStatement 对象
-                        Map<String, Object> nestedMap = objectMapper.convertValue(nestedValue,
-                                new TypeReference<Map<String, Object>>() {
-                                });
-                        CreateStatement nestedCreate = objectMapper.convertValue(nestedMap, CreateStatement.class);
-
-                        // 获取嵌套实体的名称
-                        String nestedEntityName = nestedCreate.getEntityId();
-                        if (nestedEntityName == null) {
-                            log.error("Could not determine entityId for a nested object within field '{}'. Skipping.",
-                                    field.getField());
-                            continue; // 跳过这个无法识别的嵌套对象
-                        }
-
-                        String foreignKeyFieldName = getForeignKeyFieldName(createStatement.getEntityId(),
-                                nestedEntityName);
-                        if (foreignKeyFieldName == null) {
-                            log.error(
-                                    "Could not determine foreign key field name for relation {} -> {}. Skipping nested inserts for this object.",
-                                    createStatement.getEntityId(), nestedEntityName);
-                            continue;
-                        }
-
-                        // 注入父 ID
-                        boolean fkFound = false;
-                        if (nestedCreate.getFields() != null) {
-                            for (Field nestedField : nestedCreate.getFields()) {
-                                if (foreignKeyFieldName.equals(nestedField.getField())) {
-                                    nestedField.setValue(parentId);
-                                    fkFound = true;
-                                    break;
-                                }
-                            }
-                        } else {
-                            nestedCreate.setFields(new ArrayList<>());
-                        }
-
-                        if (!fkFound && parentId != null) {
-                            // 使用无参构造函数 + setter 方法
-                            Field foreignKeyField = new Field();
-                            foreignKeyField.setField(foreignKeyFieldName);
-                            foreignKeyField.setValue(parentId);
-                            nestedCreate.getFields().add(foreignKeyField);
-                            log.warn("Added missing foreign key field '{}' with value {} to nested entity of type '{}'",
-                                    foreignKeyFieldName, parentId, nestedCreate.getEntityId());
-                        } else if (!fkFound && parentId == null) {
-                            log.error("Parent ID is null, cannot set foreign key '{}' for nested entity '{}'",
-                                    foreignKeyFieldName, nestedCreate.getEntityId());
-                            continue;
-                        }
-
-                        nestedStatements.add(nestedCreate);
-
-                    } catch (IllegalArgumentException e) {
-                        log.error("Error converting nested value for field '{}' to CreateStatement: {}",
-                                field.getField(), e.getMessage(), e);
-                    }
-                }
+                nestedFields.add(field);
             } else {
-                // 普通字段，添加到父实体的 SQL 中
-                fieldNames.add(field.getField());
-                parameters.add(field.getValue());
+                directFields.add(field);
             }
         }
 
-        // 4. 完成父实体 SQL
-        if (fieldNames.isEmpty()) {
-            log.warn("Create statement for entity '{}' has no direct fields to insert.", createStatement.getEntityId());
-            return new PreparedSql<>("", List.of(), nestedStatements, CreateStatement.class);
+        // 2. 生成主实体的SQL
+        createStatement.setFields(directFields);
+        PreparedSql<CreateStatement> mainSql = buildInsertSql(createStatement);
+        if (mainSql.sql() != null && !mainSql.sql().isEmpty()) {
+            allPreparedSqls.add(mainSql);
         }
 
-        sql.append(String.join(", ", fieldNames)).append(") VALUES (");
-        sql.append(String.join(", ", java.util.Collections.nCopies(fieldNames.size(), "?")));
-        sql.append(")");
+        // 3. 处理嵌套实体
+        for (Field nestedField : nestedFields) {
+            allPreparedSqls.addAll(processNestedEntities(nestedField, createStatement.getEntityId(), extractParentId(createStatement)));
+        }
 
-        // 5. 返回 PreparedSql 对象，包含父 SQL 和嵌套语句列表
-        return new PreparedSql<>(sql.toString(), parameters, nestedStatements, CreateStatement.class);
+        return allPreparedSqls;
+    }
+
+    /**
+     * 构建INSERT SQL语句
+     * @param createStatement 创建语句
+     * @return PreparedSql对象
+     */
+    private PreparedSql<CreateStatement> buildInsertSql(CreateStatement createStatement) {
+        List<String> fieldNames = new ArrayList<>();
+        List<Object> parameters = new ArrayList<>();
+
+        // 收集字段名和参数值
+        for (Field field : createStatement.getFields()) {
+            fieldNames.add(field.getField());
+            parameters.add(field.getValue());
+        }
+
+        // 如果没有直接字段要插入，返回空SQL
+        if (fieldNames.isEmpty()) {
+            log.warn("Create statement for entity '{}' has no direct fields to insert.", createStatement.getEntityId());
+            return new PreparedSql<>("", List.of(), CreateStatement.class);
+        }
+
+        // 构建SQL语句
+        StringBuilder sql = new StringBuilder("INSERT INTO ")
+                .append(createStatement.getEntityId())
+                .append(" (")
+                .append(String.join(", ", fieldNames))
+                .append(") VALUES (")
+                .append(String.join(", ", java.util.Collections.nCopies(fieldNames.size(), "?")))
+                .append(")");
+
+        return new PreparedSql<>(sql.toString(), parameters, CreateStatement.class);
+    }
+
+    /**
+     * 处理嵌套实体
+     * @param field 包含嵌套实体的字段
+     * @param parentEntityId 父实体ID
+     * @param parentId 父记录ID
+     * @return 嵌套实体的PreparedSql列表
+     */
+    private List<PreparedSql<CreateStatement>> processNestedEntities(Field field, String parentEntityId, Long parentId) {
+        List<PreparedSql<CreateStatement>> nestedSqls = new ArrayList<>();
+        log.info("Processing nested field: {}", field.getField());
+
+        for (Object nestedValue : field.getValues()) {
+            CreateStatement nestedCreate = convertToCreateStatement(nestedValue);
+            if (nestedCreate == null) {
+                continue;
+            }
+
+            String nestedEntityName = nestedCreate.getEntityId();
+            if (nestedEntityName == null) {
+                log.error("Could not determine entityId for a nested object within field '{}'. Skipping.",
+                        field.getField());
+                continue;
+            }
+
+            String foreignKeyFieldName = getForeignKeyFieldName(parentEntityId, nestedEntityName);
+            if (foreignKeyFieldName == null) {
+                log.error(
+                        "Could not determine foreign key field name for relation {} -> {}. Skipping nested inserts for this object.",
+                        parentEntityId, nestedEntityName);
+                continue;
+            }
+
+            if (setupForeignKey(nestedCreate, foreignKeyFieldName, parentId)) {
+                PreparedSql<CreateStatement> nestedSql = buildInsertSql(nestedCreate);
+                if (nestedSql.sql() != null && !nestedSql.sql().isEmpty()) {
+                    nestedSqls.add(nestedSql);
+                }
+            }
+        }
+
+        return nestedSqls;
+    }
+
+    /**
+     * 将嵌套对象转换为CreateStatement
+     * @param nestedValue 嵌套对象值
+     * @return CreateStatement对象，如果转换失败返回null
+     */
+    private CreateStatement convertToCreateStatement(Object nestedValue) {
+        try {
+            Map<String, Object> nestedMap = objectMapper.convertValue(nestedValue,
+                    new TypeReference<Map<String, Object>>() {});
+            return objectMapper.convertValue(nestedMap, CreateStatement.class);
+        } catch (IllegalArgumentException e) {
+            log.error("Failed to convert nested value to CreateStatement: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * 设置外键关系
+     * @param nestedCreate 嵌套的创建语句
+     * @param foreignKeyFieldName 外键字段名
+     * @param parentId 父记录ID
+     * @return 是否成功设置外键
+     */
+    private boolean setupForeignKey(CreateStatement nestedCreate, String foreignKeyFieldName, Long parentId) {
+        if (nestedCreate.getFields() == null) {
+            nestedCreate.setFields(new ArrayList<>());
+        }
+
+        // 检查是否已存在外键字段
+        boolean fkFound = nestedCreate.getFields().stream()
+                .anyMatch(f -> foreignKeyFieldName.equals(f.getField()));
+
+        if (!fkFound && parentId != null) {
+            // 添加外键字段
+            Field foreignKeyField = new Field();
+            foreignKeyField.setField(foreignKeyFieldName);
+            foreignKeyField.setValue(parentId);
+            nestedCreate.getFields().add(foreignKeyField);
+            log.warn("Added missing foreign key field '{}' with value {} to nested entity of type '{}'",
+                    foreignKeyFieldName, parentId, nestedCreate.getEntityId());
+            return true;
+        } else if (!fkFound && parentId == null) {
+            log.error("Parent ID is null, cannot set foreign key '{}' for nested entity '{}'",
+                    foreignKeyFieldName, nestedCreate.getEntityId());
+            return false;
+        }
+
+        return true;
     }
 
     private Long extractParentId(CreateStatement createStatement) {
@@ -146,20 +207,18 @@ public class CreateExecutor extends StatementExecutor {
                 return ((Number) idValue).longValue();
             } else {
                 try {
-                    // 尝试将字符串等类型转换为 Long
                     return Long.parseLong(idValue.toString());
                 } catch (NumberFormatException e) {
                     log.error("Could not parse parent ID field '{}' with value '{}' as Long for entity '{}'.",
                             "id", idValue, createStatement.getEntityId(), e);
-                    return null; // 或者抛出异常
+                    return null;
                 }
             }
         }
         log.warn("Parent ID field 'id' not found or is null for entity: {}", createStatement.getEntityId());
-        return null; // 如果找不到 ID 或 ID 为 null
+        return null;
     }
 
-    // TODO: 实现基于元数据的外键查找逻辑
     private String getForeignKeyFieldName(String parentEntityName, String childEntityName) {
         // 这个方法需要查询你的元数据 (MetadataSources/Metadata)
         // 来确定 childEntityName 中引用 parentEntityName 的外键字段名
@@ -174,10 +233,8 @@ public class CreateExecutor extends StatementExecutor {
         return null;
     }
 
-    // doExecute 方法签名也需要调整
     @Override
     protected Object doExecute(Connection conn, PreparedSql<?> sql) throws SQLException {
-        // 下一步实现这个方法
         if (!(sql.statementType() == CreateStatement.class)) {
             throw new IllegalArgumentException("CreateExecutor can only execute CreateStatements");
         }
@@ -185,7 +242,7 @@ public class CreateExecutor extends StatementExecutor {
         PreparedSql<CreateStatement> preparedCreate = (PreparedSql<CreateStatement>) sql;
         int totalAffectedRows = 0;
 
-        // 1. 执行父实体插入 (如果 SQL 存在)
+        // 执行插入
         if (preparedCreate.sql() != null && !preparedCreate.sql().isEmpty()) {
             try (PreparedStatement psParent = conn.prepareStatement(preparedCreate.sql())) {
                 for (int i = 0; i < preparedCreate.parameters().size(); i++) {
@@ -193,39 +250,12 @@ public class CreateExecutor extends StatementExecutor {
                 }
                 totalAffectedRows += psParent.executeUpdate();
             } catch (SQLException e) {
-                log.error("Error executing parent insert SQL: {} with params {}: {}",
+                log.error("Error executing insert SQL: {} with params {}: {}",
                         preparedCreate.sql(), preparedCreate.parameters(), e.getMessage(), e);
-                throw e; // 重新抛出异常，事务应回滚
+                throw e;
             }
         } else {
-            log.warn("Parent insert SQL is empty, skipping execution.");
-        }
-
-        // 2. 递归执行嵌套实体插入
-        if (!preparedCreate.nestedCreateStatements().isEmpty()) {
-            log.info("Executing {} nested create statements...", preparedCreate.nestedCreateStatements().size());
-            for (CreateStatement nestedStatement : preparedCreate.nestedCreateStatements()) {
-                try {
-                    // 注意：这里假设嵌套层级不深，直接递归调用 execute
-                    // 在复杂场景下可能需要更精细的事务和连接管理
-                    // 同时，确保 execute 方法是线程安全的或在此上下文中安全调用
-                    Object nestedResult = this.execute(conn, nestedStatement); // 使用当前实例和连接
-                    if (nestedResult instanceof Integer) {
-                        totalAffectedRows += (Integer) nestedResult;
-                    } else {
-                        log.warn("Nested create statement execution returned non-integer result: {}", nestedResult);
-                        // 根据需要决定是否增加计数或抛出错误
-                        // 如果嵌套本身还有嵌套，这里需要处理返回的 PreparedSql 而不是 Integer
-                        // 为了简化，当前假设 execute(conn, CreateStatement) 返回影响行数
-                    }
-                } catch (Exception e) { // 捕获 SQLException 和其他可能的异常
-                    log.error("Error executing nested create statement for entity '{}': {}",
-                            nestedStatement.getEntityId(), e.getMessage(), e);
-                    // 决定是继续执行其他嵌套语句还是抛出异常中断整个过程
-                    throw new SQLException(
-                            "Failed to execute nested create for entity: " + nestedStatement.getEntityId(), e);
-                }
-            }
+            log.warn("Insert SQL is empty, skipping execution.");
         }
 
         return totalAffectedRows;

@@ -34,10 +34,6 @@ public class QueryExecutor extends StatementExecutor {
             throw new IllegalArgumentException("QueryExecutor can only execute QueryStatements");
         }
 
-        if (!preparedSql.nestedCreateStatements().isEmpty()) {
-            log.warn("Nested statements found in a QUERY operation, they will be ignored.");
-        }
-
         try (PreparedStatement stmt = conn.prepareStatement(preparedSql.sql())) {
             List<Object> parameters = preparedSql.parameters();
             for (int i = 0; i < parameters.size(); i++) {
@@ -50,7 +46,7 @@ public class QueryExecutor extends StatementExecutor {
     }
 
     @Override
-    protected PreparedSql<QueryStatement> parseSql(JsonQLStatement statement) {
+    protected List<PreparedSql<?>> parseSql(JsonQLStatement statement) {
         if (!(statement instanceof QueryStatement queryStatement)) {
             throw new IllegalArgumentException("Expected QueryStatement but got " + statement.getClass().getSimpleName());
         }
@@ -75,52 +71,44 @@ public class QueryExecutor extends StatementExecutor {
         // 处理 WHERE 子句 (filters)
         if (filters != null && filters.getConditions() != null && !filters.getConditions().isEmpty()) {
             sql.append(" WHERE ");
-
-            List<Condition> conditions = filters.getConditions();
             String rel = filters.getRel() != null ? filters.getRel().toUpperCase() : "AND";
-     
+            List<Condition> conditions = filters.getConditions();
+
             for (int i = 0; i < conditions.size(); i++) {
-                Condition condition = conditions.get(i);
-                
                 if (i > 0) {
                     sql.append(" ").append(rel).append(" ");
                 }
-                
+
+                Condition condition = conditions.get(i);
                 sql.append(condition.getField()).append(" ");
-                
-                // 根据方法类型添加操作符
+
                 switch (condition.getMethod()) {
-                    case EQ -> sql.append("= ?");
-                    case NE -> sql.append("<> ?");
-                    case GT -> sql.append("> ?");
-                    case GE -> sql.append(">= ?");
-                    case LT -> sql.append("< ?");
-                    case LE -> sql.append("<= ?");
-                    case LIKE -> sql.append("LIKE ?");
-                    case IN -> {
+                    case IS:
+                        sql.append("IS ");
+                        if (condition.getValue() == null) {
+                            sql.append("NULL");
+                        } else {
+                            sql.append(condition.getValue());
+                        }
+                        break;
+                    case IN:
                         sql.append("IN (");
-                        List<Object> values = condition.getValues();
-                        if (values != null && !values.isEmpty()) {
-                            for (int j = 0; j < values.size(); j++) {
-                                if (j > 0) {
-                                    sql.append(", ");
-                                }
-                                sql.append("?");
-                                parameters.add(values.get(j));
-                            }
+                        if (condition.getValues() != null && !condition.getValues().isEmpty()) {
+                            sql.append(String.join(", ", java.util.Collections.nCopies(condition.getValues().size(), "?")));
+                            parameters.addAll(condition.getValues());
                         } else {
                             sql.append("?");
                             parameters.add(condition.getValue());
                         }
                         sql.append(")");
-                        continue; // 跳过下面的单值参数添加
-                    }
-                    default -> sql.append("= ?");
-                }
-                
-                // 添加参数（针对非IN条件）
-                if (condition.getMethod() != MethodType.IN) {
-                    parameters.add(condition.getValue());
+                        break;
+                    case LIKE:
+                        sql.append("LIKE ?");
+                        parameters.add("%" + condition.getValue() + "%");
+                        break;
+                    default:
+                        sql.append("= ?");
+                        parameters.add(condition.getValue());
                 }
             }
         }
@@ -146,7 +134,9 @@ public class QueryExecutor extends StatementExecutor {
             parameters.add(offset);
         }
 
-        return new PreparedSql<>(sql.toString(), parameters, QueryStatement.class);
+        List<PreparedSql<?>> result = new ArrayList<>();
+        result.add(new PreparedSql<>(sql.toString(), parameters, QueryStatement.class));
+        return result;
     }
 
     private List<Map<String, Object>> processResultSet(ResultSet rs) throws SQLException {

@@ -33,10 +33,6 @@ public class DeleteExecutor extends StatementExecutor {
              throw new IllegalArgumentException("DeleteExecutor can only execute DeleteStatements");
          }
 
-         if (!preparedSql.nestedCreateStatements().isEmpty()) {
-             log.warn("Nested statements found in a DELETE operation, they will be ignored.");
-         }
-
         try (PreparedStatement preparedStatement = conn.prepareStatement(preparedSql.sql())) {
             List<Object> parameters = preparedSql.parameters();
             for (int i = 0; i < parameters.size(); i++) {
@@ -47,7 +43,7 @@ public class DeleteExecutor extends StatementExecutor {
     }
 
     @Override
-    protected PreparedSql<DeleteStatement> parseSql(JsonQLStatement statement) {
+    protected List<PreparedSql<?>> parseSql(JsonQLStatement statement) {
         if (!(statement instanceof DeleteStatement deleteStatement)) {
             throw new IllegalArgumentException("Expected DeleteStatement but got " + statement.getClass().getSimpleName());
         }
@@ -79,6 +75,8 @@ public class DeleteExecutor extends StatementExecutor {
             throw new IllegalArgumentException("WHERE clause (using 'ids') is mandatory for DELETE statements to prevent accidental data loss.");
         }
 
-        return new PreparedSql<>(sql.toString(), parameters, DeleteStatement.class);
+        List<PreparedSql<?>> result = new ArrayList<>();
+        result.add(new PreparedSql<>(sql.toString(), parameters, DeleteStatement.class));
+        return result;
     }
 }

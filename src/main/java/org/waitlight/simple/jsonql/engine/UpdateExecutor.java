@@ -35,10 +35,6 @@ public class UpdateExecutor extends StatementExecutor {
             throw new IllegalArgumentException("UpdateExecutor can only execute UpdateStatements");
         }
 
-        if (!preparedSql.nestedCreateStatements().isEmpty()) {
-            log.warn("Nested statements found in an UPDATE operation, they will be ignored.");
-        }
-
         try (PreparedStatement stmt = conn.prepareStatement(preparedSql.sql())) {
             List<Object> parameters = preparedSql.parameters();
             for (int i = 0; i < parameters.size(); i++) {
@@ -49,7 +45,7 @@ public class UpdateExecutor extends StatementExecutor {
     }
 
     @Override
-    protected PreparedSql<UpdateStatement> parseSql(JsonQLStatement statement) {
+    protected List<PreparedSql<?>> parseSql(JsonQLStatement statement) {
         if (!(statement instanceof UpdateStatement updateStatement)) {
             throw new IllegalArgumentException("Expected UpdateStatement but got " + statement.getClass().getSimpleName());
         }
@@ -63,11 +59,6 @@ public class UpdateExecutor extends StatementExecutor {
         List<Object> parameters = new ArrayList<>();
         
         for (Field field : updateStatement.getFields()) {
-            if (field.getValues() != null) {
-                // 处理嵌套实体
-                log.warn("Nested entity updates are not supported in SQL: {}", field.getField());
-                continue;
-            }
             setClauses.add(field.getField() + " = ?");
             parameters.add(field.getValue());
         }
@@ -78,6 +69,8 @@ public class UpdateExecutor extends StatementExecutor {
         sql.append(" WHERE id = ?");
         parameters.add(updateStatement.getDataId());
 
-        return new PreparedSql<>(sql.toString(), parameters, UpdateStatement.class);
+        List<PreparedSql<?>> result = new ArrayList<>();
+        result.add(new PreparedSql<>(sql.toString(), parameters, UpdateStatement.class));
+        return result;
     }
 }
