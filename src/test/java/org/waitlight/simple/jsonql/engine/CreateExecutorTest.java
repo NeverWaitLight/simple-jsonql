@@ -82,10 +82,8 @@ public class CreateExecutorTest {
 
         Object result = engine.execute(jsonCreate);
 
-        // Each entity created would count as one affected row
         assertNotNull(result);
         assertTrue(result instanceof Integer);
-        // The main user and 2 blog entities should be created
         assertEquals(3, result);
     }
 

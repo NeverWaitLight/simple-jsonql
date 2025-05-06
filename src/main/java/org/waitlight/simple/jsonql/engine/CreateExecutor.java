@@ -36,9 +36,19 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
 
     @Override
     public Object execute(Connection conn, JsonQLStatement statement) throws SQLException {
-        List<PreparedSql<CreateStatement>> preparedSqls = parseSql(statement);
-        if (preparedSqls.isEmpty()) {
+        PreparedSql<CreateStatement> preparedSql = parseSql(statement);
+        if (preparedSql.getSql() == null || preparedSql.getSql().isEmpty()) {
             return 0;
+        }
+
+        log.info("Execute create statement on entity: {}", ((CreateStatement)statement).getEntityId());
+        log.info("Main SQL: {}", preparedSql.getSql());
+        if (preparedSql.getParameters() != null && !preparedSql.getParameters().isEmpty()) {
+            log.info("Main Parameters: {}", preparedSql.getParameters());
+        }
+        
+        if (!preparedSql.getNestedSqls().isEmpty()) {
+            log.info("Create statement contains {} nested SQL statements", preparedSql.getNestedSqls().size());
         }
 
         int totalAffectedRows = 0;
@@ -49,14 +59,13 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
             conn.setAutoCommit(false);
 
             // 1. 执行主实体插入
-            PreparedSql<CreateStatement> mainSql = preparedSqls.get(0);
             Long generatedId = null;
 
-            try (PreparedStatement ps = conn.prepareStatement(mainSql.getSql(),
+            try (PreparedStatement ps = conn.prepareStatement(preparedSql.getSql(),
                     PreparedStatement.RETURN_GENERATED_KEYS)) {
                 // 设置主实体的参数
-                for (int i = 0; i < mainSql.getParameters().size(); i++) {
-                    ps.setObject(i + 1, mainSql.getParameters().get(i));
+                for (int i = 0; i < preparedSql.getParameters().size(); i++) {
+                    ps.setObject(i + 1, preparedSql.getParameters().get(i));
                 }
 
                 int affected = ps.executeUpdate();
@@ -74,9 +83,13 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
             }
 
             // 2. 执行子实体插入
-            if (generatedId != null && preparedSqls.size() > 1) {
-                for (int i = 1; i < preparedSqls.size(); i++) {
-                    PreparedSql<CreateStatement> childSql = preparedSqls.get(i);
+            if (generatedId != null && !preparedSql.getNestedSqls().isEmpty()) {
+                for (PreparedSql<CreateStatement> childSql : preparedSql.getNestedSqls()) {
+                    log.info("Executing nested SQL: {}", childSql.getSql());
+                    if (childSql.getParameters() != null && !childSql.getParameters().isEmpty()) {
+                        log.info("Nested Parameters (before ID replacement): {}", childSql.getParameters());
+                    }
+                    
                     try (PreparedStatement ps = conn.prepareStatement(childSql.getSql())) {
                         List<Object> params = new ArrayList<>(childSql.getParameters());
 
@@ -89,6 +102,7 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
                             ps.setObject(j + 1, params.get(j));
                         }
 
+                        log.info("Nested Parameters (after ID replacement): {}", params);
                         totalAffectedRows += ps.executeUpdate();
                     }
                 }
@@ -96,12 +110,14 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
 
             // 提交事务
             conn.commit();
+            log.info("Transaction committed successfully, total affected rows: {}", totalAffectedRows);
             return totalAffectedRows;
 
         } catch (SQLException e) {
             // 发生异常时回滚事务
             try {
                 conn.rollback();
+                log.error("Transaction rolled back due to error: {}", e.getMessage());
             } catch (SQLException rollbackEx) {
                 log.error("Error rolling back transaction", rollbackEx);
             }
@@ -147,17 +163,17 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
 
         // 2. 生成主实体的SQL
         createStatement.setFields(directFields);
-        PreparedSql<CreateStatement> mainSql = buildInsertSql(createStatement);
+        PreparedSql<CreateStatement> preparedSql = buildInsertSql(createStatement);
 
         // 3. 处理嵌套实体，使用ForeignKeyPlaceholder标记需要替换的外键
         for (Field nestedField : nestedFields) {
             for (Object nestedValue : nestedField.getValues()) {
-                CreateStatement nestedCreate = convertToCreateStatement(nestedValue);
-                if (nestedCreate == null) {
+                CreateStatement nestedCreateStatement = convertToCreateStatement(nestedValue);
+                if (nestedCreateStatement == null) {
                     continue;
                 }
 
-                String nestedEntityName = nestedCreate.getEntityId();
+                String nestedEntityName = nestedCreateStatement.getEntityId();
                 if (nestedEntityName == null) {
                     log.error("Could not determine entityId for a nested object within field '{}'. Skipping.",
                             nestedField.getField());
@@ -176,16 +192,16 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
                 Field foreignKeyField = new Field();
                 foreignKeyField.setField(foreignKeyFieldName);
                 foreignKeyField.setValue(new ForeignKeyPlaceholder(foreignKeyFieldName));
-                nestedCreate.getFields().add(foreignKeyField);
+                nestedCreateStatement.getFields().add(foreignKeyField);
 
-                PreparedSql<CreateStatement> nestedSql = buildInsertSql(nestedCreate);
-                if (nestedSql.getSql() != null && !nestedSql.getSql().isEmpty()) {
-                    mainSql.addNestedSqls(nestedSql);
+                PreparedSql<CreateStatement> nestedSql = buildInsertSql(nestedCreateStatement);
+                if (!nestedSql.getSql().isEmpty()) {
+                    preparedSql.addNestedSqls(nestedSql);
                 }
             }
         }
 
-        return mainSql;
+        return preparedSql;
     }
 
     /**
@@ -266,6 +282,12 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
     protected Object doExecute(Connection conn, PreparedSql<?> preparedSql) throws SQLException {
         if (preparedSql.getStatementType() != CreateStatement.class) {
             throw new IllegalArgumentException("CreateExecutor can only execute CreateStatements");
+        }
+
+        // 记录SQL语句和参数
+        log.info("Executing SQL: {}", preparedSql.getSql());
+        if (preparedSql.getParameters() != null && !preparedSql.getParameters().isEmpty()) {
+            log.info("Parameters: {}", preparedSql.getParameters());
         }
 
         try (PreparedStatement ps = conn.prepareStatement(preparedSql.getSql(),

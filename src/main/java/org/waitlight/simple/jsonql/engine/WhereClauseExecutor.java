@@ -95,7 +95,7 @@ public class WhereClauseExecutor extends AbstractClauseExecutor {
             sb.append("NOT ");
         }
         sb.append("EXISTS (")
-                .append(QueryExecutor.getInstance(metadataSources).parseSql(condition.getSubquery()).get(0).getSql())
+                .append(QueryExecutor.getInstance(metadataSources).parseSql(condition.getSubquery()).getSql())
                 .append(")");
         return sb.toString();
     }
