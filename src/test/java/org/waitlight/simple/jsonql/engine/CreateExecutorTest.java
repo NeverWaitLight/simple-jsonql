@@ -18,7 +18,7 @@ public class CreateExecutorTest {
         metadataSources.addAnnotatedClass(Blog.class);
         engine = new JsonQLEngine(metadataSources);
     }
-    
+
     @Test
     public void testCreateSingleEntity() throws Exception {
         // Create a single user entity
@@ -33,15 +33,15 @@ public class CreateExecutorTest {
                     ]
                 }
                 """;
-        
+
         Object result = engine.execute(jsonCreate);
-        
+
         // The result should be the number of affected rows
         assertNotNull(result);
         assertTrue(result instanceof Integer);
         assertEquals(1, result);
     }
-    
+
     @Test
     public void testCreateWithNestedEntities() throws Exception {
         // Create a user with nested blog entities
@@ -70,7 +70,6 @@ public class CreateExecutorTest {
                                     "formId": "89758",
                                     "entityId": "blog",
                                     "fields": [
-                                        {"field": "id", "value": 2},
                                         {"field": "title", "value": "活着"},
                                         {"field": "content", "value": "这是第二篇博客内容"}
                                     ]
@@ -80,16 +79,16 @@ public class CreateExecutorTest {
                     ]
                 }
                 """;
-        
+
         Object result = engine.execute(jsonCreate);
-        
+
         // Each entity created would count as one affected row
         assertNotNull(result);
         assertTrue(result instanceof Integer);
         // The main user and 2 blog entities should be created
         assertEquals(3, result);
     }
-    
+
     @Test
     public void testCreateWithInvalidField() throws Exception {
         // Create with a field that doesn't exist in the entity
@@ -106,15 +105,15 @@ public class CreateExecutorTest {
                     ]
                 }
                 """;
-        
+
         // Should throw an exception for invalid field
         Exception exception = assertThrows(Exception.class, () -> {
             engine.execute(jsonCreate);
         });
-        
+
         assertTrue(exception.getMessage().contains("nonexistent") || exception.getMessage().contains("field"));
     }
-    
+
     @Test
     public void testCreateWithNullRequiredField() throws Exception {
         // Create with a null ID which should be required
@@ -129,15 +128,15 @@ public class CreateExecutorTest {
                     ]
                 }
                 """;
-        
+
         // Should throw an exception for missing required field (id)
         Exception exception = assertThrows(Exception.class, () -> {
             engine.execute(jsonCreate);
         });
-        
+
         assertTrue(exception.getMessage().contains("id") || exception.getMessage().contains("required"));
     }
-    
+
     @Test
     public void testCreateBlogDirectly() throws Exception {
         // Create a blog entity directly
@@ -154,9 +153,9 @@ public class CreateExecutorTest {
                     ]
                 }
                 """;
-        
+
         Object result = engine.execute(jsonCreate);
-        
+
         assertNotNull(result);
         assertTrue(result instanceof Integer);
         assertEquals(1, result);

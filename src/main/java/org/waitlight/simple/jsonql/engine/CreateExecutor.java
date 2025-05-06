@@ -32,16 +32,12 @@ public class CreateExecutor extends StatementExecutor {
         return instance;
     }
 
-    // 调整 parseSql 方法签名和返回类型
     @Override
     protected PreparedSql<CreateStatement> parseSql(JsonQLStatement statement) {
         if (!(statement instanceof CreateStatement createStatement)) {
             throw new IllegalArgumentException(
                     "Expected CreateStatement but got " + statement.getClass().getSimpleName());
         }
-
-        // 1. 验证必需字段 (例如 id，如果业务逻辑需要)
-        validateRequiredFields(createStatement);
 
         // 2. 提取父实体的 ID (假设它存在且为 Long 类型)
         Long parentId = extractParentId(createStatement);
@@ -138,21 +134,6 @@ public class CreateExecutor extends StatementExecutor {
 
         // 5. 返回 PreparedSql 对象，包含父 SQL 和嵌套语句列表
         return new PreparedSql<>(sql.toString(), parameters, nestedStatements, CreateStatement.class);
-    }
-
-    // --- Helper Methods ---
-
-    private void validateRequiredFields(CreateStatement createStatement) {
-        // 简单的 'id' 字段检查示例
-        boolean idFound = createStatement.getFields().stream()
-                .anyMatch(f -> "id".equals(f.getField()) && f.getValue() != null);
-        if (!idFound) {
-            // 根据你的业务逻辑决定是否抛出异常
-            // throw new IllegalArgumentException("Required field 'id' is missing or null
-            // for entity: " + createStatement.getEntityId());
-            log.warn("Required field 'id' is missing or null for entity: {}", createStatement.getEntityId());
-        }
-        // 可以添加其他字段的验证
     }
 
     private Long extractParentId(CreateStatement createStatement) {
