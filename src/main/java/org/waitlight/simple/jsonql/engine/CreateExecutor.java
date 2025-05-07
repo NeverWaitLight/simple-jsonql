@@ -1,22 +1,27 @@
 package org.waitlight.simple.jsonql.engine;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.metadata.PersistentClass;
+import org.waitlight.simple.jsonql.metadata.Property;
+import org.waitlight.simple.jsonql.metadata.RelationshipType;
+import org.waitlight.simple.jsonql.statement.CreateStatement;
+import org.waitlight.simple.jsonql.statement.model.Field;
+import org.waitlight.simple.jsonql.statement.model.JsonQLStatement;
+import org.waitlight.simple.jsonql.statement.model.NestedEntity;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-
-import org.waitlight.simple.jsonql.metadata.MetadataSources;
-import org.waitlight.simple.jsonql.statement.CreateStatement;
-import org.waitlight.simple.jsonql.statement.model.Field;
-import org.waitlight.simple.jsonql.statement.model.JsonQLStatement;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.extern.slf4j.Slf4j;
+import java.util.Objects;
 
 @Slf4j
 public class CreateExecutor extends StatementExecutor<CreateStatement> {
@@ -41,14 +46,14 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
             return 0;
         }
 
-        log.info("Execute create statement on entity: {}", ((CreateStatement)statement).getEntityId());
+        log.info("Execute create statement on entity: {}", ((CreateStatement) statement).getEntityId());
         log.info("Main SQL: {}", preparedSql.getSql());
         if (preparedSql.getParameters() != null && !preparedSql.getParameters().isEmpty()) {
             log.info("Main Parameters: {}", preparedSql.getParameters());
         }
-        
-        if (!preparedSql.getNestedSqls().isEmpty()) {
-            log.info("Create statement contains {} nested SQL statements", preparedSql.getNestedSqls().size());
+
+        if (!preparedSql.getNestedSQLs().isEmpty()) {
+            log.info("Create statement contains {} nested SQL statements", preparedSql.getNestedSQLs().size());
         }
 
         int totalAffectedRows = 0;
@@ -83,13 +88,13 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
             }
 
             // 2. 执行子实体插入
-            if (generatedId != null && !preparedSql.getNestedSqls().isEmpty()) {
-                for (PreparedSql<CreateStatement> childSql : preparedSql.getNestedSqls()) {
+            if (generatedId != null && !preparedSql.getNestedSQLs().isEmpty()) {
+                for (PreparedSql<CreateStatement> childSql : preparedSql.getNestedSQLs()) {
                     log.info("Executing nested SQL: {}", childSql.getSql());
                     if (childSql.getParameters() != null && !childSql.getParameters().isEmpty()) {
                         log.info("Nested Parameters (before ID replacement): {}", childSql.getParameters());
                     }
-                    
+
                     try (PreparedStatement ps = conn.prepareStatement(childSql.getSql())) {
                         List<Object> params = new ArrayList<>(childSql.getParameters());
 
@@ -148,43 +153,38 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
                     "Expected CreateStatement but got " + statement.getClass().getSimpleName());
         }
 
+        final String parentEntityId = createStatement.getEntityId();
+
         // 1. 处理主实体
-        List<Field> directFields = new ArrayList<>();
-        List<Field> nestedFields = new ArrayList<>();
+        List<Field> directFields = createStatement.getFields().stream()
+                .filter(field -> CollectionUtils.isEmpty(field.getValues()))
+                .toList();
+        List<Field> nestedFields = createStatement.getFields().stream()
+                .filter(field -> CollectionUtils.isNotEmpty(field.getValues()))
+                .toList();
 
-        // 分离直接字段和嵌套字段
-        for (Field field : createStatement.getFields()) {
-            if (field.getValues() != null && !field.getValues().isEmpty()) {
-                nestedFields.add(field);
-            } else {
-                directFields.add(field);
-            }
-        }
 
-        // 2. 生成主实体的SQL
-        createStatement.setFields(directFields);
-        PreparedSql<CreateStatement> preparedSql = buildInsertSql(createStatement);
+        // 2. 生成主实体的SQL，创建一个新的CreateStatement避免修改原始对象
+        CreateStatement parentCreateStatement = new CreateStatement();
+        parentCreateStatement.setEntityId(parentEntityId);
+        parentCreateStatement.setFields(directFields);
+
+        PreparedSql<CreateStatement> preparedSql = buildSql(parentCreateStatement);
 
         // 3. 处理嵌套实体，使用ForeignKeyPlaceholder标记需要替换的外键
         for (Field nestedField : nestedFields) {
-            for (Object nestedValue : nestedField.getValues()) {
-                CreateStatement nestedCreateStatement = convertToCreateStatement(nestedValue);
-                if (nestedCreateStatement == null) {
+            for (NestedEntity nestedEntity : nestedField.getValues()) {
+
+                final String childEntityId = nestedEntity.getEntityId();
+                if (StringUtils.isBlank(childEntityId)) {
+                    log.error("Could not determine entityId for a nested object within field '{}'. Skipping.", nestedField.getField());
                     continue;
                 }
 
-                String nestedEntityName = nestedCreateStatement.getEntityId();
-                if (nestedEntityName == null) {
-                    log.error("Could not determine entityId for a nested object within field '{}'. Skipping.",
-                            nestedField.getField());
-                    continue;
-                }
-
-                String foreignKeyFieldName = getForeignKeyFieldName(createStatement.getEntityId(), nestedEntityName);
-                if (foreignKeyFieldName == null) {
-                    log.error(
-                            "Could not determine foreign key field name for relation {} -> {}. Skipping nested inserts for this object.",
-                            createStatement.getEntityId(), nestedEntityName);
+                String foreignKeyFieldName = getForeignKeyFieldName(parentEntityId, childEntityId);
+                if (StringUtils.isBlank(foreignKeyFieldName)) {
+                    log.error("Could not determine foreign key field name for relation {} -> {}. Skipping nested inserts for this object.",
+                            createStatement.getEntityId(), childEntityId);
                     continue;
                 }
 
@@ -192,11 +192,11 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
                 Field foreignKeyField = new Field();
                 foreignKeyField.setField(foreignKeyFieldName);
                 foreignKeyField.setValue(new ForeignKeyPlaceholder(foreignKeyFieldName));
-                nestedCreateStatement.getFields().add(foreignKeyField);
+                nestedEntity.getFields().add(foreignKeyField);
 
-                PreparedSql<CreateStatement> nestedSql = buildInsertSql(nestedCreateStatement);
-                if (!nestedSql.getSql().isEmpty()) {
-                    preparedSql.addNestedSqls(nestedSql);
+                PreparedSql<CreateStatement> nestedSql = buildSql(nestedEntity);
+                if (nestedSql.isNotEmpty()) {
+                    preparedSql.addNestedSQLs(nestedSql);
                 }
             }
         }
@@ -206,76 +206,60 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
 
     /**
      * 构建INSERT SQL语句
-     * 
-     * @param createStatement 创建语句
+     *
+     * @param entity 实体对象（CreateStatement或NestedEntity）
      * @return PreparedSql对象
      */
-    private PreparedSql<CreateStatement> buildInsertSql(CreateStatement createStatement) {
-        List<String> fieldNames = new ArrayList<>();
-        List<Object> parameters = new ArrayList<>();
-
-        // 收集字段名和参数值
-        for (Field field : createStatement.getFields()) {
-            fieldNames.add(field.getField());
-            parameters.add(field.getValue());
+    private PreparedSql<CreateStatement> buildSql(NestedEntity entity) {
+        if (Objects.isNull(entity)) {
+            return new PreparedSql<>();
         }
 
-        // 如果没有直接字段要插入，返回空SQL
-        if (fieldNames.isEmpty()) {
-            log.warn("Create statement for entity '{}' has no direct fields to insert.", createStatement.getEntityId());
-            PreparedSql<CreateStatement> result = new PreparedSql<>();
-            result.setSql("");
-            result.setParameters(List.of());
-            result.setStatementType(CreateStatement.class);
-            return result;
+        List<String> fieldNames = entity.getFields().stream().map(Field::getField).toList();
+        List<Object> parameters = entity.getFields().stream().map(Field::getValue).toList();
+
+        if (fieldNames.isEmpty() || parameters.isEmpty()) {
+            return new PreparedSql<>();
         }
 
-        // 构建SQL语句
-        StringBuilder sql = new StringBuilder("INSERT INTO ")
-                .append(createStatement.getEntityId())
-                .append(" (")
-                .append(String.join(", ", fieldNames))
-                .append(") VALUES (")
-                .append(String.join(", ", java.util.Collections.nCopies(fieldNames.size(), "?")))
-                .append(")");
+        String sql = "INSERT INTO " +
+                entity.getEntityId() +
+                " (" +
+                String.join(", ", fieldNames) +
+                ") VALUES (" +
+                String.join(", ", Collections.nCopies(fieldNames.size(), "?")) +
+                ")";
 
-        PreparedSql<CreateStatement> result = new PreparedSql<>();
-        result.setSql(sql.toString());
-        result.setParameters(parameters);
-        result.setStatementType(CreateStatement.class);
-        return result;
+        return new PreparedSql<>(sql, parameters, CreateStatement.class);
     }
 
     /**
-     * 将嵌套对象转换为CreateStatement
-     * 
-     * @param nestedValue 嵌套对象值
-     * @return CreateStatement对象，如果转换失败返回null
+     * 获取外键字段名称
+     *
+     * @param parentEntityName 父实体名称
+     * @param childEntityName  子实体名称
+     * @return 外键字段名称，如果无法确定则返回null
      */
-    private CreateStatement convertToCreateStatement(Object nestedValue) {
-        try {
-            Map<String, Object> nestedMap = objectMapper.convertValue(nestedValue,
-                    new TypeReference<Map<String, Object>>() {
-                    });
-            return objectMapper.convertValue(nestedMap, CreateStatement.class);
-        } catch (IllegalArgumentException e) {
-            log.error("Failed to convert nested value to CreateStatement: {}", e.getMessage());
+    private String getForeignKeyFieldName(String parentEntityName, String childEntityName) {
+        PersistentClass parentEntityClass = metadata.getEntityBinding(parentEntityName);
+        PersistentClass childEntityClass = metadata.getEntityBinding(childEntityName);
+
+        if (ObjectUtils.anyNull(parentEntityClass, childEntityClass)) {
+            log.warn("Entity not found in metadata: parent={}, child={}", parentEntityName, childEntityName);
             return null;
         }
-    }
 
-    private String getForeignKeyFieldName(String parentEntityName, String childEntityName) {
-        // 这个方法需要查询你的元数据 (MetadataSources/Metadata)
-        // 来确定 childEntityName 中引用 parentEntityName 的外键字段名
-        // 例如，对于 parent="user", child="blog"，它应该返回 "user_id"
-
-        // 临时硬编码实现 - 需要替换为真实的元数据查找
-        if ("user".equals(parentEntityName) && "blog".equals(childEntityName)) {
-            return "user_id";
+        for (Property property : childEntityClass.getProperties()) {
+            if (!RelationshipType.MANY_TO_ONE.equals(property.getRelationshipType())) {
+                continue;
+            }
+            String foreignKeyName = property.getForeignKeyName();
+            if (StringUtils.isNotBlank(foreignKeyName)) {
+                return foreignKeyName;
+            }
         }
-        log.warn("Metadata lookup for foreign key from {} to {} not implemented yet. Returning null.", parentEntityName,
-                childEntityName);
-        return null;
+
+        return parentEntityName.toLowerCase() + "_id";
     }
 
     @Override

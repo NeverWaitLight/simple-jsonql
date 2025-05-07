@@ -2,7 +2,6 @@ package org.waitlight.simple.jsonql.engine;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.waitlight.simple.jsonql.metadata.Metadata;
@@ -43,8 +42,8 @@ public abstract class StatementExecutor<T extends JsonQLStatement> {
         }
         
         // 执行嵌套SQL
-        if (CollectionUtils.isNotEmpty(preparedSql.getNestedSqls())) {
-            for (PreparedSql<?> nestedSql : preparedSql.getNestedSqls()) {
+        if (CollectionUtils.isNotEmpty(preparedSql.getNestedSQLs())) {
+            for (PreparedSql<?> nestedSql : preparedSql.getNestedSQLs()) {
                 totalAffectedRows += executeNestedSql(conn, nestedSql);
             }
         }
@@ -75,8 +74,8 @@ public abstract class StatementExecutor<T extends JsonQLStatement> {
         }
         
         // 递归执行更深层嵌套SQL
-        if (CollectionUtils.isNotEmpty(sql.getNestedSqls())) {
-            for (PreparedSql<?> nestedSql : sql.getNestedSqls()) {
+        if (CollectionUtils.isNotEmpty(sql.getNestedSQLs())) {
+            for (PreparedSql<?> nestedSql : sql.getNestedSQLs()) {
                 affectedRows += executeNestedSql(conn, nestedSql);
             }
         }

@@ -13,6 +13,6 @@ public class User {
     private Long id;
     @Column
     private String name;
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user")
     private List<Blog> blogs;
 }

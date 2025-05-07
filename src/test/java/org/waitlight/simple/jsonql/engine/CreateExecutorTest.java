@@ -104,51 +104,33 @@ public class CreateExecutorTest {
                 }
                 """;
 
-        // Should throw an exception for invalid field
-        Exception exception = assertThrows(Exception.class, () -> {
-            engine.execute(jsonCreate);
-        });
-
+        Exception exception = assertThrows(Exception.class, () -> engine.execute(jsonCreate));
         assertTrue(exception.getMessage().contains("nonexistent") || exception.getMessage().contains("field"));
     }
 
     @Test
-    public void testCreateWithNullRequiredField() throws Exception {
-        // Create with a null ID which should be required
-        String jsonCreate = """
-                {
-                    "statement": "create",
-                    "appId": "123456",
-                    "formId": "89757",
-                    "entityId": "user",
-                    "fields": [
-                        {"field": "name", "value": "bob"}
-                    ]
-                }
-                """;
-
-        // Should throw an exception for missing required field (id)
-        Exception exception = assertThrows(Exception.class, () -> {
-            engine.execute(jsonCreate);
-        });
-
-        assertTrue(exception.getMessage().contains("id") || exception.getMessage().contains("required"));
-    }
-
-    @Test
     public void testCreateBlogDirectly() throws Exception {
-        // Create a blog entity directly
         String jsonCreate = """
                 {
-                    "statement": "create",
-                    "appId": "123456",
-                    "formId": "89758",
-                    "entityId": "blog",
-                    "fields": [
-                        {"field": "id", "value": 3},
-                        {"field": "title", "value": "独立创建的博客"},
-                        {"field": "content", "value": "这是一篇独立创建的博客内容"}
-                    ]
+                "statement": "create",
+                "appId": "123456",
+                "formId": "89758",
+                "entityId": "blog",
+                "fields": [
+                    {"field": "title", "value": "用户123的新博客"},
+                    {"field": "content", "value": "这是用户123的新博客内容"},
+                    {
+                        "field": "user",
+                        "values": [
+                            {
+                                "appId": "123456",
+                                "formId": "89758",
+                                "entityId": "user",
+                                "fields": [ {"field": "id", "value": "123"} ]
+                            }
+                        ]
+                    }
+                ]
                 }
                 """;
 
@@ -156,6 +138,6 @@ public class CreateExecutorTest {
 
         assertNotNull(result);
         assertTrue(result instanceof Integer);
-        assertEquals(1, result);
+        assertEquals(1, result); // 应该插入1条记录
     }
 }

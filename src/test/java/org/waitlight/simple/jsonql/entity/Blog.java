@@ -16,9 +16,7 @@ public class Blog {
     private String title;
     @Column
     private String content;
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @ManyToOne
+    @JoinColumn(name = "user_id")
     private User user;
 }

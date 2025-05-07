@@ -58,7 +58,7 @@ public class AnnotationBinder {
                 property.setRelationshipType(RelationshipType.MANY_TO_ONE);
                 JoinColumn joinColumn = field.getAnnotation(JoinColumn.class);
                 if (joinColumn != null) {
-                    property.setForeignKeyName(joinColumn.name() + ".id");
+                    property.setForeignKeyName(joinColumn.name());
                 }
                 persistentClass.addProperty(property);
             }
