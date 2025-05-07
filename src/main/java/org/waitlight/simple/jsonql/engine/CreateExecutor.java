@@ -153,10 +153,10 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
                     "Expected CreateStatement but got " + statement.getClass().getSimpleName());
         }
 
-        final String parentEntityId = createStatement.getEntityId();
+        final String mainEntityId = createStatement.getEntityId();
 
         // 1. 处理主实体
-        List<Field> directFields = createStatement.getFields().stream()
+        List<Field> mainFields = createStatement.getFields().stream()
                 .filter(field -> CollectionUtils.isEmpty(field.getValues()))
                 .toList();
         List<Field> nestedFields = createStatement.getFields().stream()
@@ -165,26 +165,26 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
 
 
         // 2. 生成主实体的SQL，创建一个新的CreateStatement避免修改原始对象
-        CreateStatement parentCreateStatement = new CreateStatement();
-        parentCreateStatement.setEntityId(parentEntityId);
-        parentCreateStatement.setFields(directFields);
+        CreateStatement mainCreateStatement = new CreateStatement();
+        mainCreateStatement.setEntityId(mainEntityId);
+        mainCreateStatement.setFields(mainFields);
 
-        PreparedSql<CreateStatement> preparedSql = buildSql(parentCreateStatement);
+        PreparedSql<CreateStatement> preparedSql = buildSql(mainCreateStatement);
 
         // 3. 处理嵌套实体，使用ForeignKeyPlaceholder标记需要替换的外键
         for (Field nestedField : nestedFields) {
             for (NestedEntity nestedEntity : nestedField.getValues()) {
 
-                final String childEntityId = nestedEntity.getEntityId();
-                if (StringUtils.isBlank(childEntityId)) {
+                final String nestedEntityId = nestedEntity.getEntityId();
+                if (StringUtils.isBlank(nestedEntityId)) {
                     log.error("Could not determine entityId for a nested object within field '{}'. Skipping.", nestedField.getField());
                     continue;
                 }
 
-                String foreignKeyFieldName = getForeignKeyFieldName(parentEntityId, childEntityId);
+                String foreignKeyFieldName = getForeignKeyFieldName(mainEntityId, nestedEntityId);
                 if (StringUtils.isBlank(foreignKeyFieldName)) {
                     log.error("Could not determine foreign key field name for relation {} -> {}. Skipping nested inserts for this object.",
-                            createStatement.getEntityId(), childEntityId);
+                            createStatement.getEntityId(), nestedEntityId);
                     continue;
                 }
 
@@ -236,20 +236,20 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
     /**
      * 获取外键字段名称
      *
-     * @param parentEntityName 父实体名称
-     * @param childEntityName  子实体名称
+     * @param mainEntityName 父实体名称
+     * @param nestedEntityName  子实体名称
      * @return 外键字段名称，如果无法确定则返回null
      */
-    private String getForeignKeyFieldName(String parentEntityName, String childEntityName) {
-        PersistentClass parentEntityClass = metadata.getEntityBinding(parentEntityName);
-        PersistentClass childEntityClass = metadata.getEntityBinding(childEntityName);
+    private String getForeignKeyFieldName(String mainEntityName, String nestedEntityName) {
+        PersistentClass mainEntityClass = metadata.getEntityBinding(mainEntityName);
+        PersistentClass nestedEntityClass = metadata.getEntityBinding(nestedEntityName);
 
-        if (ObjectUtils.anyNull(parentEntityClass, childEntityClass)) {
-            log.warn("Entity not found in metadata: parent={}, child={}", parentEntityName, childEntityName);
+        if (ObjectUtils.anyNull(mainEntityClass, nestedEntityClass)) {
+            log.warn("Entity not found in metadata: parent={}, child={}", mainEntityName, nestedEntityName);
             return null;
         }
 
-        for (Property property : childEntityClass.getProperties()) {
+        for (Property property : nestedEntityClass.getProperties()) {
             if (!RelationshipType.MANY_TO_ONE.equals(property.getRelationshipType())) {
                 continue;
             }
@@ -259,7 +259,7 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
             }
         }
 
-        return parentEntityName.toLowerCase() + "_id";
+        return mainEntityName.toLowerCase() + "_id";
     }
 
     @Override
