@@ -1,4 +1,4 @@
-package org.waitlight.simple.jsonql.engine;
+package org.waitlight.simple.jsonql.engine.sqlparser;
 
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.statement.QueryStatement;
@@ -6,9 +6,9 @@ import org.waitlight.simple.jsonql.statement.model.Sort;
 
 import java.util.List;
 
-public class OrderByClauseExecutor extends AbstractClauseExecutor {
+public class OrderByClauseSqlParser extends AbstractClauseSqlParser {
 
-    public OrderByClauseExecutor(MetadataSources metadataSources) {
+    public OrderByClauseSqlParser(MetadataSources metadataSources) {
         super(metadataSources);
     }
 

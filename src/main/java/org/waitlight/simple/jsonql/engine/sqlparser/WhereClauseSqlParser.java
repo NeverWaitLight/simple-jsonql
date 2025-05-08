@@ -1,4 +1,4 @@
-package org.waitlight.simple.jsonql.engine;
+package org.waitlight.simple.jsonql.engine.sqlparser;
 
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.statement.QueryStatement;
@@ -6,9 +6,9 @@ import org.waitlight.simple.jsonql.statement.model.*;
 
 import java.util.List;
 
-public class WhereClauseExecutor extends AbstractClauseExecutor {
+public class WhereClauseSqlParser extends AbstractClauseSqlParser {
 
-    public WhereClauseExecutor(MetadataSources metadataSources) {
+    public WhereClauseSqlParser(MetadataSources metadataSources) {
         super(metadataSources);
     }
 
@@ -95,7 +95,7 @@ public class WhereClauseExecutor extends AbstractClauseExecutor {
             sb.append("NOT ");
         }
         sb.append("EXISTS (")
-                .append(QueryExecutor.getInstance(metadataSources).parseSql(condition.getSubquery()).getSql())
+                .append(new QuerySqlParser(metadataSources).parseSql(condition.getSubquery()).getSql())
                 .append(")");
         return sb.toString();
     }

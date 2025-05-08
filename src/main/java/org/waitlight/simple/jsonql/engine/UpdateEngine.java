@@ -1,0 +1,54 @@
+package org.waitlight.simple.jsonql.engine;
+
+import lombok.extern.slf4j.Slf4j;
+import org.waitlight.simple.jsonql.engine.sqlparser.PreparedSql;
+import org.waitlight.simple.jsonql.engine.sqlparser.UpdateSqlParser;
+import org.waitlight.simple.jsonql.engine.sqlparser.WhereClauseSqlParser;
+import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.statement.UpdateStatement;
+import org.waitlight.simple.jsonql.statement.JsonQLStatement;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.List;
+
+@Slf4j
+public class UpdateEngine extends StatementEngine<UpdateStatement> {
+    private static UpdateEngine instance;
+    private final WhereClauseSqlParser whereClauseExecutor;
+    private final UpdateSqlParser updateSqlParser;
+
+    private UpdateEngine(MetadataSources metadataSources) {
+        super(metadataSources);
+        this.whereClauseExecutor = new WhereClauseSqlParser(metadataSources);
+        this.updateSqlParser = new UpdateSqlParser(metadataSources);
+    }
+
+    public static synchronized UpdateEngine getInstance(MetadataSources metadataSources) {
+        if (instance == null) {
+            instance = new UpdateEngine(metadataSources);
+        }
+        return instance;
+    }
+
+    @Override
+    protected Object doExecute(Connection conn, PreparedSql<?> preparedSql) throws SQLException {
+        if (preparedSql.getStatementType() != UpdateStatement.class) {
+            throw new IllegalArgumentException("UpdateExecutor can only execute UpdateStatements");
+        }
+
+        try (PreparedStatement stmt = conn.prepareStatement(preparedSql.getSql())) {
+            List<Object> parameters = preparedSql.getParameters();
+            for (int i = 0; i < parameters.size(); i++) {
+                stmt.setObject(i + 1, parameters.get(i));
+            }
+            return stmt.executeUpdate();
+        }
+    }
+
+    @Override
+    protected PreparedSql<UpdateStatement> parseSql(JsonQLStatement statement) {
+        return updateSqlParser.parseSql(statement);
+    }
+}

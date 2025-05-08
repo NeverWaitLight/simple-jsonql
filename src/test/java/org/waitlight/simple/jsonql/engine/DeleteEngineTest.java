@@ -12,7 +12,7 @@ import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DeleteExecutorTest {
+public class DeleteEngineTest {
     private static JsonQLEngine engine;
 
     @BeforeAll

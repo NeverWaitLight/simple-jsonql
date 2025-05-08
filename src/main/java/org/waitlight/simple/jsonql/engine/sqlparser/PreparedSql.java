@@ -1,4 +1,4 @@
-package org.waitlight.simple.jsonql.engine;
+package org.waitlight.simple.jsonql.engine.sqlparser;
 
 import lombok.Data;
 import org.waitlight.simple.jsonql.statement.JsonQLStatement;

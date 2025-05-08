@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.waitlight.simple.jsonql.engine.sqlparser.PreparedSql;
 import org.waitlight.simple.jsonql.metadata.Metadata;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.statement.JsonQLStatement;
@@ -15,11 +16,11 @@ import lombok.extern.slf4j.Slf4j;
  * 用于处理不同类型的 SQL 语句执行
  */
 @Slf4j
-public abstract class StatementExecutor<T extends JsonQLStatement> {
+public abstract class StatementEngine<T extends JsonQLStatement> {
     protected final Metadata metadata;
     protected final MetadataSources metadataSources;
 
-    protected StatementExecutor(MetadataSources metadataSources) {
+    protected StatementEngine(MetadataSources metadataSources) {
         this.metadataSources = metadataSources;
         this.metadata = metadataSources.buildMetadata();
     }

@@ -18,7 +18,7 @@ public class JsonQLEngine {
 
     private final MetadataSources metadataSources;
     private final StatementParser parser;
-    private final Map<StatementType, StatementExecutor> executors;
+    private final Map<StatementType, StatementEngine> executors;
 
     public JsonQLEngine(MetadataSources metadataSources) {
         this.metadataSources = metadataSources;
@@ -26,12 +26,12 @@ public class JsonQLEngine {
         this.executors = initializeExecutors();
     }
 
-    private Map<StatementType, StatementExecutor> initializeExecutors() {
-        Map<StatementType, StatementExecutor> executors = new HashMap<>();
-        executors.put(StatementType.QUERY, QueryExecutor.getInstance(metadataSources));
-        executors.put(StatementType.CREATE, CreateExecutor.getInstance(metadataSources));
-        executors.put(StatementType.UPDATE, UpdateExecutor.getInstance(metadataSources));
-        executors.put(StatementType.DELETE, DeleteExecutor.getInstance(metadataSources));
+    private Map<StatementType, StatementEngine> initializeExecutors() {
+        Map<StatementType, StatementEngine> executors = new HashMap<>();
+        executors.put(StatementType.QUERY, QueryEngine.getInstance(metadataSources));
+        executors.put(StatementType.CREATE, CreateEngine.getInstance(metadataSources));
+        executors.put(StatementType.UPDATE, UpdateEngine.getInstance(metadataSources));
+        executors.put(StatementType.DELETE, DeleteEngine.getInstance(metadataSources));
         return executors;
     }
 
@@ -43,7 +43,7 @@ public class JsonQLEngine {
     }
 
     private Object execute(Connection conn, JsonQLStatement statement) throws SQLException {
-        StatementExecutor executor = executors.get(statement.getStatement());
+        StatementEngine executor = executors.get(statement.getStatement());
         if (executor == null) {
             throw new IllegalStateException("Unsupported statement type: " + statement.getStatement());
         }

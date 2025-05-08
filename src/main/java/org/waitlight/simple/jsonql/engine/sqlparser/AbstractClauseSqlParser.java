@@ -1,12 +1,12 @@
-package org.waitlight.simple.jsonql.engine;
+package org.waitlight.simple.jsonql.engine.sqlparser;
 
 import org.apache.commons.lang3.StringUtils;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 
-public abstract class AbstractClauseExecutor {
+public abstract class AbstractClauseSqlParser {
     protected final MetadataSources metadataSources;
 
-    public AbstractClauseExecutor(MetadataSources metadataSources) {
+    public AbstractClauseSqlParser(MetadataSources metadataSources) {
         this.metadataSources = metadataSources;
     }
 
