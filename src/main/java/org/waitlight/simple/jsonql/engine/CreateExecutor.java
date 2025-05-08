@@ -246,20 +246,19 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
 
         if (ObjectUtils.anyNull(mainEntityClass, nestedEntityClass)) {
             log.warn("Entity not found in metadata: parent={}, child={}", mainEntityName, nestedEntityName);
-            return null;
+            throw new UnsupportedOperationException();
         }
 
         for (Property property : nestedEntityClass.getProperties()) {
-            if (!RelationshipType.MANY_TO_ONE.equals(property.getRelationshipType())) {
-                continue;
+            if (RelationshipType.MANY_TO_ONE.equals(property.getRelationshipType())) {
+                return property.getForeignKeyName();
             }
-            String foreignKeyName = property.getForeignKeyName();
-            if (StringUtils.isNotBlank(foreignKeyName)) {
-                return foreignKeyName;
+            if (RelationshipType.ONE_TO_MANY.equals(property.getRelationshipType())) {
+                return property.getForeignKeyName();
             }
         }
 
-        return mainEntityName.toLowerCase() + "_id";
+        throw new UnsupportedOperationException();
     }
 
     @Override

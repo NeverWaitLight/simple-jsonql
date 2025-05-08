@@ -46,7 +46,7 @@ public class AnnotationBinder {
                 property.setRelationshipType(RelationshipType.ONE_TO_MANY);
                 property.setTargetEntity(oneToMany.targetEntity());
                 property.setJoinTableName(property.getTargetEntity().getSimpleName().toLowerCase());
-                property.setForeignKeyName(entityClass.getSimpleName().toLowerCase() + ".id");
+                property.setForeignKeyName(entityClass.getSimpleName().toLowerCase() + "_id");
                 property.setMappedBy(oneToMany.mappedBy());
                 persistentClass.addProperty(property);
             }
