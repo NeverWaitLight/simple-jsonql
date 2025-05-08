@@ -111,60 +111,25 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
         return new PreparedSql<>(sql, parameters, CreateStatement.class);
     }
 
-    /**
-     * 获取外键字段名称
-     *
-     * @param mainEntityName   父实体名称
-     * @param nestedEntityName 子实体名称
-     * @return 外键字段名称，如果无法确定则返回null
-     */
     private String getForeignKeyFieldName(String mainEntityName, String nestedEntityName) {
         PersistentClass mainEntityClass = metadata.getEntityBinding(mainEntityName);
         PersistentClass nestedEntityClass = metadata.getEntityBinding(nestedEntityName);
 
         if (ObjectUtils.anyNull(mainEntityClass, nestedEntityClass)) {
             log.warn("Entity not found in metadata: parent={}, child={}", mainEntityName, nestedEntityName);
-            throw new UnsupportedOperationException(
-                    "Entity not found in metadata: parent=" + mainEntityName + ", child=" + nestedEntityName);
+            return null;
         }
 
-        // 查找从 nestedEntityClass 指向 mainEntityClass 的外键
         for (Property property : nestedEntityClass.getProperties()) {
-            if (property.getRelationshipType() != null &&
-                    property.getRelationshipType() == RelationshipType.MANY_TO_ONE &&
-                    mainEntityClass.getEntityName().equals(property.getTargetEntity().getSimpleName())) {
-                return property.getColumn();
+            if (!RelationshipType.MANY_TO_ONE.equals(property.getRelationshipType())) {
+                continue;
+            }
+            String foreignKeyName = property.getForeignKeyName();
+            if (StringUtils.isNotBlank(foreignKeyName)) {
+                return foreignKeyName;
             }
         }
 
-        // 查找从 mainEntityClass 指向 nestedEntityClass 的外键 (通常用于一对多，子表持有外键)
-        // 但在Create场景，通常是子实体持有指向父实体的外键
-        // 如果是双向一对一，也可能是主表持有外键，但插入时通常先插入没有外键依赖的一方，或允许外键为空
-        // 此处逻辑假设子实体表（nestedEntityName）包含指向父实体表（mainEntityName）的外键
-        log.warn("Could not determine foreign key from {} to {} by checking MANY_TO_ONE in {}. " +
-                "Also checking ONE_TO_MANY in {} (less common for create foreign key)",
-                nestedEntityName, mainEntityName, nestedEntityName, mainEntityName);
-
-        for (Property property : mainEntityClass.getProperties()) {
-            if (property.getRelationshipType() != null &&
-                    property.getRelationshipType() == RelationshipType.ONE_TO_MANY &&
-                    nestedEntityClass.getEntityName().equals(property.getTargetEntity().getSimpleName())) {
-                // 在ONE_TO_MANY关系中，外键在"多"的一方（即nestedEntityClass）
-                // 需要找到nestedEntityClass中对应的mappedBy字段
-                PersistentClass targetPc = metadata.getEntityBinding(property.getTargetEntity().getSimpleName());
-                if (targetPc != null) {
-                    for (Property targetProp : targetPc.getProperties()) {
-                        if (property.getMappedBy().equals(targetProp.getName()) &&
-                                targetProp.getRelationshipType() != null &&
-                                targetProp.getRelationshipType() == RelationshipType.MANY_TO_ONE &&
-                                mainEntityClass.getEntityName().equals(targetProp.getTargetEntity().getSimpleName())) {
-                            return targetProp.getColumn();
-                        }
-                    }
-                }
-            }
-        }
-        log.error("Foreign key relationship not found between {} and {}", mainEntityName, nestedEntityName);
-        return null; // 或者抛出更具体的异常
+        return mainEntityName.toLowerCase() + "_id";
     }
 }
