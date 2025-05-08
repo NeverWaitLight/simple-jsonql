@@ -86,6 +86,7 @@ public class EntityMetadataBuilder {
         Property property = new Property();
         property.setName(field.getName());
         property.setRelationshipType(RelationshipType.MANY_TO_ONE);
+        property.setTargetEntity(field.getClass());
         JoinColumn joinColumn = field.getAnnotation(JoinColumn.class);
         if (joinColumn != null) {
             property.setForeignKeyName(joinColumn.name());

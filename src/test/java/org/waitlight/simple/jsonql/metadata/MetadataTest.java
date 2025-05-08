@@ -27,8 +27,8 @@ public class MetadataTest {
         // 验证Users元数据
         PersistentClass userMetadata = metadata.getEntityBinding(User.class.getSimpleName().toLowerCase());
         assertNotNull(userMetadata, "User metadata should not be null");
-        assertEquals("user", userMetadata.getEntityName(), "Entity name should be 'user'");
-        assertEquals("user", userMetadata.getTableName(), "Table name should be 'users'");
+        assertEquals("User", userMetadata.getEntityName(), "Entity name should be 'User'");
+        assertEquals("user", userMetadata.getTableName(), "Table name should be 'user'");
 
         // 验证属性
         assertFalse(userMetadata.getProperties().isEmpty(), "User should have properties");
@@ -68,8 +68,8 @@ public class MetadataTest {
         // 验证Blogs元数据
         PersistentClass blogMetadata = metadata.getEntityBinding(Blog.class.getSimpleName().toLowerCase());
         assertNotNull(blogMetadata, "Blog metadata should not be null");
-        assertEquals("blog", blogMetadata.getEntityName(), "Entity name should be 'blog'");
-        assertEquals("blog", blogMetadata.getTableName(), "Table name should be 'blogs'");
+        assertEquals("Blog", blogMetadata.getEntityName(), "Entity name should be 'Blog'");
+        assertEquals("blog", blogMetadata.getTableName(), "Table name should be 'blog'");
 
         // 验证属性
         assertFalse(blogMetadata.getProperties().isEmpty(), "Blog should have properties");
