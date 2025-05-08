@@ -112,25 +112,25 @@ public class CreateEngineTest {
     public void testCreateBlogDirectly() throws Exception {
         String jsonCreate = """
                 {
-                "statement": "create",
-                "appId": "123456",
-                "formId": "89758",
-                "entityId": "blog",
-                "fields": [
+                  "statement": "create",
+                  "appId": "123456",
+                  "formId": "89758",
+                  "entityId": "blog",
+                  "fields": [
                     {"field": "title", "value": "用户123的新博客"},
                     {"field": "content", "value": "这是用户123的新博客内容"},
                     {
-                        "field": "user",
-                        "values": [
-                            {
-                                "appId": "123456",
-                                "formId": "89758",
-                                "entityId": "user",
-                                "fields": [ {"field": "id", "value": "123"} ]
-                            }
-                        ]
+                      "field": "user",
+                      "values": [
+                        {
+                          "appId": "123456",
+                          "formId": "89758",
+                          "entityId": "user",
+                          "fields": [ {"field": "id", "value": "123"} ]
+                        }
+                      ]
                     }
-                ]
+                  ]
                 }
                 """;
 

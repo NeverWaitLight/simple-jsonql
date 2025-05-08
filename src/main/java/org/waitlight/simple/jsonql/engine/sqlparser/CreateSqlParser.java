@@ -28,9 +28,51 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
         this.metadata = metadata;
     }
 
+    // Extract the associated attributes
+    public List<Property> extractRelationshipProperties(String entityId) {
+        PersistentClass persistentClass = metadata.getEntity(entityId);
+        if (Objects.isNull(persistentClass)) {
+            throw new MetadataException("Could not find metadata definition for entity: " + entityId);
+        }
+
+        return persistentClass.getProperties().stream()
+                .filter(prop -> Objects.nonNull(prop.getRelationshipType()))
+                .toList();
+    }
+
+    public PreparedSql<CreateStatement> parseStmtToSql(CreateStatement stmt) {
+        /**
+         * 1. 判断是 oneToOne \ oneToMany \ manyToMany 的哪一种
+         * 2.1 oneToOne 
+         * 2.2 生成 主动 方 insert sql, 生成 preparedsql
+         * 2.3 生成 被动 方 insert sql, 放入 preparedsql 中的 nestedsql 字段
+         * 3.1 oneToMany 
+         * 3.2 生成 one 方 insert sql, 生成 preparedsql
+         * 3.3 生成 many 方 insert sql, 放入 preparedsql 中的nestedsql字段
+         * 4.1 manyToMany 
+         * 4.2 生成 many 方 insert sql, 处理好many方的表中有one方的id字段生成 preparedsql
+         */
+
+        return null;
+    }
+
     @Override
     public PreparedSql<CreateStatement> parseStmt2Sql(CreateStatement stmt) {
         final String mainEntityId = stmt.getEntityId();
+
+        List<Property> relationshipProperties = extractRelationshipProperties(mainEntityId);
+        // 有关系字段
+        if (CollectionUtils.isNotEmpty(relationshipProperties)) {
+            // if 是 one 方
+            // 1.生成 one 方 insert sql, 生成 preparedsql
+            // 2.生成 many 方 insert sql, 放入 preparedsql 中的nestedsql字段
+
+            // else 是 many 方
+            // 1.生成 many 方 insert sql, 处理好many方的表中有one方的id字段生成 preparedsql
+        } else {
+            // 没有关系字段
+            // 按照处理 one 方的逻辑生成preparedsql
+        }
 
         // 1. 处理主实体
         List<Field> mainFields = stmt.getFields().stream()
@@ -106,8 +148,8 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
     }
 
     private String getForeignKeyFieldName(String mainEntityName, String nestedEntityName) {
-        PersistentClass mainEntityClass = metadata.getEntityBinding(mainEntityName);
-        PersistentClass nestedEntityClass = metadata.getEntityBinding(nestedEntityName);
+        PersistentClass mainEntityClass = metadata.getEntity(mainEntityName);
+        PersistentClass nestedEntityClass = metadata.getEntity(nestedEntityName);
 
         if (ObjectUtils.anyNull(mainEntityClass, nestedEntityClass)) {
             log.warn("Entity not found in metadata: parent={}, child={}", mainEntityName, nestedEntityName);
@@ -115,7 +157,6 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
         }
 
         for (Property property : nestedEntityClass.getProperties()) {
-            log.info("检查属性: {}, 类型: {}, 外键名: {}", property.getName(), property.getType(), property.getForeignKeyName());
             String foreignKeyName = property.getForeignKeyName();
             if (StringUtils.isNotBlank(foreignKeyName)) {
                 return foreignKeyName;

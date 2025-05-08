@@ -12,7 +12,7 @@ public class Metadata {
         entityBindings.put(entityName, persistentClass);
     }
 
-    public PersistentClass getEntityBinding(String entityName) {
+    public PersistentClass getEntity(String entityName) {
         if (StringUtils.isBlank(entityName)) throw new RuntimeException("Entity not found");
         return entityBindings.get(entityName.toLowerCase());
     }
