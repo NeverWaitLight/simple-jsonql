@@ -16,21 +16,13 @@ import java.util.Map;
 
 @Slf4j
 public class QueryEngine extends StatementEngine<QueryStatement> {
-    private static QueryEngine instance;
     private final ClauseSqlParser clauseSqlParser;
     private final QuerySqlParser querySqlParser;
 
-    private QueryEngine(MetadataSources metadataSources) {
+    public QueryEngine(MetadataSources metadataSources) {
         super(metadataSources);
         this.clauseSqlParser = new ClauseSqlParser(metadataSources);
         this.querySqlParser = new QuerySqlParser(metadataSources);
-    }
-
-    public static synchronized QueryEngine getInstance(MetadataSources metadataSources) {
-        if (instance == null) {
-            instance = new QueryEngine(metadataSources);
-        }
-        return instance;
     }
 
     @Override

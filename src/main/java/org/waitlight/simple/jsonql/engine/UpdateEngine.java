@@ -15,21 +15,13 @@ import java.util.List;
 
 @Slf4j
 public class UpdateEngine extends StatementEngine<UpdateStatement> {
-    private static UpdateEngine instance;
     private final WhereClauseSqlParser whereClauseExecutor;
     private final UpdateSqlParser updateSqlParser;
 
-    private UpdateEngine(MetadataSources metadataSources) {
+    public UpdateEngine(MetadataSources metadataSources) {
         super(metadataSources);
         this.whereClauseExecutor = new WhereClauseSqlParser(metadataSources);
         this.updateSqlParser = new UpdateSqlParser(metadataSources);
-    }
-
-    public static synchronized UpdateEngine getInstance(MetadataSources metadataSources) {
-        if (instance == null) {
-            instance = new UpdateEngine(metadataSources);
-        }
-        return instance;
     }
 
     @Override

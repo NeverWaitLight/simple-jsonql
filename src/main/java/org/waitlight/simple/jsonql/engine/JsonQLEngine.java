@@ -3,8 +3,8 @@ package org.waitlight.simple.jsonql.engine;
 import lombok.extern.slf4j.Slf4j;
 import org.waitlight.simple.jsonql.config.DBConfig;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
-import org.waitlight.simple.jsonql.statement.StatementParser;
 import org.waitlight.simple.jsonql.statement.JsonQLStatement;
+import org.waitlight.simple.jsonql.statement.StatementParser;
 import org.waitlight.simple.jsonql.statement.model.StatementType;
 
 import java.sql.Connection;
@@ -28,10 +28,10 @@ public class JsonQLEngine {
 
     private Map<StatementType, StatementEngine> initializeExecutors() {
         Map<StatementType, StatementEngine> executors = new HashMap<>();
-        executors.put(StatementType.QUERY, QueryEngine.getInstance(metadataSources));
-        executors.put(StatementType.CREATE, CreateEngine.getInstance(metadataSources));
-        executors.put(StatementType.UPDATE, UpdateEngine.getInstance(metadataSources));
-        executors.put(StatementType.DELETE, DeleteEngine.getInstance(metadataSources));
+        executors.put(StatementType.QUERY, new QueryEngine(metadataSources));
+        executors.put(StatementType.CREATE, new CreateEngine(metadataSources));
+        executors.put(StatementType.UPDATE, new UpdateEngine(metadataSources));
+        executors.put(StatementType.DELETE, new DeleteEngine(metadataSources));
         return executors;
     }
 

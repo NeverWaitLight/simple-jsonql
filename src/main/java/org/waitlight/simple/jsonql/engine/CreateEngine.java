@@ -17,20 +17,12 @@ import java.util.List;
 
 @Slf4j
 public class CreateEngine extends StatementEngine<CreateStatement> {
-    private static CreateEngine instance;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final CreateSqlParser createSqlParser;
 
-    private CreateEngine(MetadataSources metadataSources) {
+    public CreateEngine(MetadataSources metadataSources) {
         super(metadataSources);
         this.createSqlParser = new CreateSqlParser(metadataSources.buildMetadata());
-    }
-
-    public static synchronized CreateEngine getInstance(MetadataSources metadataSources) {
-        if (instance == null) {
-            instance = new CreateEngine(metadataSources);
-        }
-        return instance;
     }
 
     @Override

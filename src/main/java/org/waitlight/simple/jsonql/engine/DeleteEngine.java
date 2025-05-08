@@ -14,19 +14,11 @@ import java.util.List;
 
 @Slf4j
 public class DeleteEngine extends StatementEngine<DeleteStatement> {
-    private static DeleteEngine instance;
     private final DeleteSqlParser deleteSqlParser;
 
-    private DeleteEngine(MetadataSources metadataSources) {
+    public DeleteEngine(MetadataSources metadataSources) {
         super(metadataSources);
         this.deleteSqlParser = new DeleteSqlParser();
-    }
-
-    public static synchronized DeleteEngine getInstance(MetadataSources metadataSources) {
-        if (instance == null) {
-            instance = new DeleteEngine(metadataSources);
-        }
-        return instance;
     }
 
     @Override
