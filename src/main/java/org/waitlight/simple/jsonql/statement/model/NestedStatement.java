@@ -9,7 +9,7 @@ import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class NestedEntity extends JsonQLStatement {
+public class NestedStatement extends JsonQLStatement {
     @JsonProperty("dataId")
     private String dataId;
     

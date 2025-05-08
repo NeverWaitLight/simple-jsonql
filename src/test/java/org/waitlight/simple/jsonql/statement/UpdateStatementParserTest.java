@@ -2,7 +2,7 @@ package org.waitlight.simple.jsonql.statement;
 
 import org.junit.jupiter.api.Test;
 import org.waitlight.simple.jsonql.statement.model.Field;
-import org.waitlight.simple.jsonql.statement.model.NestedEntity;
+import org.waitlight.simple.jsonql.statement.model.NestedStatement;
 import org.waitlight.simple.jsonql.statement.model.StatementType;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -61,7 +61,7 @@ public class UpdateStatementParserTest {
         assertEquals(1, blogsField.getValues().size());
         
         // 验证嵌套实体
-        NestedEntity blog = blogsField.getValues().get(0);
+        NestedStatement blog = blogsField.getValues().get(0);
         assertEquals("123456", blog.getAppId());
         assertEquals("89758", blog.getFormId());
         assertEquals("147259", blog.getEntityId());

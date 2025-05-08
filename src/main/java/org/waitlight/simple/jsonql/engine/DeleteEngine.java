@@ -22,10 +22,12 @@ public class DeleteEngine extends StatementEngine<DeleteStatement> {
     }
 
     @Override
-    protected Object doExecute(Connection conn, PreparedSql<?> preparedSql) throws SQLException {
-         if (preparedSql.getStatementType() != DeleteStatement.class) {
-             throw new IllegalArgumentException("DeleteExecutor can only execute DeleteStatements");
-         }
+    public Object execute(Connection conn, DeleteStatement statement) throws SQLException {
+        PreparedSql<DeleteStatement> preparedSql = deleteSqlParser.parseSql(statement);
+
+        if (preparedSql.getStatementType() != DeleteStatement.class) {
+            throw new IllegalArgumentException("DeleteExecutor can only execute DeleteStatements");
+        }
 
         try (PreparedStatement preparedStatement = conn.prepareStatement(preparedSql.getSql())) {
             List<Object> parameters = preparedSql.getParameters();
@@ -34,10 +36,5 @@ public class DeleteEngine extends StatementEngine<DeleteStatement> {
             }
             return preparedStatement.executeUpdate();
         }
-    }
-
-    @Override
-    protected PreparedSql<DeleteStatement> parseSql(JsonQLStatement statement) {
-        return deleteSqlParser.parseSql(statement);
     }
 }

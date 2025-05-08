@@ -14,5 +14,5 @@ public class Field {
     private Object value;
     
     @JsonProperty("values")
-    private List<NestedEntity> values;
+    private List<NestedStatement> values;
 }

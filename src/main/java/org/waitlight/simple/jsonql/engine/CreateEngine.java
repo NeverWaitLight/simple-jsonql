@@ -1,6 +1,5 @@
 package org.waitlight.simple.jsonql.engine;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.waitlight.simple.jsonql.engine.sqlparser.CreateSqlParser;
 import org.waitlight.simple.jsonql.engine.sqlparser.PreparedSql;
@@ -17,7 +16,6 @@ import java.util.List;
 
 @Slf4j
 public class CreateEngine extends StatementEngine<CreateStatement> {
-    private final ObjectMapper objectMapper = new ObjectMapper();
     private final CreateSqlParser createSqlParser;
 
     public CreateEngine(MetadataSources metadataSources) {
@@ -26,13 +24,9 @@ public class CreateEngine extends StatementEngine<CreateStatement> {
     }
 
     @Override
-    protected PreparedSql<CreateStatement> parseSql(JsonQLStatement statement) {
-        return createSqlParser.parseSql(statement);
-    }
+    public Object execute(Connection conn, CreateStatement stmt) throws SQLException {
+        final PreparedSql<CreateStatement> preparedSql = createSqlParser.parseSql(stmt);
 
-    @Override
-    public Object execute(Connection conn, JsonQLStatement stmt) throws SQLException {
-        PreparedSql<CreateStatement> preparedSql = this.createSqlParser.parseSql(stmt);
         if (preparedSql.getSql() == null || preparedSql.getSql().isEmpty()) {
             return 0;
         }
@@ -86,7 +80,7 @@ public class CreateEngine extends StatementEngine<CreateStatement> {
 
                         for (int j = 0; j < params.size(); j++) {
                             Object param = params.get(j);
-                            if (param instanceof CreateSqlParser.ForeignKeyPlaceholder) {
+                            if (CreateSqlParser.FOREIGN_KEY_PLACEHOLDER.equals(param)) {
                                 params.set(j, generatedId);
                             }
                             ps.setObject(j + 1, params.get(j));
@@ -117,17 +111,5 @@ public class CreateEngine extends StatementEngine<CreateStatement> {
                 log.error("Error restoring autoCommit setting", e);
             }
         }
-    }
-
-    @Override
-    protected Object doExecute(Connection conn, PreparedSql<?> preparedSql) throws SQLException {
-        // The SQL parsing and building logic has been moved to CreateSqlParser.
-        // This method was likely responsible for parts of that, or an alternative
-        // execution path.
-        // If this method is still needed, its SQL generation aspects should also be
-        // delegated
-        // to the CreateSqlParser or a similar parsing/building class.
-        throw new UnsupportedOperationException(
-                "doExecute's original logic needs to be re-evaluated after refactoring to CreateSqlParser.");
     }
 }

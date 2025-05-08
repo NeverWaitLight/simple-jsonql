@@ -6,7 +6,6 @@ import org.waitlight.simple.jsonql.engine.sqlparser.UpdateSqlParser;
 import org.waitlight.simple.jsonql.engine.sqlparser.WhereClauseSqlParser;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.statement.UpdateStatement;
-import org.waitlight.simple.jsonql.statement.JsonQLStatement;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -25,7 +24,9 @@ public class UpdateEngine extends StatementEngine<UpdateStatement> {
     }
 
     @Override
-    protected Object doExecute(Connection conn, PreparedSql<?> preparedSql) throws SQLException {
+    public Object execute(Connection conn, UpdateStatement statement) throws SQLException {
+        PreparedSql<UpdateStatement> preparedSql = updateSqlParser.parseSql(statement);
+
         if (preparedSql.getStatementType() != UpdateStatement.class) {
             throw new IllegalArgumentException("UpdateExecutor can only execute UpdateStatements");
         }
@@ -37,10 +38,5 @@ public class UpdateEngine extends StatementEngine<UpdateStatement> {
             }
             return stmt.executeUpdate();
         }
-    }
-
-    @Override
-    protected PreparedSql<UpdateStatement> parseSql(JsonQLStatement statement) {
-        return updateSqlParser.parseSql(statement);
     }
 }

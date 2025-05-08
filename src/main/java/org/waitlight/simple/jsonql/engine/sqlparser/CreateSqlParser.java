@@ -10,64 +10,48 @@ import org.waitlight.simple.jsonql.metadata.PersistentClass;
 import org.waitlight.simple.jsonql.metadata.Property;
 import org.waitlight.simple.jsonql.metadata.RelationshipType;
 import org.waitlight.simple.jsonql.statement.CreateStatement;
-import org.waitlight.simple.jsonql.statement.JsonQLStatement;
 import org.waitlight.simple.jsonql.statement.model.Field;
-import org.waitlight.simple.jsonql.statement.model.NestedEntity;
+import org.waitlight.simple.jsonql.statement.model.NestedStatement;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public class CreateSqlParser {
+public class CreateSqlParser implements SqlParser<CreateStatement> {
 
     private static final Logger log = LoggerFactory.getLogger(CreateSqlParser.class);
     private final Metadata metadata;
+
+    public static final String FOREIGN_KEY_PLACEHOLDER = "__FOREIGN_KEY_PLACEHOLDER__";
 
     public CreateSqlParser(Metadata metadata) {
         this.metadata = metadata;
     }
 
-    // 用于标记需要替换为生成的ID的参数
-    public static class ForeignKeyPlaceholder {
-        private final String fieldName;
-
-        public ForeignKeyPlaceholder(String fieldName) {
-            this.fieldName = fieldName;
-        }
-
-        public String getFieldName() {
-            return fieldName;
-        }
-    }
-
-    public PreparedSql<CreateStatement> parseSql(JsonQLStatement statement) {
-        if (!(statement instanceof CreateStatement createStatement)) {
-            throw new IllegalArgumentException(
-                    "Expected CreateStatement but got " + statement.getClass().getSimpleName());
-        }
-
-        final String mainEntityId = createStatement.getEntityId();
+    @Override
+    public PreparedSql<CreateStatement> parseSql(CreateStatement stmt) {
+        final String mainEntityId = stmt.getEntityId();
 
         // 1. 处理主实体
-        List<Field> mainFields = createStatement.getFields().stream()
+        List<Field> mainFields = stmt.getFields().stream()
                 .filter(field -> CollectionUtils.isEmpty(field.getValues()))
                 .toList();
-        List<Field> nestedFields = createStatement.getFields().stream()
+        List<Field> nestedFields = stmt.getFields().stream()
                 .filter(field -> CollectionUtils.isNotEmpty(field.getValues()))
                 .toList();
 
         // 2. 生成主实体的SQL，创建一个新的CreateStatement避免修改原始对象
-        CreateStatement mainCreateStatement = new CreateStatement();
-        mainCreateStatement.setEntityId(mainEntityId);
-        mainCreateStatement.setFields(mainFields);
+        CreateStatement mainStmt = new CreateStatement();
+        mainStmt.setEntityId(mainEntityId);
+        mainStmt.setFields(mainFields);
 
-        PreparedSql<CreateStatement> preparedSql = buildSql(mainCreateStatement);
+        PreparedSql<CreateStatement> preparedSql = buildSql(mainStmt);
 
-        // 3. 处理嵌套实体，使用ForeignKeyPlaceholder标记需要替换的外键
+        // 3. 处理嵌套实体，使用FOREIGN_KEY_PLACEHOLDER常量标记需要替换的外键
         for (Field nestedField : nestedFields) {
-            for (NestedEntity nestedEntity : nestedField.getValues()) {
+            for (NestedStatement nestedStatement : nestedField.getValues()) {
 
-                final String nestedEntityId = nestedEntity.getEntityId();
+                final String nestedEntityId = nestedStatement.getEntityId();
                 if (StringUtils.isBlank(nestedEntityId)) {
                     log.error("Could not determine entityId for a nested object within field '{}'. Skipping.",
                             nestedField.getField());
@@ -78,17 +62,17 @@ public class CreateSqlParser {
                 if (StringUtils.isBlank(foreignKeyFieldName)) {
                     log.error(
                             "Could not determine foreign key field name for relation {} -> {}. Skipping nested inserts for this object.",
-                            createStatement.getEntityId(), nestedEntityId);
+                            stmt.getEntityId(), nestedEntityId);
                     continue;
                 }
 
                 // 添加外键字段占位符
                 Field foreignKeyField = new Field();
                 foreignKeyField.setField(foreignKeyFieldName);
-                foreignKeyField.setValue(new ForeignKeyPlaceholder(foreignKeyFieldName));
-                nestedEntity.getFields().add(foreignKeyField);
+                foreignKeyField.setValue(FOREIGN_KEY_PLACEHOLDER);
+                nestedStatement.getFields().add(foreignKeyField);
 
-                PreparedSql<CreateStatement> nestedSql = buildSql(nestedEntity);
+                PreparedSql<CreateStatement> nestedSql = buildSql(nestedStatement);
                 if (nestedSql.isNotEmpty()) {
                     preparedSql.addNestedSQLs(nestedSql);
                 }
@@ -104,7 +88,7 @@ public class CreateSqlParser {
      * @param entity 实体对象（CreateStatement或NestedEntity）
      * @return PreparedSql对象
      */
-    private PreparedSql<CreateStatement> buildSql(NestedEntity entity) {
+    private PreparedSql<CreateStatement> buildSql(NestedStatement entity) {
         if (Objects.isNull(entity)) {
             return new PreparedSql<>();
         }

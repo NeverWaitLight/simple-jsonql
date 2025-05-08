@@ -5,7 +5,6 @@ import org.waitlight.simple.jsonql.engine.sqlparser.ClauseSqlParser;
 import org.waitlight.simple.jsonql.engine.sqlparser.PreparedSql;
 import org.waitlight.simple.jsonql.engine.sqlparser.QuerySqlParser;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
-import org.waitlight.simple.jsonql.statement.JsonQLStatement;
 import org.waitlight.simple.jsonql.statement.QueryStatement;
 
 import java.sql.*;
@@ -26,7 +25,9 @@ public class QueryEngine extends StatementEngine<QueryStatement> {
     }
 
     @Override
-    protected Object doExecute(Connection conn, PreparedSql<?> preparedSql) throws SQLException {
+    public Object execute(Connection conn, QueryStatement statement) throws SQLException {
+        PreparedSql<QueryStatement> preparedSql = querySqlParser.parseSql(statement);
+
         if (preparedSql.getStatementType() != QueryStatement.class) {
             throw new IllegalArgumentException("QueryExecutor can only execute QueryStatements");
         }
@@ -40,11 +41,6 @@ public class QueryEngine extends StatementEngine<QueryStatement> {
                 return processResultSet(rs);
             }
         }
-    }
-
-    @Override
-    protected PreparedSql<QueryStatement> parseSql(JsonQLStatement statement) {
-        return querySqlParser.parseSql(statement);
     }
 
     private List<Map<String, Object>> processResultSet(ResultSet rs) throws SQLException {
