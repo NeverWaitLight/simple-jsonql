@@ -7,9 +7,10 @@ import java.util.List;
 
 @Data
 public class PersistentClass {
-    public String entityName;
-    public String tableName;
-    public List<Property> properties = new ArrayList<>();
+    private Class<?> entityClass;
+    private String entityName;
+    private String tableName;
+    private List<Property> properties = new ArrayList<>();
 
     public void addProperty(Property property) {
         properties.add(property);

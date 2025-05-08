@@ -12,14 +12,46 @@ public class Property {
     private String name;
     private String column;
     private String type;
-    private RelationshipType relationshipType; // 关系类型（一对一、一对多、多对一、多对多）
-    private Class<?> targetEntity; // 关联的目标实体类
-    private String mappedBy; // 双向关系的映射字段
-    private String foreignKeyName; // 外键约束名称
-    private boolean nullable; // 字段是否可为空
-    private String joinTableName; // 多对多关系的关联表名
-    private JoinColumn[] joinColumns; // 多对多关系的主表连接列
-    private JoinColumn[] inverseJoinColumns; // 多对多关系的从表连接列
+
+    /**
+     * 关系类型（一对一、一对多、多对一、多对多）
+     */
+    private RelationshipType relationshipType;
+
+    /**
+     * 关联的目标实体类
+     */
+    private Class<?> targetEntity;
+
+    /**
+     * 双向关系的映射字段
+     */
+    private String mappedBy;
+
+    /**
+     * 外键约束名称
+     */
+    private String foreignKeyName;
+
+    /**
+     * 字段是否可为空
+     */
+    private boolean nullable;
+
+    /**
+     * 多对多关系的关联表名
+     */
+    private String joinTableName;
+
+    /**
+     * 多对多关系的主表连接列
+     */
+    private JoinColumn[] joinColumns;
+
+    /**
+     * 多对多关系的从表连接列
+     */
+    private JoinColumn[] inverseJoinColumns;
 
     public Property(String name, String column, String type) {
         this.name = name;
