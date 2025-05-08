@@ -6,34 +6,34 @@ import org.waitlight.simple.jsonql.statement.model.*;
 import java.util.List;
 import java.util.Map;
 
-public class JsonQLParser {
+public class StatementParser {
     private final ObjectMapper objectMapper;
 
-    public JsonQLParser() {
+    public StatementParser() {
         this.objectMapper = new ObjectMapper();
     }
 
-    public JsonQLStatement parse(String json) throws JsonqlParseException {
+    public JsonQLStatement parse2Stmt(String jsonQL) throws JsonqlParseException {
         try {
-            Map<String, Object> jsonMap = objectMapper.readValue(json, Map.class);
+            Map<String, Object> jsonMap = objectMapper.readValue(jsonQL, Map.class);
             String statementStr = (String) jsonMap.get("statement");
             if (statementStr == null) {
                 throw new JsonqlParseException("Statement type is required");
             }
 
-            StatementType statement;
+            StatementType statementType;
             try {
-                statement = StatementType.fromValue(statementStr);
+                statementType = StatementType.fromValue(statementStr);
             } catch (IllegalArgumentException e) {
                 throw new JsonqlParseException("Unsupported statement type: " + statementStr);
             }
 
-            return switch (statement) {
-                case QUERY -> parseSelect(jsonMap);
+            return switch (statementType) {
+                case QUERY -> parseQuery(jsonMap);
                 case CREATE -> parseCreate(jsonMap);
                 case UPDATE -> parseUpdate(jsonMap);
                 case DELETE -> parseDelete(jsonMap);
-                default -> throw new JsonqlParseException("Unsupported statement type: " + statement);
+                default -> throw new JsonqlParseException("Unsupported statement type: " + statementType);
             };
         } catch (Exception e) {
             if (e instanceof JsonqlParseException) {
@@ -43,7 +43,7 @@ public class JsonQLParser {
         }
     }
 
-    private QueryStatement parseSelect(Map<String, Object> jsonMap) throws JsonqlParseException {
+    private QueryStatement parseQuery(Map<String, Object> jsonMap) throws JsonqlParseException {
         QueryStatement statement = new QueryStatement();
         statement.setStatement(StatementType.QUERY);
         

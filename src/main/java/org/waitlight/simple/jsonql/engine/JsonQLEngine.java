@@ -3,8 +3,8 @@ package org.waitlight.simple.jsonql.engine;
 import lombok.extern.slf4j.Slf4j;
 import org.waitlight.simple.jsonql.config.DBConfig;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
-import org.waitlight.simple.jsonql.statement.JsonQLParser;
-import org.waitlight.simple.jsonql.statement.model.JsonQLStatement;
+import org.waitlight.simple.jsonql.statement.StatementParser;
+import org.waitlight.simple.jsonql.statement.JsonQLStatement;
 import org.waitlight.simple.jsonql.statement.model.StatementType;
 
 import java.sql.Connection;
@@ -17,12 +17,12 @@ import java.util.*;
 public class JsonQLEngine {
 
     private final MetadataSources metadataSources;
-    private final JsonQLParser parser;
+    private final StatementParser parser;
     private final Map<StatementType, StatementExecutor> executors;
 
     public JsonQLEngine(MetadataSources metadataSources) {
         this.metadataSources = metadataSources;
-        this.parser = new JsonQLParser();
+        this.parser = new StatementParser();
         this.executors = initializeExecutors();
     }
 
@@ -36,7 +36,7 @@ public class JsonQLEngine {
     }
 
     public Object execute(String jsonQuery) throws Exception {
-        JsonQLStatement statement = parser.parse(jsonQuery);
+        JsonQLStatement statement = parser.parse2Stmt(jsonQuery);
         try (Connection conn = DBConfig.getConnection()) {
             return execute(conn, statement);
         }

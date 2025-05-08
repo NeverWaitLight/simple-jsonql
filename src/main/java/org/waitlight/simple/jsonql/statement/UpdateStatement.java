@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.waitlight.simple.jsonql.statement.model.Field;
-import org.waitlight.simple.jsonql.statement.model.JsonQLStatement;
 
 import java.util.List;
 

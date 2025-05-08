@@ -1,8 +1,9 @@
-package org.waitlight.simple.jsonql.statement.model;
+package org.waitlight.simple.jsonql.statement;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import org.waitlight.simple.jsonql.statement.model.StatementType;
 
 @Data
 public abstract class JsonQLStatement {

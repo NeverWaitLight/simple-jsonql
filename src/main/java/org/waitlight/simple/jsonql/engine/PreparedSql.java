@@ -1,7 +1,7 @@
 package org.waitlight.simple.jsonql.engine;
 
 import lombok.Data;
-import org.waitlight.simple.jsonql.statement.model.JsonQLStatement;
+import org.waitlight.simple.jsonql.statement.JsonQLStatement;
 
 import java.util.ArrayList;
 import java.util.Collections;

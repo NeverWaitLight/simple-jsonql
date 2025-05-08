@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class DeleteStatementParserTest {
-    private final JsonQLParser parser = new JsonQLParser();
+    private final StatementParser parser = new StatementParser();
 
     @Test
     public void deleteWithIds() throws JsonqlParseException {
@@ -23,7 +23,7 @@ public class DeleteStatementParserTest {
                 }
                 """;
 
-        DeleteStatement statement = (DeleteStatement) parser.parse(json);
+        DeleteStatement statement = (DeleteStatement) parser.parse2Stmt(json);
 
         assertEquals(StatementType.DELETE, statement.getStatement());
         assertEquals("123456", statement.getAppId());

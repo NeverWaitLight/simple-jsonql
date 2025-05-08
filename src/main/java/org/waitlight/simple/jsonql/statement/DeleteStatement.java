@@ -3,7 +3,6 @@ package org.waitlight.simple.jsonql.statement;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.waitlight.simple.jsonql.statement.model.JsonQLStatement;
 import org.waitlight.simple.jsonql.statement.model.WhereCondition;
 
 import java.util.List;

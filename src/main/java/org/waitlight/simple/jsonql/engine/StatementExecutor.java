@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.waitlight.simple.jsonql.metadata.Metadata;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
-import org.waitlight.simple.jsonql.statement.model.JsonQLStatement;
+import org.waitlight.simple.jsonql.statement.JsonQLStatement;
 
 import lombok.extern.slf4j.Slf4j;
 

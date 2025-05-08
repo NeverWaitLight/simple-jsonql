@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class UpdateStatementParserTest {
-    private final JsonQLParser parser = new JsonQLParser();
+    private final StatementParser parser = new StatementParser();
 
     @Test
     public void update() throws JsonqlParseException {
@@ -38,7 +38,7 @@ public class UpdateStatementParserTest {
                 }
                 """;
 
-        UpdateStatement statement = (UpdateStatement) parser.parse(json);
+        UpdateStatement statement = (UpdateStatement) parser.parse2Stmt(json);
 
         assertEquals(StatementType.UPDATE, statement.getStatement());
         assertEquals("123456", statement.getAppId());

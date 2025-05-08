@@ -10,8 +10,8 @@ import org.waitlight.simple.jsonql.metadata.PersistentClass;
 import org.waitlight.simple.jsonql.metadata.Property;
 import org.waitlight.simple.jsonql.metadata.RelationshipType;
 import org.waitlight.simple.jsonql.statement.CreateStatement;
+import org.waitlight.simple.jsonql.statement.JsonQLStatement;
 import org.waitlight.simple.jsonql.statement.model.Field;
-import org.waitlight.simple.jsonql.statement.model.JsonQLStatement;
 import org.waitlight.simple.jsonql.statement.model.NestedEntity;
 
 import java.sql.Connection;
@@ -40,13 +40,13 @@ public class CreateExecutor extends StatementExecutor<CreateStatement> {
     }
 
     @Override
-    public Object execute(Connection conn, JsonQLStatement statement) throws SQLException {
-        PreparedSql<CreateStatement> preparedSql = parseSql(statement);
+    public Object execute(Connection conn, JsonQLStatement stmt) throws SQLException {
+        PreparedSql<CreateStatement> preparedSql = parseSql(stmt);
         if (preparedSql.getSql() == null || preparedSql.getSql().isEmpty()) {
             return 0;
         }
 
-        log.info("Execute create statement on entity: {}", ((CreateStatement) statement).getEntityId());
+        log.info("Execute create statement on entity: {}", stmt.getEntityId());
         log.info("Main SQL: {}", preparedSql.getSql());
         if (preparedSql.getParameters() != null && !preparedSql.getParameters().isEmpty()) {
             log.info("Main Parameters: {}", preparedSql.getParameters());

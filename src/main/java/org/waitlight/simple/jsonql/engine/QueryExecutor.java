@@ -2,6 +2,7 @@ package org.waitlight.simple.jsonql.engine;
 
 import lombok.extern.slf4j.Slf4j;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.statement.JsonQLStatement;
 import org.waitlight.simple.jsonql.statement.QueryStatement;
 import org.waitlight.simple.jsonql.statement.model.*;
 

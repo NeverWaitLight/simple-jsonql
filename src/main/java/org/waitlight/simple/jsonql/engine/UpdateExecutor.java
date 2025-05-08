@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.statement.UpdateStatement;
 import org.waitlight.simple.jsonql.statement.model.Field;
-import org.waitlight.simple.jsonql.statement.model.JsonQLStatement;
+import org.waitlight.simple.jsonql.statement.JsonQLStatement;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
