@@ -29,7 +29,7 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
     }
 
     @Override
-    public PreparedSql<CreateStatement> parseSql(CreateStatement stmt) {
+    public PreparedSql<CreateStatement> parseStmt2Sql(CreateStatement stmt) {
         final String mainEntityId = stmt.getEntityId();
 
         // 1. 处理主实体
@@ -82,12 +82,6 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
         return preparedSql;
     }
 
-    /**
-     * 构建INSERT SQL语句
-     *
-     * @param entity 实体对象（CreateStatement或NestedEntity）
-     * @return PreparedSql对象
-     */
     private PreparedSql<CreateStatement> buildSql(NestedStatement entity) {
         if (Objects.isNull(entity)) {
             return new PreparedSql<>();

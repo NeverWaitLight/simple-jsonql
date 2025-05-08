@@ -25,7 +25,7 @@ public class CreateEngine extends StatementEngine<CreateStatement> {
 
     @Override
     public Object execute(Connection conn, CreateStatement stmt) throws SQLException {
-        final PreparedSql<CreateStatement> preparedSql = createSqlParser.parseSql(stmt);
+        final PreparedSql<CreateStatement> preparedSql = createSqlParser.parseStmt2Sql(stmt);
 
         if (preparedSql.getSql() == null || preparedSql.getSql().isEmpty()) {
             return 0;
