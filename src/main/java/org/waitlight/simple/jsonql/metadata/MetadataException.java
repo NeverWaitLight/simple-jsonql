@@ -1,6 +1,6 @@
 package org.waitlight.simple.jsonql.metadata;
 
-public class MetadataException extends Exception {
+public class MetadataException extends RuntimeException {
     public MetadataException(String message) {
         super(message);
     }

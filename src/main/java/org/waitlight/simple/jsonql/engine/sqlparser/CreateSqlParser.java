@@ -6,9 +6,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.waitlight.simple.jsonql.metadata.Metadata;
+import org.waitlight.simple.jsonql.metadata.MetadataException;
 import org.waitlight.simple.jsonql.metadata.PersistentClass;
 import org.waitlight.simple.jsonql.metadata.Property;
-import org.waitlight.simple.jsonql.metadata.RelationshipType;
 import org.waitlight.simple.jsonql.statement.CreateStatement;
 import org.waitlight.simple.jsonql.statement.model.Field;
 import org.waitlight.simple.jsonql.statement.model.NestedStatement;
@@ -115,15 +115,13 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
         }
 
         for (Property property : nestedEntityClass.getProperties()) {
-            if (!RelationshipType.MANY_TO_ONE.equals(property.getRelationshipType())) {
-                continue;
-            }
+            log.info("检查属性: {}, 类型: {}, 外键名: {}", property.getName(), property.getType(), property.getForeignKeyName());
             String foreignKeyName = property.getForeignKeyName();
             if (StringUtils.isNotBlank(foreignKeyName)) {
                 return foreignKeyName;
             }
         }
 
-        return mainEntityName.toLowerCase() + "_id";
+        throw new MetadataException(String.format("Could not determine foreign key field name for relation %s -> %s", mainEntityName, nestedEntityName));
     }
 }
