@@ -7,7 +7,7 @@ import org.waitlight.simple.jsonql.statement.model.StatementType;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class CreateStatementParserTest {
+public class InsertStatementParserTest {
     private final StatementParser parser = new StatementParser();
 
     @Test
@@ -26,7 +26,7 @@ public class CreateStatementParserTest {
                 }
                 """;
 
-        CreateStatement statement = (CreateStatement) parser.parse2Stmt(json);
+        InsertStatement statement = (InsertStatement) parser.parse2Stmt(json);
 
         assertEquals(StatementType.CREATE, statement.getStatement());
         assertEquals("user", statement.getEntityId());
@@ -75,7 +75,7 @@ public class CreateStatementParserTest {
                 }
                 """;
 
-        CreateStatement statement = (CreateStatement) parser.parse2Stmt(json);
+        InsertStatement statement = (InsertStatement) parser.parse2Stmt(json);
 
         assertEquals(StatementType.CREATE, statement.getStatement());
         assertEquals("user", statement.getEntityId());

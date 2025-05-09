@@ -8,7 +8,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class QueryStatementParserTest {
+public class SelectStatementParserTest {
     private final StatementParser parser = new StatementParser();
 
     @Test
@@ -34,7 +34,7 @@ public class QueryStatementParserTest {
                 }
                 """;
 
-        QueryStatement statement = (QueryStatement) parser.parse2Stmt(json);
+        SelectStatement statement = (SelectStatement) parser.parse2Stmt(json);
 
         // 验证基本字段
         assertEquals(StatementType.QUERY, statement.getStatement());

@@ -1,7 +1,7 @@
 package org.waitlight.simple.jsonql.engine.sqlparser;
 
 import org.waitlight.simple.jsonql.metadata.MetadataSources; // Keep for potential use by ClauseExecutor
-import org.waitlight.simple.jsonql.statement.QueryStatement;
+import org.waitlight.simple.jsonql.statement.SelectStatement;
 import org.waitlight.simple.jsonql.statement.JsonQLStatement;
 import org.waitlight.simple.jsonql.statement.model.Condition;
 import org.waitlight.simple.jsonql.statement.model.Filter;
@@ -11,11 +11,11 @@ import org.waitlight.simple.jsonql.statement.model.Sort;
 import java.util.ArrayList;
 import java.util.List;
 
-public class QuerySqlParser {
+public class SelectSqlParser {
 
     private final ClauseSqlParser clauseSqlParser; // For potential future use to delegate clause building
 
-    public QuerySqlParser(MetadataSources metadataSources) {
+    public SelectSqlParser(MetadataSources metadataSources) {
         // Initialize ClauseExecutor if it's going to be used by the parser directly
         // Or, if QueryExecutor manages it, it could be passed in.
         // For now, let's assume if this parser becomes complex, it might instantiate
@@ -25,8 +25,8 @@ public class QuerySqlParser {
         this.clauseSqlParser = new ClauseSqlParser(metadataSources);
     }
 
-    public PreparedSql<QueryStatement> parseSql(JsonQLStatement statement) {
-        if (!(statement instanceof QueryStatement queryStatement)) {
+    public PreparedSql<SelectStatement> parseSql(JsonQLStatement statement) {
+        if (!(statement instanceof SelectStatement selectStatement)) {
             throw new IllegalArgumentException(
                     "Expected QueryStatement but got " + statement.getClass().getSimpleName());
         }
@@ -34,11 +34,11 @@ public class QuerySqlParser {
         StringBuilder sql = new StringBuilder();
         List<Object> parameters = new ArrayList<>();
 
-        Page page = queryStatement.getPage();
-        Filter filters = queryStatement.getFilters();
-        List<Sort> sort = queryStatement.getSort();
+        Page page = selectStatement.getPage();
+        Filter filters = selectStatement.getFilters();
+        List<Sort> sort = selectStatement.getSort();
 
-        String entityId = queryStatement.getEntityId();
+        String entityId = selectStatement.getEntityId();
         if (entityId == null || entityId.isBlank()) {
             throw new IllegalArgumentException("EntityId is required for query");
         }
@@ -132,10 +132,10 @@ public class QuerySqlParser {
             parameters.add(offset);
         }
 
-        PreparedSql<QueryStatement> sqlObj = new PreparedSql<>();
+        PreparedSql<SelectStatement> sqlObj = new PreparedSql<>();
         sqlObj.setSql(sql.toString());
         sqlObj.setParameters(parameters);
-        sqlObj.setStatementType(QueryStatement.class);
+        sqlObj.setStatementType(SelectStatement.class);
         return sqlObj;
     }
 }

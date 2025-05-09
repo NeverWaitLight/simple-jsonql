@@ -8,7 +8,7 @@ import org.waitlight.simple.jsonql.metadata.MetadataSources;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class CreateEngineTest {
+public class InsertEngineTest {
     private static JsonQLEngine engine;
 
     @BeforeAll

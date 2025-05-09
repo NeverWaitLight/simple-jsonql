@@ -43,8 +43,8 @@ public class StatementParser {
         }
     }
 
-    private QueryStatement parseQuery(Map<String, Object> jsonMap) throws JsonqlParseException {
-        QueryStatement statement = new QueryStatement();
+    private SelectStatement parseQuery(Map<String, Object> jsonMap) throws JsonqlParseException {
+        SelectStatement statement = new SelectStatement();
         statement.setStatement(StatementType.QUERY);
         
         // 设置CRUD.md中定义的字段
@@ -97,14 +97,14 @@ public class StatementParser {
         return statement;
     }
 
-    private CreateStatement parseCreate(Map<String, Object> jsonMap) throws JsonqlParseException {
+    private InsertStatement parseCreate(Map<String, Object> jsonMap) throws JsonqlParseException {
         try {
             // Remove the statement field as it's already processed
             jsonMap.remove("statement");
             
             // Convert the Map to JSON and then to CreateStatement
             String json = objectMapper.writeValueAsString(jsonMap);
-            CreateStatement statement = objectMapper.readValue(json, CreateStatement.class);
+            InsertStatement statement = objectMapper.readValue(json, InsertStatement.class);
             
             // Set the statement type
             statement.setStatement(StatementType.CREATE);

@@ -7,7 +7,7 @@ import org.waitlight.simple.jsonql.statement.model.NestedStatement;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class CreateStatement extends NestedStatement {
+public class InsertStatement extends NestedStatement {
     @JsonProperty("into")
     private String into;
     

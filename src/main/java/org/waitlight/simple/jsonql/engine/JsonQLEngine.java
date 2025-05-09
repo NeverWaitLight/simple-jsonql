@@ -28,8 +28,8 @@ public class JsonQLEngine {
 
     private Map<StatementType, StatementEngine> initializeExecutors() {
         Map<StatementType, StatementEngine> executors = new HashMap<>();
-        executors.put(StatementType.QUERY, new QueryEngine(metadataSources));
-        executors.put(StatementType.CREATE, new CreateEngine(metadataSources));
+        executors.put(StatementType.QUERY, new SelectEngine(metadataSources));
+        executors.put(StatementType.CREATE, new InsertEngine(metadataSources));
         executors.put(StatementType.UPDATE, new UpdateEngine(metadataSources));
         executors.put(StatementType.DELETE, new DeleteEngine(metadataSources));
         return executors;

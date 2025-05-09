@@ -1,7 +1,7 @@
 package org.waitlight.simple.jsonql.engine.sqlparser;
 
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
-import org.waitlight.simple.jsonql.statement.QueryStatement;
+import org.waitlight.simple.jsonql.statement.SelectStatement;
 import org.waitlight.simple.jsonql.statement.model.Page;
 
 public class LimitClauseSqlParser extends AbstractClauseSqlParser {
@@ -11,9 +11,9 @@ public class LimitClauseSqlParser extends AbstractClauseSqlParser {
 
     @Override
     public String buildClause(Object condition) {
-        if (!(condition instanceof QueryStatement)) return "";
+        if (!(condition instanceof SelectStatement)) return "";
 
-        QueryStatement select = (QueryStatement) condition;
+        SelectStatement select = (SelectStatement) condition;
         Page page = select.getPage();
 
         if (page == null || page.getSize() == null) {

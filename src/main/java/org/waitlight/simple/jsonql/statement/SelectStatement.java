@@ -9,7 +9,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class QueryStatement extends JsonQLStatement {
+public class SelectStatement extends JsonQLStatement {
     @JsonProperty("appId")
     private String appId;
     
@@ -28,7 +28,7 @@ public class QueryStatement extends JsonQLStatement {
     @JsonProperty("page")
     private Page page;
 
-    public QueryStatement() {
+    public SelectStatement() {
         setStatement(StatementType.QUERY);
     }
 }

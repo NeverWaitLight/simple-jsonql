@@ -3,9 +3,9 @@ package org.waitlight.simple.jsonql.engine;
 import lombok.extern.slf4j.Slf4j;
 import org.waitlight.simple.jsonql.engine.sqlparser.ClauseSqlParser;
 import org.waitlight.simple.jsonql.engine.sqlparser.PreparedSql;
-import org.waitlight.simple.jsonql.engine.sqlparser.QuerySqlParser;
+import org.waitlight.simple.jsonql.engine.sqlparser.SelectSqlParser;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
-import org.waitlight.simple.jsonql.statement.QueryStatement;
+import org.waitlight.simple.jsonql.statement.SelectStatement;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -14,21 +14,21 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-public class QueryEngine extends StatementEngine<QueryStatement> {
+public class SelectEngine extends StatementEngine<SelectStatement> {
     private final ClauseSqlParser clauseSqlParser;
-    private final QuerySqlParser querySqlParser;
+    private final SelectSqlParser selectSqlParser;
 
-    public QueryEngine(MetadataSources metadataSources) {
+    public SelectEngine(MetadataSources metadataSources) {
         super(metadataSources);
         this.clauseSqlParser = new ClauseSqlParser(metadataSources);
-        this.querySqlParser = new QuerySqlParser(metadataSources);
+        this.selectSqlParser = new SelectSqlParser(metadataSources);
     }
 
     @Override
-    public Object execute(Connection conn, QueryStatement statement) throws SQLException {
-        PreparedSql<QueryStatement> preparedSql = querySqlParser.parseSql(statement);
+    public Object execute(Connection conn, SelectStatement statement) throws SQLException {
+        PreparedSql<SelectStatement> preparedSql = selectSqlParser.parseSql(statement);
 
-        if (preparedSql.getStatementType() != QueryStatement.class) {
+        if (preparedSql.getStatementType() != SelectStatement.class) {
             throw new IllegalArgumentException("QueryExecutor can only execute QueryStatements");
         }
 

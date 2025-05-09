@@ -5,7 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.waitlight.simple.jsonql.metadata.*;
-import org.waitlight.simple.jsonql.statement.CreateStatement;
+import org.waitlight.simple.jsonql.statement.InsertStatement;
 import org.waitlight.simple.jsonql.statement.model.Field;
 import org.waitlight.simple.jsonql.statement.model.NestedStatement;
 
@@ -14,14 +14,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public class CreateSqlParser implements SqlParser<CreateStatement> {
+public class InsertSqlParser implements SqlParser<InsertStatement> {
 
-    private static final Logger log = LoggerFactory.getLogger(CreateSqlParser.class);
+    private static final Logger log = LoggerFactory.getLogger(InsertSqlParser.class);
     private final Metadata metadata;
 
     public static final String FOREIGN_KEY_PLACEHOLDER = "__FOREIGN_KEY_PLACEHOLDER__";
 
-    public CreateSqlParser(Metadata metadata) {
+    public InsertSqlParser(Metadata metadata) {
         this.metadata = metadata;
     }
 
@@ -44,7 +44,7 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
      * @return 包含SQL和参数的PreparedSql对象
      */
     @Override
-    public PreparedSql<CreateStatement> parseStmt2Sql(CreateStatement stmt) {
+    public PreparedSql<InsertStatement> parseStmt2Sql(InsertStatement stmt) {
         if (Objects.isNull(stmt)) {
             return new PreparedSql<>();
         }
@@ -68,11 +68,11 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
                 .filter(field -> CollectionUtils.isEmpty(field.getValues()))
                 .toList();
 
-        CreateStatement mainStmt = new CreateStatement();
+        InsertStatement mainStmt = new InsertStatement();
         mainStmt.setEntityId(mainEntityId);
         mainStmt.setFields(new ArrayList<>(regularFields));
 
-        final PreparedSql<CreateStatement> preparedSql = new PreparedSql<>();
+        final PreparedSql<InsertStatement> preparedSql = new PreparedSql<>();
 
         for (Property relationProperty : relationProperties) {
             RelationshipType relationType = relationProperty.getRelationshipType();
@@ -87,7 +87,7 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
             }
         }
 
-        PreparedSql<CreateStatement> mainSql = buildSql(mainStmt);
+        PreparedSql<InsertStatement> mainSql = buildSql(mainStmt);
         preparedSql.setSql(mainSql.getSql());
         preparedSql.setParameters(mainSql.getParameters());
 
@@ -103,8 +103,8 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
      * @param relationProperty 关系属性
      * @param preparedSql      预处理SQL对象
      */
-    private void processOneToManyRelationship(CreateStatement stmt, CreateStatement mainStmt,
-            Property relationProperty, PreparedSql<CreateStatement> preparedSql) {
+    private void processOneToManyRelationship(InsertStatement stmt, InsertStatement mainStmt,
+                                              Property relationProperty, PreparedSql<InsertStatement> preparedSql) {
         List<NestedStatement> nestedStatements = findNestedStatements(stmt, relationProperty.getName());
 
         if (CollectionUtils.isEmpty(nestedStatements)) {
@@ -122,7 +122,7 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
                 nestedStmt.getFields().add(foreignKeyField);
             }
 
-            PreparedSql<CreateStatement> nestedSql = buildSql(nestedStmt);
+            PreparedSql<InsertStatement> nestedSql = buildSql(nestedStmt);
             if (nestedSql.isNotEmpty()) {
                 preparedSql.addNestedSQLs(nestedSql);
             }
@@ -138,8 +138,8 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
      * @param relationProperty 关系属性
      * @param preparedSql      预处理SQL对象
      */
-    private void processManyToOneRelationship(CreateStatement stmt, CreateStatement mainStmt,
-            Property relationProperty, PreparedSql<CreateStatement> preparedSql) {
+    private void processManyToOneRelationship(InsertStatement stmt, InsertStatement mainStmt,
+                                              Property relationProperty, PreparedSql<InsertStatement> preparedSql) {
         List<NestedStatement> nestedStatements = findNestedStatements(stmt, relationProperty.getName());
 
         if (CollectionUtils.isEmpty(nestedStatements)) {
@@ -164,7 +164,7 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
      * @param propertyName 属性名
      * @return 嵌套语句列表
      */
-    private List<NestedStatement> findNestedStatements(CreateStatement stmt, String propertyName) {
+    private List<NestedStatement> findNestedStatements(InsertStatement stmt, String propertyName) {
         return stmt.getFields().stream()
                 .filter(field -> StringUtils.equals(field.getField(), propertyName))
                 .filter(field -> CollectionUtils.isNotEmpty(field.getValues()))
@@ -225,7 +225,7 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
      * @param relationProperty 关系属性
      * @param foreignKeyValue  外键值
      */
-    private void addForeignKeyField(CreateStatement mainStmt, Property relationProperty, String foreignKeyValue) {
+    private void addForeignKeyField(InsertStatement mainStmt, Property relationProperty, String foreignKeyValue) {
         String foreignKeyFieldName = relationProperty.getForeignKeyName();
         if (StringUtils.isBlank(foreignKeyFieldName)) {
             log.error("Could not determine foreign key field name for property {}", relationProperty.getName());
@@ -275,7 +275,7 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
      * @param entity 实体语句
      * @return 预处理SQL对象
      */
-    private PreparedSql<CreateStatement> buildSql(NestedStatement entity) {
+    private PreparedSql<InsertStatement> buildSql(NestedStatement entity) {
         if (Objects.isNull(entity)) {
             return new PreparedSql<>();
         }
@@ -295,6 +295,6 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
                 String.join(", ", Collections.nCopies(fieldNames.size(), "?")) +
                 ")";
 
-        return new PreparedSql<>(sql, parameters, CreateStatement.class);
+        return new PreparedSql<>(sql, parameters, InsertStatement.class);
     }
 }

@@ -7,25 +7,25 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.waitlight.simple.jsonql.engine.sqlparser.CreateSqlParser;
+import org.waitlight.simple.jsonql.engine.sqlparser.InsertSqlParser;
 import org.waitlight.simple.jsonql.engine.sqlparser.PreparedSql;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
-import org.waitlight.simple.jsonql.statement.CreateStatement;
+import org.waitlight.simple.jsonql.statement.InsertStatement;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class CreateEngine extends StatementEngine<CreateStatement> {
-    private final CreateSqlParser createSqlParser;
+public class InsertEngine extends StatementEngine<InsertStatement> {
+    private final InsertSqlParser insertSqlParser;
 
-    public CreateEngine(MetadataSources metadataSources) {
+    public InsertEngine(MetadataSources metadataSources) {
         super(metadataSources);
-        this.createSqlParser = new CreateSqlParser(metadataSources.buildMetadata());
+        this.insertSqlParser = new InsertSqlParser(metadataSources.buildMetadata());
     }
 
     @Override
-    public Object execute(Connection conn, CreateStatement stmt) throws SQLException {
-        final PreparedSql<CreateStatement> preparedSql = createSqlParser.parseStmt2Sql(stmt);
+    public Object execute(Connection conn, InsertStatement stmt) throws SQLException {
+        final PreparedSql<InsertStatement> preparedSql = insertSqlParser.parseStmt2Sql(stmt);
 
         if (preparedSql.getSql() == null || preparedSql.getSql().isEmpty()) {
             return 0;
@@ -69,7 +69,7 @@ public class CreateEngine extends StatementEngine<CreateStatement> {
             }
 
             if (generatedId != null && !preparedSql.getNestedSQLs().isEmpty()) {
-                for (PreparedSql<CreateStatement> childSql : preparedSql.getNestedSQLs()) {
+                for (PreparedSql<InsertStatement> childSql : preparedSql.getNestedSQLs()) {
                     log.info("Executing nested SQL: {}", childSql.getSql());
                     if (childSql.getParameters() != null && !childSql.getParameters().isEmpty()) {
                         log.info("Nested Parameters (before ID replacement): {}", childSql.getParameters());
@@ -80,7 +80,7 @@ public class CreateEngine extends StatementEngine<CreateStatement> {
 
                         for (int j = 0; j < params.size(); j++) {
                             Object param = params.get(j);
-                            if (CreateSqlParser.FOREIGN_KEY_PLACEHOLDER.equals(param)) {
+                            if (InsertSqlParser.FOREIGN_KEY_PLACEHOLDER.equals(param)) {
                                 params.set(j, generatedId);
                             }
                             ps.setObject(j + 1, params.get(j));
