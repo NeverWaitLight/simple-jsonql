@@ -26,11 +26,22 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
     }
 
     /**
-     * 根据实体元数据和语句内容，生成SQL
+     * 根据实体元数据和语句内容，生成SQL语句
+     * 
+     * 处理流程：
+     * 1. 获取实体元数据，检查是否有关系字段
+     * 2. 如果没有关系字段，直接构建简单SQL返回
+     * 3. 提取非嵌套的基本字段，构造主实体语句
+     * 4. 按关系类型（一对多、多对一）处理嵌套实体
+     * 5. 生成并返回最终SQL，包含主实体和关联实体的SQL
+     *
      * 支持的关系类型：
      * - 单一实体创建
      * - 一对多关系（如User->Blog）
      * - 多对一关系（如Blog->User）
+     *
+     * @param stmt 待解析的CreateStatement语句
+     * @return 包含SQL和参数的PreparedSql对象
      */
     @Override
     public PreparedSql<CreateStatement> parseStmt2Sql(CreateStatement stmt) {
@@ -40,36 +51,29 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
 
         final String mainEntityId = stmt.getEntityId();
 
-        // 1. 先获取实体的元数据
         PersistentClass persistentClass = metadata.getEntity(mainEntityId);
         if (Objects.isNull(persistentClass)) {
             throw new MetadataException("Could not find metadata definition for entity: " + mainEntityId);
         }
 
-        // 2. 检查实体是否有关系字段
         List<Property> relationProperties = persistentClass.getProperties().stream()
                 .filter(prop -> Objects.nonNull(prop.getRelationshipType()))
                 .toList();
 
-        // 3. 如果实体没有任何关系字段，直接构建简单SQL
         if (CollectionUtils.isEmpty(relationProperties)) {
             return buildSql(stmt);
         }
 
-        // 4. 提取基本字段（非嵌套字段）
         List<Field> regularFields = stmt.getFields().stream()
                 .filter(field -> CollectionUtils.isEmpty(field.getValues()))
                 .toList();
 
-        // 5. 创建主实体语句
         CreateStatement mainStmt = new CreateStatement();
         mainStmt.setEntityId(mainEntityId);
         mainStmt.setFields(new ArrayList<>(regularFields));
 
-        // 6. 初始化PreparedSql对象
         final PreparedSql<CreateStatement> preparedSql = new PreparedSql<>();
 
-        // 7. 根据关系类型处理
         for (Property relationProperty : relationProperties) {
             RelationshipType relationType = relationProperty.getRelationshipType();
 
@@ -83,7 +87,6 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
             }
         }
 
-        // 8. 生成主实体SQL
         PreparedSql<CreateStatement> mainSql = buildSql(mainStmt);
         preparedSql.setSql(mainSql.getSql());
         preparedSql.setParameters(mainSql.getParameters());
@@ -93,32 +96,32 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
 
     /**
      * 处理一对多关系（如User->Blog）
+     * 为"多"方添加指向"一"方的外键字段占位符，并生成嵌套SQL
+     * 
+     * @param stmt             原始语句
+     * @param mainStmt         主实体语句
+     * @param relationProperty 关系属性
+     * @param preparedSql      预处理SQL对象
      */
     private void processOneToManyRelationship(CreateStatement stmt, CreateStatement mainStmt,
             Property relationProperty, PreparedSql<CreateStatement> preparedSql) {
-        // 查找对应的嵌套字段
         List<NestedStatement> nestedStatements = findNestedStatements(stmt, relationProperty.getName());
 
-        // 如果没有找到嵌套数据，不做处理
         if (CollectionUtils.isEmpty(nestedStatements)) {
             return;
         }
 
-        // 处理嵌套语句（一对多中的"多"）
         for (NestedStatement nestedStmt : nestedStatements) {
-            // 获取"多"方实体中的外键字段名
             String foreignKeyFieldName = getForeignKeyFieldNameForRelatedEntity(mainStmt.getEntityId(),
                     nestedStmt.getEntityId(), relationProperty);
 
             if (StringUtils.isNotBlank(foreignKeyFieldName)) {
-                // 为"多"方添加外键字段占位符
                 Field foreignKeyField = new Field();
                 foreignKeyField.setField(foreignKeyFieldName);
                 foreignKeyField.setValue(FOREIGN_KEY_PLACEHOLDER);
                 nestedStmt.getFields().add(foreignKeyField);
             }
 
-            // 生成"多"方实体的SQL并添加到嵌套SQL中
             PreparedSql<CreateStatement> nestedSql = buildSql(nestedStmt);
             if (nestedSql.isNotEmpty()) {
                 preparedSql.addNestedSQLs(nestedSql);
@@ -128,28 +131,27 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
 
     /**
      * 处理多对一关系（如Blog->User）
+     * 检查嵌套语句是否只包含ID字段，如果是则将ID添加为外键
+     * 
+     * @param stmt             原始语句
+     * @param mainStmt         主实体语句
+     * @param relationProperty 关系属性
+     * @param preparedSql      预处理SQL对象
      */
     private void processManyToOneRelationship(CreateStatement stmt, CreateStatement mainStmt,
             Property relationProperty, PreparedSql<CreateStatement> preparedSql) {
-        // 1. 查找对应的嵌套字段
         List<NestedStatement> nestedStatements = findNestedStatements(stmt, relationProperty.getName());
 
-        // 2. 如果没有找到嵌套数据，不做处理
         if (CollectionUtils.isEmpty(nestedStatements)) {
             return;
         }
 
-        // 3. 处理第一个嵌套语句（通常只有一个引用）
         NestedStatement nestedStmt = nestedStatements.get(0);
 
-        // 4. 检查是否只包含ID字段（引用模式）- 特别处理如 Blog->User 的引用
         if (isReferenceOnlyStatement(nestedStmt)) {
-            // 5. 从嵌套语句中提取ID值
             String referencedId = extractIdFromNestedStatement(nestedStmt);
 
-            // 6. 如果有ID值，添加为外键
             if (StringUtils.isNotBlank(referencedId)) {
-                // 直接添加到主语句的字段中
                 addForeignKeyField(mainStmt, relationProperty, referencedId);
             }
         }
@@ -157,6 +159,10 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
 
     /**
      * 根据属性名查找嵌套语句
+     * 
+     * @param stmt         原始语句
+     * @param propertyName 属性名
+     * @return 嵌套语句列表
      */
     private List<NestedStatement> findNestedStatements(CreateStatement stmt, String propertyName) {
         return stmt.getFields().stream()
@@ -168,6 +174,9 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
 
     /**
      * 判断嵌套语句是否仅包含ID字段
+     * 
+     * @param stmt 嵌套语句
+     * @return 是否仅包含ID字段
      */
     private boolean isReferenceOnlyStatement(NestedStatement stmt) {
         if (StringUtils.isNotBlank(stmt.getDataId())) {
@@ -178,7 +187,6 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
             return false;
         }
 
-        // 检查是否只有一个"id"字段
         if (stmt.getFields().size() == 1) {
             Field field = stmt.getFields().get(0);
             return "id".equals(field.getField());
@@ -189,14 +197,16 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
 
     /**
      * 从嵌套语句中提取ID值
+     * 优先使用dataId，其次查找id字段
+     * 
+     * @param stmt 嵌套语句
+     * @return ID值
      */
     private String extractIdFromNestedStatement(NestedStatement stmt) {
-        // 1. 优先使用dataId
         if (StringUtils.isNotBlank(stmt.getDataId())) {
             return stmt.getDataId();
         }
 
-        // 2. 查找id字段
         if (CollectionUtils.isNotEmpty(stmt.getFields())) {
             for (Field field : stmt.getFields()) {
                 if ("id".equals(field.getField()) && field.getValue() != null) {
@@ -210,6 +220,10 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
 
     /**
      * 添加外键字段到主实体
+     * 
+     * @param mainStmt         主实体语句
+     * @param relationProperty 关系属性
+     * @param foreignKeyValue  外键值
      */
     private void addForeignKeyField(CreateStatement mainStmt, Property relationProperty, String foreignKeyValue) {
         String foreignKeyFieldName = relationProperty.getForeignKeyName();
@@ -226,15 +240,18 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
 
     /**
      * 获取关联实体的外键字段名
+     * 
+     * @param mainEntityId     主实体ID
+     * @param relatedEntityId  关联实体ID
+     * @param relationProperty 关系属性
+     * @return 外键字段名
      */
     private String getForeignKeyFieldNameForRelatedEntity(String mainEntityId, String relatedEntityId,
             Property relationProperty) {
-        // 如果关联属性已经指定了外键名称，直接使用
         if (StringUtils.isNotBlank(relationProperty.getForeignKeyName())) {
             return relationProperty.getForeignKeyName();
         }
 
-        // 尝试从目标实体的属性中找到外键
         PersistentClass relatedEntityClass = metadata.getEntity(relatedEntityId);
         if (Objects.isNull(relatedEntityClass)) {
             log.error("Could not find metadata for related entity: {}", relatedEntityId);
@@ -251,12 +268,14 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
             }
         }
 
-        // 使用默认命名规则
         return mainEntityId.toLowerCase() + "_id";
     }
 
     /**
-     * 构建SQL语句
+     * 构建SQL语句及其参数
+     * 
+     * @param entity 实体语句
+     * @return 预处理SQL对象
      */
     private PreparedSql<CreateStatement> buildSql(NestedStatement entity) {
         if (Objects.isNull(entity)) {
