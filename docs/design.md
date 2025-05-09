@@ -27,11 +27,9 @@ flowchart LR
     A[客户端] -->|HTTP/JSON| B[Controller层]
     B --> C[Service层]
     C --> D[Engine层]
-    D -->|JDBC| E[数据库]
-    D --> F[Parser层]
-    D --> G[Metadata层]
-    F --> H[Statement Model]
-    G --> H
+    D <-->|JDBC| E[数据库]
+    D <--> F[Parser层]
+    D <--> G[Metadata层]
 
     subgraph 应用程序
     B
@@ -39,7 +37,6 @@ flowchart LR
     D
     F
     G
-    H
     end
 ```
 
@@ -66,6 +63,7 @@ JsonQL 系统通过抽象基类和专门的实现，实现了 CRUD 操作的共�
 
 ```mermaid
 classDiagram
+    %% 定义关键抽象类和接口
     class JsonQLStatement {
         <<abstract>>
         +String appId
@@ -85,29 +83,33 @@ classDiagram
         +PreparedSql parseStmt2Sql(JsonQLStatement)
     }
 
-    JsonQLStatement <|-- QueryStatement
-    JsonQLStatement <|-- CreateStatement
+    %% 定义继承关系，按逻辑分组排列
+    JsonQLStatement <|-- SelectStatement
+    JsonQLStatement <|-- InsertStatement
     JsonQLStatement <|-- UpdateStatement
     JsonQLStatement <|-- DeleteStatement
 
-    StatementEngine <|-- QueryEngine
-    StatementEngine <|-- CreateEngine
+    StatementEngine <|-- SelectEngine
+    StatementEngine <|-- InsertEngine
     StatementEngine <|-- UpdateEngine
     StatementEngine <|-- DeleteEngine
 
-    SqlParser <|-- QuerySqlParser
-    SqlParser <|-- CreateSqlParser
+    SqlParser <|-- SelectSqlParser
+    SqlParser <|-- InsertSqlParser
     SqlParser <|-- UpdateSqlParser
     SqlParser <|-- DeleteSqlParser
 
-    QueryEngine --> QuerySqlParser : 使用
-    CreateEngine --> CreateSqlParser : 使用
-    UpdateEngine --> UpdateSqlParser : 使用
-    DeleteEngine --> DeleteSqlParser : 使用
+    %% 定义关联关系，调整顺序减少交叉
+    SelectEngine --> SelectSqlParser : 使用
+    SelectEngine --> SelectStatement : 处理
 
-    QueryEngine --> QueryStatement : 处理
-    CreateEngine --> CreateStatement : 处理
+    InsertEngine --> InsertSqlParser : 使用
+    InsertEngine --> InsertStatement : 处理
+
+    UpdateEngine --> UpdateSqlParser : 使用
     UpdateEngine --> UpdateStatement : 处理
+
+    DeleteEngine --> DeleteSqlParser : 使用
     DeleteEngine --> DeleteStatement : 处理
 ```
 
@@ -142,29 +144,6 @@ classDiagram
   - 支持批量删除和软删除
   - 特有组件：ID 集合和 Filter
 
-### SQL 解析与生成
-
-每种操作类型都有特定的 SQL 解析器：
-
-- **基础解析器**：
-
-  - `SqlParser`：通用解析接口
-  - `PreparedSql`：封装 SQL 语句和参数
-
-- **子句解析器**：
-
-  - `ClauseSqlParser`：子句处理接口
-  - `WhereClauseSqlParser`：条件子句解析
-  - `JoinClauseSqlParser`：连接子句解析
-  - `OrderByClauseSqlParser`：排序子句解析
-  - `LimitClauseSqlParser`：分页子句解析
-
-- **语句解析器**：
-  - `QuerySqlParser`：查询语句解析
-  - `CreateSqlParser`：创建语句解析
-  - `UpdateSqlParser`：更新语句解析
-  - `DeleteSqlParser`：删除语句解析
-
 ## 模块详细说明
 
 ### `engine` - 执行引擎核心
@@ -182,8 +161,8 @@ classDiagram
 
 - **CRUD 执行引擎**:
 
-  - `QueryEngine`: 实现 SELECT 语句执行和结果集处理
-  - `CreateEngine`: 实现 INSERT 语句执行和新增 ID 返回
+  - `SelectEngine`: 实现 SELECT 语句执行和结果集处理
+  - `InsertEngine`: 实现 INSERT 语句执行和新增 ID 返回
   - `UpdateEngine`: 实现 UPDATE 语句执行和影响行计数
   - `DeleteEngine`: 实现 DELETE 语句执行和影响行计数
 
@@ -206,10 +185,12 @@ classDiagram
 
 - **CRUD 声明类**:
 
-  - `QueryStatement`: 定义查询结构（条件、排序、分页）
-  - `CreateStatement`: 定义创建结构（字段集合）
+  - `SelectStatement`: 定义查询结构（条件、排序、分页）
+  - `InsertStatement`: 定义创建结构（字段集合）
   - `UpdateStatement`: 定义更新结构（ID 和字段集合）
   - `DeleteStatement`: 定义删除结构（ID 集合或条件）
+
+### `metadata` - 结构定义
 
 ```mermaid
 graph TD
@@ -217,9 +198,6 @@ graph TD
     A --> |使用| C[EntityMetadataBuilder]
     C --> |bindEntity| D[PersistentClass]
     B --> |contains| D
-    G[MetadataException] --> |被各类使用| A
-    G --> |被各类使用| B
-    G --> |被各类使用| C
 ```
 
 ## CRUD 操作流程
@@ -275,6 +253,248 @@ sequenceDiagram
 - **删除 (Delete)**:
   - 处理 WHERE 条件（ID 列表或自定义条件）
   - 返回影响行数
+
+## 组件
+
+为了将 UI 配置的 JSON 有效地转换为 Java 对象，并在 JsonQL 处理过程中应用相应的校验和限制，我们设计了一套组件模型系统。该系统使得前端 UI 配置能够直接映射到后端验证逻辑，确保数据完整性和业务规则的一致性。
+
+### 组件模型架构
+
+```mermaid
+classDiagram
+    %% 核心组件抽象
+    class Component
+
+    %% 从Component提取的支持类
+    class ValidationRules
+    class ComponentStyle
+    class Event
+    class Action
+
+    %% UI组件实现
+    class InputText
+    class Select
+    class InputDatetime
+    class Checkboxes
+    class InputImage
+    class Crud2
+
+    %% 组件注册表
+    class ComponentRegistry
+
+    %% UI组件继承关系
+    Component <|-- InputText
+    Component <|-- Select
+    Component <|-- InputDatetime
+    Component <|-- Checkboxes
+    Component <|-- InputImage
+    Component <|-- Crud2
+
+    %% 支持类关系
+    Component o-- ValidationRules : 包含
+    Component o-- ComponentStyle : 包含
+    Component o-- Event : 包含
+    Event o-- Action : 包含
+
+    ComponentRegistry --> Component : 创建
+```
+
+### 组件与 JsonQL 集成
+
+组件设计的核心目标是将 UI 配置与数据处理逻辑紧密结合，具体实现方式如下：
+
+1. **组件注册与解析**：
+
+   - 通过`ComponentRegistry`统一管理所有 UI 组件类型
+   - 提供 JSON 到 Java 对象的转换能力
+   - 支持组件嵌套和复合组件的处理
+
+2. **验证规则映射**：
+
+   - 组件的验证规则直接映射到 JsonQL 处理流程
+   - 在数据写入或查询前进行规则验证
+   - 支持同步验证和异步验证（通过 API）
+
+3. **数据转换与类型处理**：
+   - 根据组件类型自动处理数据类型转换
+   - 特殊格式（如日期格式）的标准化处理
+   - 处理数组与对象的序列化与反序列化
+
+### 组件类型与校验规则
+
+#### 基础组件
+
+每个组件都继承自抽象的`Component`类，包含通用属性和行为：
+
+```mermaid
+classDiagram
+    class Component {
+        <<abstract>>
+        -String id
+        -String type
+        -String label
+        -String name
+        -boolean visible = true
+        -boolean hidden = false
+        -boolean disabled = false
+        -boolean readonly = false
+        -ValidationRules validationRules
+        -ComponentStyle style
+        -Event onEvent
+        +ValidationResult validate(Object value)
+        +Object convertValue(Object value)
+    }
+
+    Component o-- ValidationRules
+    Component o-- ComponentStyle
+    Component o-- Event
+
+    note for Component "通用验证逻辑<br/>检查组件可见性<br/>应用验证规则<br/>返回验证结果"
+```
+
+#### 验证规则处理
+
+验证规则类封装了各种验证逻辑，与 JsonQL 处理紧密集成：
+
+```mermaid
+classDiagram
+    class ValidationRules {
+        -boolean required
+        -Integer maxLength
+        -Integer minLength
+        -String pattern
+        -Map~String, Object~ customRules
+        -Map~String, String~ validationErrors
+        -String validateApi
+        +ValidationResult validate(Object value)
+        -String getErrorMessage(String rule, String defaultMsg)
+    }
+
+    class ValidationResult {
+        -boolean valid
+        -Map~String, String~ errors
+        +boolean isValid()
+        +void addError(String rule, String message)
+        +void merge(String fieldName, ValidationResult other)
+        +static ValidationResult valid()
+    }
+
+    ValidationRules ..> ValidationResult : creates
+
+    note for ValidationRules "验证规则处理流程 <br/>必填验证<br>长度验证<br/>格式验证<br/>自定义规则验证"
+```
+
+### 元数据构建与验证规则转换
+
+组件定义的验证规则在元数据构建阶段被提取并转换为统一的约束格式：
+
+```mermaid
+classDiagram
+    %% 元数据构建器
+    class MetadataBuilder {
+        +EntityMetadata buildMetadata(String entityId, String formId)
+        -Map~String, Object~ convertValidationRule(ValidationRules rules)
+    }
+
+    %% 元数据模型
+    class EntityMetadata {
+        +String entityId
+        +String tableName
+        +Map~String, FieldMetadata~ fields
+        +List~String~ primaryKeys
+    }
+
+    class FieldMetadata {
+        +String fieldName
+        +String columnName
+        +DataType dataType
+        +boolean required
+        +Integer maxLength
+        +Integer minLength
+        +String pattern
+        +Map~String, Object~ customRules
+    }
+
+    %% 元数据来源
+    class JavaClass {
+        +Field[] fields
+        +Annotation[] annotations
+        +Class<?>[] relatedEntities
+    }
+
+    class Component {
+        +ValidationRules getValidationRules()
+        +String getEntityId()
+        +String getFieldName()
+        +Map getRelationships()
+    }
+
+    class JsonConfig {
+        +JsonNode schema
+        +JsonNode validations
+        +JsonNode relations
+        +JsonNode events
+    }
+
+    %% 关系
+    MetadataBuilder ..> EntityMetadata : 创建
+    EntityMetadata o-- FieldMetadata : 包含
+
+    JavaClass ..> MetadataBuilder : 提供模型信息
+    Component ..> MetadataBuilder : 提供模型信息
+    JsonConfig ..> MetadataBuilder : 提供模型信息
+```
+
+这种设计将组件验证规则转换为元数据约束的过程在以下几个方面优化了系统：
+
+1. **性能优化**：验证规则仅在元数据加载时处理一次，而不是每次执行时重新解析
+2. **关注点分离**：组件负责定义验证规则，而引擎负责应用这些规则
+3. **缓存机制**：转换后的元数据可以被缓存，减少重复解析的开销
+4. **统一验证**：无论验证规则来自哪种组件，都被转换为统一的约束格式
+
+### StatementEngine 实现
+
+引擎使用转换后的元数据约束进行数据验证：
+
+```mermaid
+flowchart TD
+    A[开始执行Statement] --> B{识别Statement类型}
+
+    B -->|SelectStatement| C1[SelectEngine处理]
+    B -->|InsertStatement| C2[InsertEngine处理]
+    B -->|UpdateStatement| C3[UpdateEngine处理]
+    B -->|DeleteStatement| C4[DeleteEngine处理]
+
+    subgraph 执行流程
+        C1 --> D[获取实体元数据]
+        C2 --> D
+        C3 --> D
+        C4 --> D
+
+        D --> E[根据元数据约束验证字段]
+        E --> F{验证是否通过?}
+
+        F -->|否| G[抛出验证异常]
+        F -->|是| H[转换数据类型]
+
+        H --> I[生成PreparedSQL]
+        I --> J[执行SQL语句]
+        J --> K[处理执行结果]
+    end
+
+    G --> L[返回错误]
+    K --> M[返回结果]
+```
+
+每种 StatementEngine 虽然处理不同类型的操作，但都遵循相同的执行流程：
+
+1. **获取实体元数据**：从 MetadataSources 中加载实体结构和约束信息
+2. **验证字段**：根据元数据中的约束规则验证输入字段
+3. **类型转换**：将输入数据转换为适当的数据类型
+4. **SQL 生成**：生成对应操作的 SQL 语句
+5. **执行与处理**：执行 SQL 并处理结果
+
+验证过程是在 SQL 生成前进行的，确保了只有合法的数据才会被发送到数据库执行。
 
 ## 未来优化与发展方向
 
