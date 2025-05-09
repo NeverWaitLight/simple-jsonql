@@ -32,7 +32,7 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
      * 1. 获取实体元数据，检查是否有关系字段
      * 2. 如果没有关系字段，直接构建简单SQL返回
      * 3. 提取非嵌套的基本字段，构造主实体语句
-     * 4. 按关系类型（一对多、多对一）处理嵌套实体
+     * 4. 按关系类型处理嵌套实体
      * 5. 生成并返回最终SQL，包含主实体和关联实体的SQL
      *
      * 支持的关系类型：
@@ -112,7 +112,7 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
         }
 
         for (NestedStatement nestedStmt : nestedStatements) {
-            String foreignKeyFieldName = getForeignKeyFieldNameForRelatedEntity(mainStmt.getEntityId(),
+            String foreignKeyFieldName = getForeignKeyName(mainStmt.getEntityId(),
                     nestedStmt.getEntityId(), relationProperty);
 
             if (StringUtils.isNotBlank(foreignKeyFieldName)) {
@@ -246,15 +246,13 @@ public class CreateSqlParser implements SqlParser<CreateStatement> {
      * @param relationProperty 关系属性
      * @return 外键字段名
      */
-    private String getForeignKeyFieldNameForRelatedEntity(String mainEntityId, String relatedEntityId,
-            Property relationProperty) {
+    private String getForeignKeyName(String mainEntityId, String relatedEntityId, Property relationProperty) {
         if (StringUtils.isNotBlank(relationProperty.getForeignKeyName())) {
             return relationProperty.getForeignKeyName();
         }
 
         PersistentClass relatedEntityClass = metadata.getEntity(relatedEntityId);
         if (Objects.isNull(relatedEntityClass)) {
-            log.error("Could not find metadata for related entity: {}", relatedEntityId);
             return null;
         }
 
