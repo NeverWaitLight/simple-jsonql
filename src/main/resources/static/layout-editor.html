@@ -254,254 +254,254 @@
     </style>
 </head>
 <body>
-    <div id="app">
-        <el-container style="height: 100vh;">
-            <el-header>
-                <div style="display: flex; justify-content: space-between; width: 100%;">
-                    <el-button type="primary" @click="goBack">返回</el-button>
-                    <div>
-                        <el-button type="primary" @click="showDataModel = true">数据模型</el-button>
-                        <el-button type="primary" @click="saveLayout">保存</el-button>
+<div id="app">
+    <el-container style="height: 100vh;">
+        <el-header>
+            <div style="display: flex; justify-content: space-between; width: 100%;">
+                <el-button type="primary" @click="goBack">返回</el-button>
+                <div>
+                    <el-button type="primary" @click="showDataModel = true">数据模型</el-button>
+                    <el-button type="primary" @click="saveLayout">保存</el-button>
+                </div>
+            </div>
+        </el-header>
+
+        <el-container>
+            <el-aside :style="{ width: leftWidth + 'px' }">
+                <div class="resize-handle left"
+                     @mousedown="startResize('left')"
+                     @mouseup="stopResize"
+                     @mousemove="handleResize"></div>
+                <h3>组件列表</h3>
+                <div class="component-list">
+                    <div class="component-item"
+                         v-for="component in components"
+                         :key="component.type"
+                         draggable="true"
+                         @dragstart="handleDragStart($event, component)"
+                         @dragend="handleDragEnd">
+                        <i :class="component.icon"></i>
+                        <div>{{ component.name }}</div>
                     </div>
                 </div>
-            </el-header>
-            
-            <el-container>
-                <el-aside :style="{ width: leftWidth + 'px' }">
-                    <div class="resize-handle left" 
-                         @mousedown="startResize('left')"
-                         @mouseup="stopResize"
-                         @mousemove="handleResize"></div>
-                    <h3>组件列表</h3>
-                    <div class="component-list">
-                        <div class="component-item" 
-                             v-for="component in components" 
-                             :key="component.type"
-                             draggable="true"
-                             @dragstart="handleDragStart($event, component)"
-                             @dragend="handleDragEnd">
-                            <i :class="component.icon"></i>
-                            <div>{{ component.name }}</div>
-                        </div>
-                    </div>
-                </el-aside>
-                
-                <el-main>
-                    <div class="editor-area"
-                         @dragover.prevent
-                         @drop="handleDrop">
-                        <div v-for="(item, index) in layoutItems" 
-                             :key="index"
-                             class="layout-item"
-                             :class="{ 'selected': selectedItem === item }"
-                             @click="selectItem(item)">
-                            <component :is="item.type"
-                                     v-bind="item.props"
-                                     @click.stop>
-                            </component>
-                        </div>
-                        <div class="ai-button" 
-                             :class="{ 'hide': showAiDialog }" 
-                             @click="toggleAiDialog">
-                            AI助手
-                        </div>
-                        <div class="ai-dialog" 
-                             :class="{ 'show': showAiDialog }"
-                             @transitionend="handleTransitionEnd">
-                            <div class="ai-dialog-header">
-                                <span class="ai-dialog-title">AI 助手</span>
-                                <i class="el-icon-close ai-dialog-close" @click="toggleAiDialog"></i>
-                            </div>
-                            <div class="ai-dialog-content">
-                                <div v-for="(message, index) in aiMessages" 
-                                     :key="index" 
-                                     class="ai-message"
-                                     :class="{ 'user': message.isUser }">
-                                    {{ message.content }}
-                                </div>
-                            </div>
-                            <div class="ai-dialog-input">
-                                <el-input v-model="aiInput" 
-                                         placeholder="请输入您的问题"
-                                         @keyup.enter="sendAiMessage">
-                                </el-input>
-                                <el-button type="primary" @click="sendAiMessage">发送</el-button>
-                            </div>
-                        </div>
-                    </div>
-                </el-main>
-                
-                <el-aside :style="{ width: rightWidth + 'px' }">
-                    <div class="resize-handle" 
-                         @mousedown="startResize('right')"
-                         @mouseup="stopResize"
-                         @mousemove="handleResize"></div>
-                    <div class="property-panel" v-if="selectedItem">
-                        <h3>属性设置</h3>
-                        <el-form label-width="80px">
-                            <el-form-item label="标签">
-                                <el-input v-model="selectedItem.props.label"></el-input>
-                            </el-form-item>
-                            <el-form-item label="占位符">
-                                <el-input v-model="selectedItem.props.placeholder"></el-input>
-                            </el-form-item>
-                            <el-form-item label="必填">
-                                <el-switch v-model="selectedItem.props.required"></el-switch>
-                            </el-form-item>
-                        </el-form>
-                    </div>
-                    <div class="property-panel" v-if="showDataModel">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                            <h3 style="margin: 0;">数据模型</h3>
-                            <el-button type="text" @click="showDataModel = false">
-                                <i class="el-icon-close"></i>
-                            </el-button>
-                        </div>
-                        <div class="json-display" v-html="formattedJson"></div>
-                    </div>
-                </el-aside>
-            </el-container>
-        </el-container>
-    </div>
+            </el-aside>
 
-    <!-- 引入Vue和Element UI -->
-    <script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
-    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
-    <script>
-        new Vue({
-            el: '#app',
-            data() {
-                return {
-                    components: [
-                        { type: 'el-input', name: '文本框', icon: 'el-icon-edit' },
-                        { type: 'el-select', name: '下拉框', icon: 'el-icon-arrow-down' },
-                        { type: 'el-date-picker', name: '日期时间选择器', icon: 'el-icon-date' },
-                        { type: 'el-radio-group', name: '单选框', icon: 'el-icon-circle-check' },
-                        { type: 'el-checkbox-group', name: '复选框', icon: 'el-icon-check' },
-                        { type: 'el-upload', name: '图片上传', icon: 'el-icon-upload' },
-                        { type: 'el-table', name: '表格', icon: 'el-icon-tickets' }
-                    ],
-                    layoutItems: [],
-                    selectedItem: null,
-                    showAiDialog: false,
-                    aiInput: '',
-                    aiMessages: [],
-                    showDataModel: false,
-                    dataModel: {
-                        "id": "Long",
-                        "name": "String",
-                        "code": "String",
-                        "type": "Integer",
-                        "status": "Integer",
-                        "createTime": "Date",
-                        "updateTime": "Date",
-                        "createBy": "String",
-                        "updateBy": "String",
-                        "remark": "String",
-                        "deleted": "Boolean"
-                    },
-                    leftWidth: 300,
-                    rightWidth: 300,
-                    isResizing: false,
-                    currentResize: null,
-                    startX: 0,
-                    startWidth: 0
-                }
-            },
-            computed: {
-                formattedJson() {
-                    const json = JSON.stringify(this.dataModel, null, 2);
-                    return json.replace(/"([^"]+)":/g, '<span class="json-key">"$1"</span>:')
-                             .replace(/"([^"]+)"/g, '<span class="json-string">"$1"</span>')
-                             .replace(/(\d+)/g, '<span class="json-number">$1</span>')
-                             .replace(/(true|false)/g, '<span class="json-boolean">$1</span>')
-                             .replace(/null/g, '<span class="json-null">null</span>');
-                }
-            },
-            methods: {
-                goBack() {
-                    window.location.href = 'ai-generator.html';
+            <el-main>
+                <div class="editor-area"
+                     @dragover.prevent
+                     @drop="handleDrop">
+                    <div v-for="(item, index) in layoutItems"
+                         :key="index"
+                         class="layout-item"
+                         :class="{ 'selected': selectedItem === item }"
+                         @click="selectItem(item)">
+                        <component :is="item.type"
+                                   v-bind="item.props"
+                                   @click.stop>
+                        </component>
+                    </div>
+                    <div class="ai-button"
+                         :class="{ 'hide': showAiDialog }"
+                         @click="toggleAiDialog">
+                        AI助手
+                    </div>
+                    <div class="ai-dialog"
+                         :class="{ 'show': showAiDialog }"
+                         @transitionend="handleTransitionEnd">
+                        <div class="ai-dialog-header">
+                            <span class="ai-dialog-title">AI 助手</span>
+                            <i class="el-icon-close ai-dialog-close" @click="toggleAiDialog"></i>
+                        </div>
+                        <div class="ai-dialog-content">
+                            <div v-for="(message, index) in aiMessages"
+                                 :key="index"
+                                 class="ai-message"
+                                 :class="{ 'user': message.isUser }">
+                                {{ message.content }}
+                            </div>
+                        </div>
+                        <div class="ai-dialog-input">
+                            <el-input v-model="aiInput"
+                                      placeholder="请输入您的问题"
+                                      @keyup.enter="sendAiMessage">
+                            </el-input>
+                            <el-button type="primary" @click="sendAiMessage">发送</el-button>
+                        </div>
+                    </div>
+                </div>
+            </el-main>
+
+            <el-aside :style="{ width: rightWidth + 'px' }">
+                <div class="resize-handle"
+                     @mousedown="startResize('right')"
+                     @mouseup="stopResize"
+                     @mousemove="handleResize"></div>
+                <div class="property-panel" v-if="selectedItem">
+                    <h3>属性设置</h3>
+                    <el-form label-width="80px">
+                        <el-form-item label="标签">
+                            <el-input v-model="selectedItem.props.label"></el-input>
+                        </el-form-item>
+                        <el-form-item label="占位符">
+                            <el-input v-model="selectedItem.props.placeholder"></el-input>
+                        </el-form-item>
+                        <el-form-item label="必填">
+                            <el-switch v-model="selectedItem.props.required"></el-switch>
+                        </el-form-item>
+                    </el-form>
+                </div>
+                <div class="property-panel" v-if="showDataModel">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3 style="margin: 0;">数据模型</h3>
+                        <el-button type="text" @click="showDataModel = false">
+                            <i class="el-icon-close"></i>
+                        </el-button>
+                    </div>
+                    <div class="json-display" v-html="formattedJson"></div>
+                </div>
+            </el-aside>
+        </el-container>
+    </el-container>
+</div>
+
+<!-- 引入Vue和Element UI -->
+<script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                components: [
+                    { type: 'el-input', name: '文本框', icon: 'el-icon-edit' },
+                    { type: 'el-select', name: '下拉框', icon: 'el-icon-arrow-down' },
+                    { type: 'el-date-picker', name: '日期时间选择器', icon: 'el-icon-date' },
+                    { type: 'el-radio-group', name: '单选框', icon: 'el-icon-circle-check' },
+                    { type: 'el-checkbox-group', name: '复选框', icon: 'el-icon-check' },
+                    { type: 'el-upload', name: '图片上传', icon: 'el-icon-upload' },
+                    { type: 'el-table', name: '表格', icon: 'el-icon-tickets' }
+                ],
+                layoutItems: [],
+                selectedItem: null,
+                showAiDialog: false,
+                aiInput: '',
+                aiMessages: [],
+                showDataModel: false,
+                dataModel: {
+                    "id": "Long",
+                    "name": "String",
+                    "code": "String",
+                    "type": "Integer",
+                    "status": "Integer",
+                    "createTime": "Date",
+                    "updateTime": "Date",
+                    "createBy": "String",
+                    "updateBy": "String",
+                    "remark": "String",
+                    "deleted": "Boolean"
                 },
-                saveLayout() {
-                    console.log('保存布局', this.layoutItems);
-                    this.$message.success('保存成功');
-                },
-                handleDragStart(event, component) {
-                    event.dataTransfer.setData('component', JSON.stringify(component));
-                    event.target.classList.add('dragging');
-                },
-                handleDragEnd(event) {
-                    event.target.classList.remove('dragging');
-                },
-                handleDrop(event) {
-                    const component = JSON.parse(event.dataTransfer.getData('component'));
-                    this.layoutItems.push({
-                        type: component.type,
-                        props: {
-                            label: component.name,
-                            placeholder: '请输入',
-                            required: false
-                        }
-                    });
-                },
-                selectItem(item) {
-                    this.selectedItem = item;
-                },
-                toggleAiDialog() {
-                    this.showAiDialog = !this.showAiDialog;
-                },
-                sendAiMessage() {
-                    const message = this.aiInput.trim();
-                    if (message) {
-                        this.aiMessages.push({
-                            content: message,
-                            isUser: true
-                        });
-                        this.aiInput = '';
-                        // 这里可以添加与AI对话的逻辑
-                        setTimeout(() => {
-                            this.aiMessages.push({
-                                content: '这是一个AI助手的回复示例',
-                                isUser: false
-                            });
-                        }, 500);
-                    }
-                },
-                handleTransitionEnd() {
-                    // Handle transition end if needed
-                },
-                startResize(side) {
-                    this.isResizing = true;
-                    this.currentResize = side;
-                    this.startX = event.clientX;
-                    this.startWidth = side === 'left' ? this.leftWidth : this.rightWidth;
-                    document.addEventListener('mousemove', this.handleResize);
-                    document.addEventListener('mouseup', this.stopResize);
-                },
-                handleResize(event) {
-                    if (!this.isResizing) return;
-                    
-                    const delta = event.clientX - this.startX;
-                    if (this.currentResize === 'left') {
-                        const newWidth = this.startWidth + delta;
-                        if (newWidth >= 200 && newWidth <= 500) {
-                            this.leftWidth = newWidth;
-                        }
-                    } else {
-                        const newWidth = this.startWidth - delta;
-                        if (newWidth >= 200 && newWidth <= 500) {
-                            this.rightWidth = newWidth;
-                        }
-                    }
-                },
-                stopResize() {
-                    this.isResizing = false;
-                    this.currentResize = null;
-                    document.removeEventListener('mousemove', this.handleResize);
-                    document.removeEventListener('mouseup', this.stopResize);
-                }
+                leftWidth: 300,
+                rightWidth: 300,
+                isResizing: false,
+                currentResize: null,
+                startX: 0,
+                startWidth: 0
             }
-        })
-    </script>
+        },
+        computed: {
+            formattedJson() {
+                const json = JSON.stringify(this.dataModel, null, 2);
+                return json.replace(/"([^"]+)":/g, '<span class="json-key">"$1"</span>:')
+                         .replace(/"([^"]+)"/g, '<span class="json-string">"$1"</span>')
+                         .replace(/(\d+)/g, '<span class="json-number">$1</span>')
+                         .replace(/(true|false)/g, '<span class="json-boolean">$1</span>')
+                         .replace(/null/g, '<span class="json-null">null</span>');
+            }
+        },
+        methods: {
+            goBack() {
+                window.location.href = 'ai-generator.html';
+            },
+            saveLayout() {
+                console.log('保存布局', this.layoutItems);
+                this.$message.success('保存成功');
+            },
+            handleDragStart(event, component) {
+                event.dataTransfer.setData('component', JSON.stringify(component));
+                event.target.classList.add('dragging');
+            },
+            handleDragEnd(event) {
+                event.target.classList.remove('dragging');
+            },
+            handleDrop(event) {
+                const component = JSON.parse(event.dataTransfer.getData('component'));
+                this.layoutItems.push({
+                    type: component.type,
+                    props: {
+                        label: component.name,
+                        placeholder: '请输入',
+                        required: false
+                    }
+                });
+            },
+            selectItem(item) {
+                this.selectedItem = item;
+            },
+            toggleAiDialog() {
+                this.showAiDialog = !this.showAiDialog;
+            },
+            sendAiMessage() {
+                const message = this.aiInput.trim();
+                if (message) {
+                    this.aiMessages.push({
+                        content: message,
+                        isUser: true
+                    });
+                    this.aiInput = '';
+                    // 这里可以添加与AI对话的逻辑
+                    setTimeout(() => {
+                        this.aiMessages.push({
+                            content: '这是一个AI助手的回复示例',
+                            isUser: false
+                        });
+                    }, 500);
+                }
+            },
+            handleTransitionEnd() {
+                // Handle transition end if needed
+            },
+            startResize(side) {
+                this.isResizing = true;
+                this.currentResize = side;
+                this.startX = event.clientX;
+                this.startWidth = side === 'left' ? this.leftWidth : this.rightWidth;
+                document.addEventListener('mousemove', this.handleResize);
+                document.addEventListener('mouseup', this.stopResize);
+            },
+            handleResize(event) {
+                if (!this.isResizing) return;
+
+                const delta = event.clientX - this.startX;
+                if (this.currentResize === 'left') {
+                    const newWidth = this.startWidth + delta;
+                    if (newWidth >= 200 && newWidth <= 500) {
+                        this.leftWidth = newWidth;
+                    }
+                } else {
+                    const newWidth = this.startWidth - delta;
+                    if (newWidth >= 200 && newWidth <= 500) {
+                        this.rightWidth = newWidth;
+                    }
+                }
+            },
+            stopResize() {
+                this.isResizing = false;
+                this.currentResize = null;
+                document.removeEventListener('mousemove', this.handleResize);
+                document.removeEventListener('mouseup', this.stopResize);
+            }
+        }
+    })
+</script>
 </body>
 </html> 

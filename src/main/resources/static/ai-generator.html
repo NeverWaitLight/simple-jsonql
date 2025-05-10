@@ -534,59 +534,60 @@
     </style>
 </head>
 <body>
-    <div id="app">
-        <el-container>
-            <el-header>
-                <div style="display: flex; justify-content: space-between; width: 100%;">
-                    <el-button @click="goBack">返回</el-button>
-                    <div></div>
-                </div>
-            </el-header>
-            
-            <el-main>
-                <div class="page-list" :class="{ 'show': !showProcess && !showResult }">
-                    <el-tabs v-model="activeTab" type="card" class="tab-content">
-                        <el-tab-pane label="页面列表" name="pages">
-                            <div class="tab-header">
-                                <el-button type="primary" icon="el-icon-plus" @click="showAiDialog = true">新增页面</el-button>
-                            </div>
-                            <el-table :data="pageList" 
-                                     style="width: 100%;" 
-                                     border
-                                     row-key="name"
-                                     :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
-                                     height="calc(100vh - 280px)">  <!-- 调整表格高度，为分页留出空间 -->
-                                <el-table-column prop="name" label="页面名称">
-                                    <template slot-scope="scope">
+<div id="app">
+    <el-container>
+        <el-header>
+            <div style="display: flex; justify-content: space-between; width: 100%;">
+                <el-button @click="goBack">返回</el-button>
+                <div></div>
+            </div>
+        </el-header>
+
+        <el-main>
+            <div class="page-list" :class="{ 'show': !showProcess && !showResult }">
+                <el-tabs v-model="activeTab" type="card" class="tab-content">
+                    <el-tab-pane label="页面列表" name="pages">
+                        <div class="tab-header">
+                            <el-button type="primary" icon="el-icon-plus" @click="showAiDialog = true">新增页面
+                            </el-button>
+                        </div>
+                        <el-table :data="pageList"
+                                  style="width: 100%;"
+                                  border
+                                  row-key="name"
+                                  :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
+                                  height="calc(100vh - 280px)">  <!-- 调整表格高度，为分页留出空间 -->
+                            <el-table-column prop="name" label="页面名称">
+                                <template slot-scope="scope">
                                         <span :style="{ paddingLeft: (scope.row.level - 1) * 20 + 'px' }">
                                             {{ scope.row.name }}
                                         </span>
-                                    </template>
-                                </el-table-column>
-                                <el-table-column prop="type" label="页面类型"></el-table-column>
-                                <el-table-column prop="createTime" label="创建时间" width="180"></el-table-column>
-                                <el-table-column prop="status" label="状态" width="100">
-                                    <template slot-scope="scope">
-                                        <el-tag :type="scope.row.status === '已发布' ? 'success' : 'warning'">
-                                            {{ scope.row.status }}
-                                        </el-tag>
-                                    </template>
-                                </el-table-column>
-                                <el-table-column label="操作" width="250">
-                                    <template slot-scope="scope">
-                                        <el-button size="mini" @click="handlePreview(scope.row)">预览</el-button>
-                                        <el-button size="mini" type="primary" @click="goToEditor">编辑</el-button>
-                                        <el-button 
-                                            size="mini" 
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="type" label="页面类型"></el-table-column>
+                            <el-table-column prop="createTime" label="创建时间" width="180"></el-table-column>
+                            <el-table-column prop="status" label="状态" width="100">
+                                <template slot-scope="scope">
+                                    <el-tag :type="scope.row.status === '已发布' ? 'success' : 'warning'">
+                                        {{ scope.row.status }}
+                                    </el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="操作" width="250">
+                                <template slot-scope="scope">
+                                    <el-button size="mini" @click="handlePreview(scope.row)">预览</el-button>
+                                    <el-button size="mini" type="primary" @click="goToEditor">编辑</el-button>
+                                    <el-button
+                                            size="mini"
                                             :type="scope.row.status === '已发布' ? 'info' : 'success'"
                                             @click="handlePublish(scope.row)">
-                                            {{ scope.row.status === '已发布' ? '下线' : '发布' }}
-                                        </el-button>
-                                    </template>
-                                </el-table-column>
-                            </el-table>
-                            <div style="margin-top: 20px; text-align: right;">
-                                <el-pagination
+                                        {{ scope.row.status === '已发布' ? '下线' : '发布' }}
+                                    </el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                        <div style="margin-top: 20px; text-align: right;">
+                            <el-pagination
                                     @size-change="handlePageSizeChange"
                                     @current-change="handlePageChange"
                                     :current-page="pageConfig.pages.currentPage"
@@ -594,59 +595,62 @@
                                     :page-size="pageConfig.pages.pageSize"
                                     layout="total, sizes, prev, pager, next, jumper"
                                     :total="pageConfig.pages.total">
-                                </el-pagination>
-                            </div>
-                        </el-tab-pane>
-                        
-                        <el-tab-pane label="审批流程" name="workflows">
-                            <div class="tab-header">
-                                <el-button type="primary" icon="el-icon-plus" @click="showWorkflowAiDialog = true">新增审批流程</el-button>
-                            </div>
-                            <el-table :data="workflowList" 
-                                     style="width: 100%;" 
-                                     border
-                                     row-key="name"
-                                     :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
-                                     height="calc(100vh - 280px)">  <!-- 调整表格高度，为分页留出空间 -->
-                                <el-table-column prop="name" label="流程名称">
-                                    <template slot-scope="scope">
+                            </el-pagination>
+                        </div>
+                    </el-tab-pane>
+
+                    <el-tab-pane label="审批流程" name="workflows">
+                        <div class="tab-header">
+                            <el-button type="primary" icon="el-icon-plus" @click="showWorkflowAiDialog = true">
+                                新增审批流程
+                            </el-button>
+                        </div>
+                        <el-table :data="workflowList"
+                                  style="width: 100%;"
+                                  border
+                                  row-key="name"
+                                  :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
+                                  height="calc(100vh - 280px)">  <!-- 调整表格高度，为分页留出空间 -->
+                            <el-table-column prop="name" label="流程名称">
+                                <template slot-scope="scope">
                                         <span :style="{ paddingLeft: (scope.row.level - 1) * 20 + 'px' }">
                                             <i :class="scope.row.icon" style="margin-right: 5px"></i>
                                             {{ scope.row.name }}
                                         </span>
-                                    </template>
-                                </el-table-column>
-                                <el-table-column prop="type" label="流程类型" width="120">
-                                    <template slot-scope="scope">
-                                        <el-tag :type="scope.row.type === '审批流程' ? 'danger' : 'primary'" size="small">
-                                            {{ scope.row.type }}
-                                        </el-tag>
-                                    </template>
-                                </el-table-column>
-                                <el-table-column prop="department" label="所属部门"></el-table-column>
-                                <el-table-column prop="createTime" label="创建时间" width="180"></el-table-column>
-                                <el-table-column prop="status" label="状态" width="100">
-                                    <template slot-scope="scope">
-                                        <el-tag :type="scope.row.status === '已启用' ? 'success' : 'info'">
-                                            {{ scope.row.status }}
-                                        </el-tag>
-                                    </template>
-                                </el-table-column>
-                                <el-table-column label="操作" width="280">
-                                    <template slot-scope="scope">
-                                        <el-button size="mini" @click="handlePreviewWorkflow(scope.row)">预览</el-button>
-                                        <el-button size="mini" type="primary" @click="editWorkflow(scope.row)">编辑</el-button>
-                                        <el-button 
-                                            size="mini" 
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="type" label="流程类型" width="120">
+                                <template slot-scope="scope">
+                                    <el-tag :type="scope.row.type === '审批流程' ? 'danger' : 'primary'" size="small">
+                                        {{ scope.row.type }}
+                                    </el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="department" label="所属部门"></el-table-column>
+                            <el-table-column prop="createTime" label="创建时间" width="180"></el-table-column>
+                            <el-table-column prop="status" label="状态" width="100">
+                                <template slot-scope="scope">
+                                    <el-tag :type="scope.row.status === '已启用' ? 'success' : 'info'">
+                                        {{ scope.row.status }}
+                                    </el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="操作" width="280">
+                                <template slot-scope="scope">
+                                    <el-button size="mini" @click="handlePreviewWorkflow(scope.row)">预览</el-button>
+                                    <el-button size="mini" type="primary" @click="editWorkflow(scope.row)">编辑
+                                    </el-button>
+                                    <el-button
+                                            size="mini"
                                             :type="scope.row.status === '已启用' ? 'info' : 'success'"
                                             @click="handleWorkflowStatus(scope.row)">
-                                            {{ scope.row.status === '已启用' ? '停用' : '启用' }}
-                                        </el-button>
-                                    </template>
-                                </el-table-column>
-                            </el-table>
-                            <div style="margin-top: 20px; text-align: right;">
-                                <el-pagination
+                                        {{ scope.row.status === '已启用' ? '停用' : '启用' }}
+                                    </el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                        <div style="margin-top: 20px; text-align: right;">
+                            <el-pagination
                                     @size-change="handleWorkflowPageSizeChange"
                                     @current-change="handleWorkflowPageChange"
                                     :current-page="pageConfig.workflows.currentPage"
@@ -654,59 +658,62 @@
                                     :page-size="pageConfig.workflows.pageSize"
                                     layout="total, sizes, prev, pager, next, jumper"
                                     :total="pageConfig.workflows.total">
-                                </el-pagination>
-                            </div>
-                        </el-tab-pane>
+                            </el-pagination>
+                        </div>
+                    </el-tab-pane>
 
-                        <el-tab-pane label="数据流程" name="dataflows">
-                            <div class="tab-header">
-                                <el-button type="primary" icon="el-icon-plus" @click="showDataflowAiDialog = true">新增数据流程</el-button>
-                            </div>
-                            <el-table :data="dataflowList" 
-                                     style="width: 100%;" 
-                                     border
-                                     row-key="name"
-                                     :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
-                                     height="calc(100vh - 280px)">  <!-- 调整表格高度，为分页留出空间 -->
-                                <el-table-column prop="name" label="流程名称">
-                                    <template slot-scope="scope">
+                    <el-tab-pane label="数据流程" name="dataflows">
+                        <div class="tab-header">
+                            <el-button type="primary" icon="el-icon-plus" @click="showDataflowAiDialog = true">
+                                新增数据流程
+                            </el-button>
+                        </div>
+                        <el-table :data="dataflowList"
+                                  style="width: 100%;"
+                                  border
+                                  row-key="name"
+                                  :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
+                                  height="calc(100vh - 280px)">  <!-- 调整表格高度，为分页留出空间 -->
+                            <el-table-column prop="name" label="流程名称">
+                                <template slot-scope="scope">
                                         <span :style="{ paddingLeft: (scope.row.level - 1) * 20 + 'px' }">
                                             <i :class="scope.row.icon" style="margin-right: 5px"></i>
                                             {{ scope.row.name }}
                                         </span>
-                                    </template>
-                                </el-table-column>
-                                <el-table-column prop="type" label="数据类型" width="120">
-                                    <template slot-scope="scope">
-                                        <el-tag :type="scope.row.type === '同步流程' ? 'warning' : 'success'" size="small">
-                                            {{ scope.row.type }}
-                                        </el-tag>
-                                    </template>
-                                </el-table-column>
-                                <el-table-column prop="source" label="数据源"></el-table-column>
-                                <el-table-column prop="createTime" label="创建时间" width="180"></el-table-column>
-                                <el-table-column prop="status" label="状态" width="100">
-                                    <template slot-scope="scope">
-                                        <el-tag :type="scope.row.status === '运行中' ? 'success' : 'info'">
-                                            {{ scope.row.status }}
-                                        </el-tag>
-                                    </template>
-                                </el-table-column>
-                                <el-table-column label="操作" width="280">
-                                    <template slot-scope="scope">
-                                        <el-button size="mini" @click="handlePreviewDataflow(scope.row)">预览</el-button>
-                                        <el-button size="mini" type="primary" @click="editDataflow(scope.row)">编辑</el-button>
-                                        <el-button 
-                                            size="mini" 
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="type" label="数据类型" width="120">
+                                <template slot-scope="scope">
+                                    <el-tag :type="scope.row.type === '同步流程' ? 'warning' : 'success'" size="small">
+                                        {{ scope.row.type }}
+                                    </el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="source" label="数据源"></el-table-column>
+                            <el-table-column prop="createTime" label="创建时间" width="180"></el-table-column>
+                            <el-table-column prop="status" label="状态" width="100">
+                                <template slot-scope="scope">
+                                    <el-tag :type="scope.row.status === '运行中' ? 'success' : 'info'">
+                                        {{ scope.row.status }}
+                                    </el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="操作" width="280">
+                                <template slot-scope="scope">
+                                    <el-button size="mini" @click="handlePreviewDataflow(scope.row)">预览</el-button>
+                                    <el-button size="mini" type="primary" @click="editDataflow(scope.row)">编辑
+                                    </el-button>
+                                    <el-button
+                                            size="mini"
                                             :type="scope.row.status === '运行中' ? 'danger' : 'success'"
                                             @click="handleDataflowStatus(scope.row)">
-                                            {{ scope.row.status === '运行中' ? '停止' : '启动' }}
-                                        </el-button>
-                                    </template>
-                                </el-table-column>
-                            </el-table>
-                            <div style="margin-top: 20px; text-align: right;">
-                                <el-pagination
+                                        {{ scope.row.status === '运行中' ? '停止' : '启动' }}
+                                    </el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                        <div style="margin-top: 20px; text-align: right;">
+                            <el-pagination
                                     @size-change="handleDataflowPageSizeChange"
                                     @current-change="handleDataflowPageChange"
                                     :current-page="pageConfig.dataflows.currentPage"
@@ -714,14 +721,14 @@
                                     :page-size="pageConfig.dataflows.pageSize"
                                     layout="total, sizes, prev, pager, next, jumper"
                                     :total="pageConfig.dataflows.total">
-                                </el-pagination>
-                            </div>
-                        </el-tab-pane>
-                    </el-tabs>
-                </div>
+                            </el-pagination>
+                        </div>
+                    </el-tab-pane>
+                </el-tabs>
+            </div>
 
-                <!-- AI 生成对话框 -->
-                <el-dialog
+            <!-- AI 生成对话框 -->
+            <el-dialog
                     title="AI 页面生成器"
                     :visible.sync="showAiDialog"
                     custom-class="ai-dialog"
@@ -729,54 +736,54 @@
                     :close-on-press-escape="false"
                     :show-close="!isGenerating"
                     @open="handleDialogOpen">
-                    <div class="ai-container">
-                        <div class="generation-process" :class="{ 'show': showProcess }">
-                            <div class="process-step" :class="{ 'active': currentStep >= 1 }">
-                                <div class="step-icon">
-                                    <i class="el-icon-document"></i>
-                                </div>
-                                <div class="step-text">生成页面</div>
+                <div class="ai-container">
+                    <div class="generation-process" :class="{ 'show': showProcess }">
+                        <div class="process-step" :class="{ 'active': currentStep >= 1 }">
+                            <div class="step-icon">
+                                <i class="el-icon-document"></i>
                             </div>
-                            <div class="process-step" :class="{ 'active': currentStep >= 2 }">
-                                <div class="step-icon">
-                                    <i class="el-icon-connection"></i>
-                                </div>
-                                <div class="step-text">生成流程</div>
-                            </div>
-                            <div class="process-step" :class="{ 'active': currentStep >= 3 }">
-                                <div class="step-icon">
-                                    <i class="el-icon-lock"></i>
-                                </div>
-                                <div class="step-text">配置权限</div>
-                            </div>
-                            <div class="process-step" :class="{ 'active': currentStep >= 4 }">
-                                <div class="step-icon">
-                                    <i class="el-icon-success"></i>
-                                </div>
-                                <div class="step-text">生成完成</div>
-                            </div>
+                            <div class="step-text">生成页面</div>
                         </div>
-
-                        <div class="ai-content" :class="{ 'no-margin': !showProcess }">
-                            <div v-for="(message, index) in aiMessages" 
-                                 :key="index" 
-                                 class="ai-message"
-                                 :class="{ 'user': message.isUser }">
-                                {{ message.content }}
+                        <div class="process-step" :class="{ 'active': currentStep >= 2 }">
+                            <div class="step-icon">
+                                <i class="el-icon-connection"></i>
                             </div>
+                            <div class="step-text">生成流程</div>
                         </div>
-                        <div class="ai-input">
-                            <el-input v-model="aiInput" 
-                                     placeholder="请描述您想要的页面布局和功能"
-                                     @keyup.enter="generatePage">
-                            </el-input>
-                            <el-button type="primary" @click="generatePage">生成</el-button>
+                        <div class="process-step" :class="{ 'active': currentStep >= 3 }">
+                            <div class="step-icon">
+                                <i class="el-icon-lock"></i>
+                            </div>
+                            <div class="step-text">配置权限</div>
+                        </div>
+                        <div class="process-step" :class="{ 'active': currentStep >= 4 }">
+                            <div class="step-icon">
+                                <i class="el-icon-success"></i>
+                            </div>
+                            <div class="step-text">生成完成</div>
                         </div>
                     </div>
-                </el-dialog>
 
-                <!-- AI 流程生成对话框 -->
-                <el-dialog
+                    <div class="ai-content" :class="{ 'no-margin': !showProcess }">
+                        <div v-for="(message, index) in aiMessages"
+                             :key="index"
+                             class="ai-message"
+                             :class="{ 'user': message.isUser }">
+                            {{ message.content }}
+                        </div>
+                    </div>
+                    <div class="ai-input">
+                        <el-input v-model="aiInput"
+                                  placeholder="请描述您想要的页面布局和功能"
+                                  @keyup.enter="generatePage">
+                        </el-input>
+                        <el-button type="primary" @click="generatePage">生成</el-button>
+                    </div>
+                </div>
+            </el-dialog>
+
+            <!-- AI 流程生成对话框 -->
+            <el-dialog
                     title="AI 流程生成器"
                     :visible.sync="showWorkflowAiDialog"
                     custom-class="workflow-dialog"
@@ -784,54 +791,54 @@
                     :close-on-press-escape="false"
                     :show-close="!isGeneratingWorkflow"
                     @open="handleWorkflowDialogOpen">
-                    <div class="ai-container">
-                        <div class="generation-process" :class="{ 'show': showWorkflowProcess }">
-                            <div class="process-step" :class="{ 'active': currentWorkflowStep >= 1 }">
-                                <div class="step-icon">
-                                    <i class="el-icon-share"></i>
-                                </div>
-                                <div class="step-text">分析需求</div>
+                <div class="ai-container">
+                    <div class="generation-process" :class="{ 'show': showWorkflowProcess }">
+                        <div class="process-step" :class="{ 'active': currentWorkflowStep >= 1 }">
+                            <div class="step-icon">
+                                <i class="el-icon-share"></i>
                             </div>
-                            <div class="process-step" :class="{ 'active': currentWorkflowStep >= 2 }">
-                                <div class="step-icon">
-                                    <i class="el-icon-connection"></i>
-                                </div>
-                                <div class="step-text">生成节点</div>
-                            </div>
-                            <div class="process-step" :class="{ 'active': currentWorkflowStep >= 3 }">
-                                <div class="step-icon">
-                                    <i class="el-icon-user"></i>
-                                </div>
-                                <div class="step-text">配置角色</div>
-                            </div>
-                            <div class="process-step" :class="{ 'active': currentWorkflowStep >= 4 }">
-                                <div class="step-icon">
-                                    <i class="el-icon-success"></i>
-                                </div>
-                                <div class="step-text">生成完成</div>
-                            </div>
+                            <div class="step-text">分析需求</div>
                         </div>
-
-                        <div class="ai-content" :class="{ 'no-margin': !showWorkflowProcess }">
-                            <div v-for="(message, index) in workflowAiMessages" 
-                                 :key="index" 
-                                 class="ai-message"
-                                 :class="{ 'user': message.isUser }">
-                                {{ message.content }}
+                        <div class="process-step" :class="{ 'active': currentWorkflowStep >= 2 }">
+                            <div class="step-icon">
+                                <i class="el-icon-connection"></i>
                             </div>
+                            <div class="step-text">生成节点</div>
                         </div>
-                        <div class="ai-input">
-                            <el-input v-model="workflowAiInput" 
-                                     placeholder="请描述您想要的业务流程"
-                                     @keyup.enter="generateWorkflow">
-                            </el-input>
-                            <el-button type="primary" @click="generateWorkflow">生成</el-button>
+                        <div class="process-step" :class="{ 'active': currentWorkflowStep >= 3 }">
+                            <div class="step-icon">
+                                <i class="el-icon-user"></i>
+                            </div>
+                            <div class="step-text">配置角色</div>
+                        </div>
+                        <div class="process-step" :class="{ 'active': currentWorkflowStep >= 4 }">
+                            <div class="step-icon">
+                                <i class="el-icon-success"></i>
+                            </div>
+                            <div class="step-text">生成完成</div>
                         </div>
                     </div>
-                </el-dialog>
 
-                <!-- AI 数据流程生成对话框 -->
-                <el-dialog
+                    <div class="ai-content" :class="{ 'no-margin': !showWorkflowProcess }">
+                        <div v-for="(message, index) in workflowAiMessages"
+                             :key="index"
+                             class="ai-message"
+                             :class="{ 'user': message.isUser }">
+                            {{ message.content }}
+                        </div>
+                    </div>
+                    <div class="ai-input">
+                        <el-input v-model="workflowAiInput"
+                                  placeholder="请描述您想要的业务流程"
+                                  @keyup.enter="generateWorkflow">
+                        </el-input>
+                        <el-button type="primary" @click="generateWorkflow">生成</el-button>
+                    </div>
+                </div>
+            </el-dialog>
+
+            <!-- AI 数据流程生成对话框 -->
+            <el-dialog
                     title="AI 数据流程生成器"
                     :visible.sync="showDataflowAiDialog"
                     custom-class="workflow-dialog"
@@ -839,750 +846,750 @@
                     :close-on-press-escape="false"
                     :show-close="!isGeneratingDataflow"
                     @open="handleDataflowDialogOpen">
-                    <div class="ai-container">
-                        <div class="generation-process" :class="{ 'show': showDataflowProcess }">
-                            <div class="process-step" :class="{ 'active': currentDataflowStep >= 1 }">
-                                <div class="step-icon">
-                                    <i class="el-icon-share"></i>
-                                </div>
-                                <div class="step-text">分析需求</div>
+                <div class="ai-container">
+                    <div class="generation-process" :class="{ 'show': showDataflowProcess }">
+                        <div class="process-step" :class="{ 'active': currentDataflowStep >= 1 }">
+                            <div class="step-icon">
+                                <i class="el-icon-share"></i>
                             </div>
-                            <div class="process-step" :class="{ 'active': currentDataflowStep >= 2 }">
-                                <div class="step-icon">
-                                    <i class="el-icon-connection"></i>
-                                </div>
-                                <div class="step-text">生成节点</div>
-                            </div>
-                            <div class="process-step" :class="{ 'active': currentDataflowStep >= 3 }">
-                                <div class="step-icon">
-                                    <i class="el-icon-refresh"></i>
-                                </div>
-                                <div class="step-text">配置数据源</div>
-                            </div>
-                            <div class="process-step" :class="{ 'active': currentDataflowStep >= 4 }">
-                                <div class="step-icon">
-                                    <i class="el-icon-success"></i>
-                                </div>
-                                <div class="step-text">生成完成</div>
-                            </div>
+                            <div class="step-text">分析需求</div>
                         </div>
-
-                        <div class="ai-content" :class="{ 'no-margin': !showDataflowProcess }">
-                            <div v-for="(message, index) in dataflowAiMessages" 
-                                 :key="index" 
-                                 class="ai-message"
-                                 :class="{ 'user': message.isUser }">
-                                {{ message.content }}
+                        <div class="process-step" :class="{ 'active': currentDataflowStep >= 2 }">
+                            <div class="step-icon">
+                                <i class="el-icon-connection"></i>
                             </div>
+                            <div class="step-text">生成节点</div>
                         </div>
-                        <div class="ai-input">
-                            <el-input v-model="dataflowAiInput" 
-                                     placeholder="请描述您想要的数据流程"
-                                     @keyup.enter="generateDataflow">
-                            </el-input>
-                            <el-button type="primary" @click="generateDataflow">生成</el-button>
+                        <div class="process-step" :class="{ 'active': currentDataflowStep >= 3 }">
+                            <div class="step-icon">
+                                <i class="el-icon-refresh"></i>
+                            </div>
+                            <div class="step-text">配置数据源</div>
+                        </div>
+                        <div class="process-step" :class="{ 'active': currentDataflowStep >= 4 }">
+                            <div class="step-icon">
+                                <i class="el-icon-success"></i>
+                            </div>
+                            <div class="step-text">生成完成</div>
                         </div>
                     </div>
-                </el-dialog>
-            </el-main>
-        </el-container>
-    </div>
 
-    <!-- 引入Vue和Element UI -->
-    <script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
-    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
-    <script>
-        new Vue({
-            el: '#app',
-            data() {
-                return {
-                    aiInput: '',
-                    aiMessages: [],
-                    workflowAiInput: '',
-                    workflowAiMessages: [],
-                    dataflowAiInput: '',
-                    dataflowAiMessages: [],
-                    currentStep: 0,
-                    currentWorkflowStep: 0,
-                    currentDataflowStep: 0,
-                    showProcess: false,
-                    showWorkflowProcess: false,
-                    showDataflowProcess: false,
-                    showResult: false,
-                    showWorkflowResult: false,
-                    showDataflowResult: false,
-                    isGenerating: false,
-                    isGeneratingWorkflow: false,
-                    isGeneratingDataflow: false,
-                    activeTab: 'pages',
-                    showAiDialog: false,
-                    showWorkflowAiDialog: false,
-                    showWorkflowDialog: false,
-                    showDataflowAiDialog: false,
-                    pageConfig: {
-                        pages: {
-                            currentPage: 1,
-                            pageSize: 10,
-                            total: 0
-                        },
-                        workflows: {
-                            currentPage: 1,
-                            pageSize: 10,
-                            total: 0
-                        },
-                        dataflows: {
-                            currentPage: 1,
-                            pageSize: 10,
-                            total: 0
-                        }
+                    <div class="ai-content" :class="{ 'no-margin': !showDataflowProcess }">
+                        <div v-for="(message, index) in dataflowAiMessages"
+                             :key="index"
+                             class="ai-message"
+                             :class="{ 'user': message.isUser }">
+                            {{ message.content }}
+                        </div>
+                    </div>
+                    <div class="ai-input">
+                        <el-input v-model="dataflowAiInput"
+                                  placeholder="请描述您想要的数据流程"
+                                  @keyup.enter="generateDataflow">
+                        </el-input>
+                        <el-button type="primary" @click="generateDataflow">生成</el-button>
+                    </div>
+                </div>
+            </el-dialog>
+        </el-main>
+    </el-container>
+</div>
+
+<!-- 引入Vue和Element UI -->
+<script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                aiInput: '',
+                aiMessages: [],
+                workflowAiInput: '',
+                workflowAiMessages: [],
+                dataflowAiInput: '',
+                dataflowAiMessages: [],
+                currentStep: 0,
+                currentWorkflowStep: 0,
+                currentDataflowStep: 0,
+                showProcess: false,
+                showWorkflowProcess: false,
+                showDataflowProcess: false,
+                showResult: false,
+                showWorkflowResult: false,
+                showDataflowResult: false,
+                isGenerating: false,
+                isGeneratingWorkflow: false,
+                isGeneratingDataflow: false,
+                activeTab: 'pages',
+                showAiDialog: false,
+                showWorkflowAiDialog: false,
+                showWorkflowDialog: false,
+                showDataflowAiDialog: false,
+                pageConfig: {
+                    pages: {
+                        currentPage: 1,
+                        pageSize: 10,
+                        total: 0
                     },
-                    dataflowList: [
-                        {
-                            name: '客户数据同步流程',
-                            type: '同步流程',
-                            source: 'CRM系统',
-                            createTime: '2024-03-20 10:30:00',
-                            status: '运行中',
-                            icon: 'el-icon-refresh',
-                            level: 1,
-                            children: [
-                                {
-                                    name: '基础信息同步',
-                                    type: '同步流程',
-                                    source: 'CRM系统',
-                                    createTime: '2024-03-20 10:35:00',
-                                    status: '运行中',
-                                    icon: 'el-icon-data-line',
-                                    level: 2
-                                },
-                                {
-                                    name: '交易记录同步',
-                                    type: '同步流程',
-                                    source: 'CRM系统',
-                                    createTime: '2024-03-20 10:40:00',
-                                    status: '运行中',
-                                    icon: 'el-icon-money',
-                                    level: 2
-                                }
-                            ]
-                        },
-                        {
-                            name: '订单数据处理流程',
-                            type: '处理流程',
-                            source: '订单系统',
-                            createTime: '2024-03-19 15:45:00',
-                            status: '已停止',
-                            icon: 'el-icon-shopping-cart-full',
-                            level: 1,
-                            children: [
-                                {
-                                    name: '订单清洗',
-                                    type: '处理流程',
-                                    source: '订单系统',
-                                    createTime: '2024-03-19 15:50:00',
-                                    status: '已停止',
-                                    icon: 'el-icon-magic-stick',
-                                    level: 2
-                                }
-                            ]
-                        }
-                    ],
-                    newWorkflow: {
-                        name: '',
+                    workflows: {
+                        currentPage: 1,
+                        pageSize: 10,
+                        total: 0
+                    },
+                    dataflows: {
+                        currentPage: 1,
+                        pageSize: 10,
+                        total: 0
+                    }
+                },
+                dataflowList: [
+                    {
+                        name: '客户数据同步流程',
+                        type: '同步流程',
+                        source: 'CRM系统',
+                        createTime: '2024-03-20 10:30:00',
+                        status: '运行中',
+                        icon: 'el-icon-refresh',
+                        level: 1,
+                        children: [
+                            {
+                                name: '基础信息同步',
+                                type: '同步流程',
+                                source: 'CRM系统',
+                                createTime: '2024-03-20 10:35:00',
+                                status: '运行中',
+                                icon: 'el-icon-data-line',
+                                level: 2
+                            },
+                            {
+                                name: '交易记录同步',
+                                type: '同步流程',
+                                source: 'CRM系统',
+                                createTime: '2024-03-20 10:40:00',
+                                status: '运行中',
+                                icon: 'el-icon-money',
+                                level: 2
+                            }
+                        ]
+                    },
+                    {
+                        name: '订单数据处理流程',
+                        type: '处理流程',
+                        source: '订单系统',
+                        createTime: '2024-03-19 15:45:00',
+                        status: '已停止',
+                        icon: 'el-icon-shopping-cart-full',
+                        level: 1,
+                        children: [
+                            {
+                                name: '订单清洗',
+                                type: '处理流程',
+                                source: '订单系统',
+                                createTime: '2024-03-19 15:50:00',
+                                status: '已停止',
+                                icon: 'el-icon-magic-stick',
+                                level: 2
+                            }
+                        ]
+                    }
+                ],
+                newWorkflow: {
+                    name: '',
+                    type: '工作流程',
+                    department: ''
+                },
+                pageList: [
+                    {
+                        name: '智能库存管理系统',
+                        type: '管理页面',
+                        createTime: '2024-03-20 10:30:00',
+                        status: '已发布',
+                        level: 1,
+                        children: [
+                            {
+                                name: '库存列表',
+                                type: '列表页面',
+                                createTime: '2024-03-20 10:35:00',
+                                status: '已发布',
+                                level: 2
+                            },
+                            {
+                                name: '库存详情',
+                                type: '详情页面',
+                                createTime: '2024-03-20 10:40:00',
+                                status: '已发布',
+                                level: 2
+                            }
+                        ]
+                    },
+                    {
+                        name: '数据分析大屏',
+                        type: '可视化页面',
+                        createTime: '2024-03-19 15:45:00',
+                        status: '未发布',
+                        level: 1,
+                        children: [
+                            {
+                                name: '销售分析',
+                                type: '图表页面',
+                                createTime: '2024-03-19 15:50:00',
+                                status: '未发布',
+                                level: 2
+                            }
+                        ]
+                    },
+                    {
+                        name: '用户管理系统',
+                        type: '管理页面',
+                        createTime: '2024-03-18 09:20:00',
+                        status: '已发布',
+                        level: 1,
+                        children: [
+                            {
+                                name: '用户列表',
+                                type: '列表页面',
+                                createTime: '2024-03-18 09:25:00',
+                                status: '已发布',
+                                level: 2
+                            },
+                            {
+                                name: '用户详情',
+                                type: '详情页面',
+                                createTime: '2024-03-18 09:30:00',
+                                status: '已发布',
+                                level: 2
+                            }
+                        ]
+                    }
+                ],
+                workflowList: [
+                    {
+                        name: '采购申请流程',
+                        type: '审批流程',
+                        department: '采购部',
+                        createTime: '2024-03-20 10:30:00',
+                        status: '已启用',
+                        icon: 'el-icon-shopping-cart-full',
+                        level: 1,
+                        children: [
+                            {
+                                name: '常规采购审批',
+                                type: '审批流程',
+                                department: '采购部',
+                                createTime: '2024-03-20 10:35:00',
+                                status: '已启用',
+                                icon: 'el-icon-document-checked',
+                                level: 2
+                            },
+                            {
+                                name: '紧急采购审批',
+                                type: '审批流程',
+                                department: '采购部',
+                                createTime: '2024-03-20 10:40:00',
+                                status: '已启用',
+                                icon: 'el-icon-warning',
+                                level: 2
+                            }
+                        ]
+                    },
+                    {
+                        name: '人事管理流程',
                         type: '工作流程',
-                        department: ''
+                        department: '人力资源部',
+                        createTime: '2024-03-19 15:45:00',
+                        status: '已启用',
+                        icon: 'el-icon-user',
+                        level: 1,
+                        children: [
+                            {
+                                name: '员工入职流程',
+                                type: '工作流程',
+                                department: '人力资源部',
+                                createTime: '2024-03-19 15:50:00',
+                                status: '已启用',
+                                icon: 'el-icon-plus',
+                                level: 2
+                            },
+                            {
+                                name: '员工离职流程',
+                                type: '工作流程',
+                                department: '人力资源部',
+                                createTime: '2024-03-19 15:55:00',
+                                status: '已启用',
+                                icon: 'el-icon-minus',
+                                level: 2
+                            }
+                        ]
                     },
-                    pageList: [
-                        {
-                            name: '智能库存管理系统',
-                            type: '管理页面',
-                            createTime: '2024-03-20 10:30:00',
-                            status: '已发布',
-                            level: 1,
-                            children: [
-                                {
-                                    name: '库存列表',
-                                    type: '列表页面',
-                                    createTime: '2024-03-20 10:35:00',
-                                    status: '已发布',
-                                    level: 2
-                                },
-                                {
-                                    name: '库存详情',
-                                    type: '详情页面',
-                                    createTime: '2024-03-20 10:40:00',
-                                    status: '已发布',
-                                    level: 2
-                                }
-                            ]
-                        },
-                        {
-                            name: '数据分析大屏',
-                            type: '可视化页面',
-                            createTime: '2024-03-19 15:45:00',
-                            status: '未发布',
-                            level: 1,
-                            children: [
-                                {
-                                    name: '销售分析',
-                                    type: '图表页面',
-                                    createTime: '2024-03-19 15:50:00',
-                                    status: '未发布',
-                                    level: 2
-                                }
-                            ]
-                        },
-                        {
-                            name: '用户管理系统',
-                            type: '管理页面',
-                            createTime: '2024-03-18 09:20:00',
-                            status: '已发布',
-                            level: 1,
-                            children: [
-                                {
-                                    name: '用户列表',
-                                    type: '列表页面',
-                                    createTime: '2024-03-18 09:25:00',
-                                    status: '已发布',
-                                    level: 2
-                                },
-                                {
-                                    name: '用户详情',
-                                    type: '详情页面',
-                                    createTime: '2024-03-18 09:30:00',
-                                    status: '已发布',
-                                    level: 2
-                                }
-                            ]
-                        }
-                    ],
-                    workflowList: [
-                        {
-                            name: '采购申请流程',
-                            type: '审批流程',
-                            department: '采购部',
-                            createTime: '2024-03-20 10:30:00',
-                            status: '已启用',
-                            icon: 'el-icon-shopping-cart-full',
-                            level: 1,
-                            children: [
-                                {
-                                    name: '常规采购审批',
-                                    type: '审批流程',
-                                    department: '采购部',
-                                    createTime: '2024-03-20 10:35:00',
-                                    status: '已启用',
-                                    icon: 'el-icon-document-checked',
-                                    level: 2
-                                },
-                                {
-                                    name: '紧急采购审批',
-                                    type: '审批流程',
-                                    department: '采购部',
-                                    createTime: '2024-03-20 10:40:00',
-                                    status: '已启用',
-                                    icon: 'el-icon-warning',
-                                    level: 2
-                                }
-                            ]
-                        },
-                        {
-                            name: '人事管理流程',
-                            type: '工作流程',
-                            department: '人力资源部',
-                            createTime: '2024-03-19 15:45:00',
-                            status: '已启用',
-                            icon: 'el-icon-user',
-                            level: 1,
-                            children: [
-                                {
-                                    name: '员工入职流程',
-                                    type: '工作流程',
-                                    department: '人力资源部',
-                                    createTime: '2024-03-19 15:50:00',
-                                    status: '已启用',
-                                    icon: 'el-icon-plus',
-                                    level: 2
-                                },
-                                {
-                                    name: '员工离职流程',
-                                    type: '工作流程',
-                                    department: '人力资源部',
-                                    createTime: '2024-03-19 15:55:00',
-                                    status: '已启用',
-                                    icon: 'el-icon-minus',
-                                    level: 2
-                                }
-                            ]
-                        },
-                        {
-                            name: '财务审批流程',
-                            type: '审批流程',
-                            department: '财务部',
-                            createTime: '2024-03-18 09:20:00',
-                            status: '已启用',
-                            icon: 'el-icon-money',
-                            level: 1,
-                            children: [
-                                {
-                                    name: '报销审批',
-                                    type: '审批流程',
-                                    department: '财务部',
-                                    createTime: '2024-03-18 09:25:00',
-                                    status: '已启用',
-                                    icon: 'el-icon-document',
-                                    level: 2
-                                },
-                                {
-                                    name: '预算审批',
-                                    type: '审批流程',
-                                    department: '财务部',
-                                    createTime: '2024-03-18 09:30:00',
-                                    status: '未启用',
-                                    icon: 'el-icon-wallet',
-                                    level: 2
-                                }
-                            ]
-                        }
-                    ]
+                    {
+                        name: '财务审批流程',
+                        type: '审批流程',
+                        department: '财务部',
+                        createTime: '2024-03-18 09:20:00',
+                        status: '已启用',
+                        icon: 'el-icon-money',
+                        level: 1,
+                        children: [
+                            {
+                                name: '报销审批',
+                                type: '审批流程',
+                                department: '财务部',
+                                createTime: '2024-03-18 09:25:00',
+                                status: '已启用',
+                                icon: 'el-icon-document',
+                                level: 2
+                            },
+                            {
+                                name: '预算审批',
+                                type: '审批流程',
+                                department: '财务部',
+                                createTime: '2024-03-18 09:30:00',
+                                status: '未启用',
+                                icon: 'el-icon-wallet',
+                                level: 2
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        methods: {
+            goBack() {
+                window.location.href = 'index.html';
+            },
+            goToEditor() {
+                window.location.href = 'layout-editor.html';
+            },
+            handlePreview(row) {
+                const params = new URLSearchParams({
+                    name: row.name,
+                    type: row.type
+                });
+                window.location.href = `preview-page.html?${params.toString()}`;
+            },
+            closeModal() {
+                this.showResult = false;
+            },
+            handleDialogOpen() {
+                // 重置所有状态
+                this.isGenerating = false;
+                this.showProcess = false;
+                this.showResult = false;
+                this.aiMessages = [];
+                this.aiInput = '';
+                this.currentStep = 0;
+
+                // 添加欢迎消息
+                setTimeout(() => {
+                    this.aiMessages = [{
+                        content: '欢迎使用 AI 页面生成器，请描述您想要的页面布局和功能，我会帮您生成对应的页面。',
+                        isUser: false
+                    }];
+                }, 300);
+            },
+            startGenerate() {
+                this.showAiDialog = true;
+            },
+            handlePublish(row) {
+                if (row.status === '已发布') {
+                    this.$confirm('确认下线该页面吗？', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        row.status = '未发布';
+                        this.$message.success('下线成功');
+                    }).catch(() => {});
+                } else {
+                    this.$confirm('确认发布该页面吗？', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        row.status = '已发布';
+                        this.$message.success('发布成功');
+                    }).catch(() => {});
                 }
             },
-            methods: {
-                goBack() {
-                    window.location.href = 'index.html';
-                },
-                goToEditor() {
-                    window.location.href = 'layout-editor.html';
-                },
-                handlePreview(row) {
-                    const params = new URLSearchParams({
-                        name: row.name,
-                        type: row.type
+            generatePage() {
+                this.isGenerating = true;
+                const message = this.aiInput.trim();
+                if (message) {
+                    // 截取前30个字符作为页面名称
+                    const pageName = message.length > 30 ? message.substring(0, 30) + '...' : message;
+
+                    this.aiMessages.push({
+                        content: message,
+                        isUser: true
                     });
-                    window.location.href = `preview-page.html?${params.toString()}`;
-                },
-                closeModal() {
-                    this.showResult = false;
-                },
-                handleDialogOpen() {
-                    // 重置所有状态
-                    this.isGenerating = false;
-                    this.showProcess = false;
-                    this.showResult = false;
-                    this.aiMessages = [];
                     this.aiInput = '';
-                    this.currentStep = 0;
-                    
-                    // 添加欢迎消息
-                    setTimeout(() => {
-                        this.aiMessages = [{
-                            content: '欢迎使用 AI 页面生成器，请描述您想要的页面布局和功能，我会帮您生成对应的页面。',
-                            isUser: false
-                        }];
-                    }, 300);
-                },
-                startGenerate() {
-                    this.showAiDialog = true;
-                },
-                handlePublish(row) {
-                    if (row.status === '已发布') {
-                        this.$confirm('确认下线该页面吗？', '提示', {
-                            confirmButtonText: '确定',
-                            cancelButtonText: '取消',
-                            type: 'warning'
-                        }).then(() => {
-                            row.status = '未发布';
-                            this.$message.success('下线成功');
-                        }).catch(() => {});
-                    } else {
-                        this.$confirm('确认发布该页面吗？', '提示', {
-                            confirmButtonText: '确定',
-                            cancelButtonText: '取消',
-                            type: 'warning'
-                        }).then(() => {
-                            row.status = '已发布';
-                            this.$message.success('发布成功');
-                        }).catch(() => {});
-                    }
-                },
-                generatePage() {
-                    this.isGenerating = true;
-                    const message = this.aiInput.trim();
-                    if (message) {
-                        // 截取前30个字符作为页面名称
-                        const pageName = message.length > 30 ? message.substring(0, 30) + '...' : message;
-                        
-                        this.aiMessages.push({
-                            content: message,
-                            isUser: true
-                        });
-                        this.aiInput = '';
-                        
-                        // 先添加AI响应消息
-                        this.aiMessages.push({
-                            content: '正在分析您的需求...',
-                            isUser: false
-                        });
-                        
-                        // 延迟显示进度条，产生渐入效果
-                        setTimeout(() => {
-                            this.showProcess = true;
-                            
-                            // 开始生成流程
-                            this.currentStep = 1;
-                            
-                            // 模拟生成流程
-                            const steps = [
-                                '正在生成页面布局...',
-                                '正在生成业务流程...',
-                                '正在配置权限规则...',
-                                '页面生成完成！'
-                            ];
-                            
-                            steps.forEach((step, index) => {
-                                setTimeout(() => {
-                                    this.currentStep = index + 1;
-                                    this.aiMessages.push({
-                                        content: step,
-                                        isUser: false
-                                    });
-                                    
-                                    // 在最后一步完成后显示结果
-                                    if (index === steps.length - 1) {
-                                        setTimeout(() => {
-                                            this.showProcess = false;
-                                            this.isGenerating = false;
-                                            
-                                            // 创建新的页面
-                                            const page = {
-                                                name: pageName,
-                                                type: '管理页面',
-                                                createTime: new Date().toLocaleString(),
-                                                status: '未发布',
-                                                level: 1
-                                            };
-                                            
-                                            this.pageList.unshift(page);
-                                            this.showAiDialog = false;
-                                            this.$message.success('页面生成成功！');
-                                        }, 500);
-                                    }
-                                }, (index + 1) * 1500);
-                            });
-                        }, 500);
-                    }
-                },
-                handlePreviewWorkflow(row) {
-                    this.$message('预览流程图：' + row.name);
-                    // 这里可以添加预览流程图的逻辑
-                },
-                
-                editWorkflow(row) {
-                    const params = new URLSearchParams({
-                        name: row.name,
-                        type: row.type,
-                        department: row.department,
-                        status: row.status,
-                        icon: row.icon
+
+                    // 先添加AI响应消息
+                    this.aiMessages.push({
+                        content: '正在分析您的需求...',
+                        isUser: false
                     });
-                    window.location.href = `workflow-editor.html?${params.toString()}`;
-                },
-                
-                handleWorkflowStatus(row) {
-                    const action = row.status === '已启用' ? '停用' : '启用';
-                    this.$confirm(`确认${action}该流程吗？`, '提示', {
-                        confirmButtonText: '确定',
-                        cancelButtonText: '取消',
-                        type: 'warning'
-                    }).then(() => {
-                        row.status = row.status === '已启用' ? '未启用' : '已启用';
-                        this.$message.success(`${action}成功`);
-                    }).catch(() => {});
-                },
-                createWorkflow() {
-                    if (!this.newWorkflow.name || !this.newWorkflow.department) {
-                        this.$message.warning('请填写完整信息');
-                        return;
-                    }
 
-                    const workflow = {
-                        ...this.newWorkflow,
-                        createTime: new Date().toLocaleString(),
-                        status: '未启用',
-                        icon: this.newWorkflow.type === '审批流程' ? 'el-icon-document-checked' : 'el-icon-set-up',
-                        level: 1,
-                        children: []
-                    };
-
-                    this.workflowList.unshift(workflow);
-                    this.showWorkflowDialog = false;
-                    this.$message.success('创建成功');
-
-                    // 重置表单
-                    this.newWorkflow = {
-                        name: '',
-                        type: '工作流程',
-                        department: ''
-                    };
-                },
-                handleWorkflowDialogOpen() {
-                    // 重置所有状态
-                    this.isGeneratingWorkflow = false;
-                    this.showWorkflowProcess = false;
-                    this.showWorkflowResult = false;
-                    this.workflowAiMessages = [];
-                    this.workflowAiInput = '';
-                    this.currentWorkflowStep = 0;
-                    
-                    // 添加欢迎消息
+                    // 延迟显示进度条，产生渐入效果
                     setTimeout(() => {
-                        this.workflowAiMessages = [{
-                            content: '欢迎使用 AI 流程生成器，请描述您想要的业务流程，我会帮您生成对应的工作流。',
-                            isUser: false
-                        }];
-                    }, 300);
-                },
-                generateWorkflow() {
-                    this.isGeneratingWorkflow = true;
-                    const message = this.workflowAiInput.trim();
-                    if (message) {
-                        // 截取前30个字符作为流程名称
-                        const workflowName = message.length > 30 ? message.substring(0, 30) + '...' : message;
-                        
-                        this.workflowAiMessages.push({
-                            content: message,
-                            isUser: true
-                        });
-                        this.workflowAiInput = '';
-                        
-                        // 先添加AI响应消息
-                        this.workflowAiMessages.push({
-                            content: '正在分析您的流程需求...',
-                            isUser: false
-                        });
-                        
-                        // 延迟显示进度条，产生渐入效果
-                        setTimeout(() => {
-                            this.showWorkflowProcess = true;
-                            this.showWorkflowResult = false;
-                            
-                            // 开始生成流程
-                            this.currentWorkflowStep = 1;
-                            
-                            // 模拟生成流程
-                            const steps = [
-                                '正在分析业务场景...',
-                                '正在生成流程节点...',
-                                '正在配置审批角色...',
-                                '流程生成完成！'
-                            ];
-                            
-                            steps.forEach((step, index) => {
-                                setTimeout(() => {
-                                    this.currentWorkflowStep = index + 1;
-                                    this.workflowAiMessages.push({
-                                        content: step,
-                                        isUser: false
-                                    });
-                                    
-                                    // 在最后一步完成后显示结果
-                                    if (index === steps.length - 1) {
-                                        setTimeout(() => {
-                                            this.showWorkflowProcess = false;
-                                            setTimeout(() => {
-                                                // 创建新的流程
-                                                const workflow = {
-                                                    name: workflowName,  // 使用用户输入的名称
-                                                    type: message.includes('审批') ? '审批流程' : '工作流程',  // 根据输入内容智能判断流程类型
-                                                    department: '系统管理部',
-                                                    createTime: new Date().toLocaleString(),
-                                                    status: '未启用',
-                                                    icon: message.includes('审批') ? 'el-icon-document-checked' : 'el-icon-set-up',  // 根据类型设置图标
-                                                    level: 1,
-                                                    children: []
-                                                };
-                                                
-                                                this.workflowList.unshift(workflow);
-                                                this.showWorkflowAiDialog = false;
-                                                this.$message.success('流程生成成功！');
-                                            }, 300);
-                                        }, 500);
-                                    }
-                                }, (index + 1) * 1500);
-                            });
-                        }, 500);
-                    }
-                },
-                handlePreviewDataflow(row) {
-                    this.$message('预览数据流程：' + row.name);
-                },
-                
-                editDataflow(row) {
-                    const params = new URLSearchParams({
-                        name: row.name,
-                        type: row.type,
-                        source: row.source,
-                        status: row.status,
-                        icon: row.icon
-                    });
-                    window.location.href = `dataflow-editor.html?${params.toString()}`;
-                },
-                
-                handleDataflowStatus(row) {
-                    const action = row.status === '运行中' ? '停止' : '启动';
-                    this.$confirm(`确认${action}该数据流程吗？`, '提示', {
-                        confirmButtonText: '确定',
-                        cancelButtonText: '取消',
-                        type: 'warning'
-                    }).then(() => {
-                        row.status = row.status === '运行中' ? '已停止' : '运行中';
-                        this.$message.success(`${action}成功`);
-                    }).catch(() => {});
-                },
-                handleDataflowDialogOpen() {
-                    // 重置所有状态
-                    this.isGeneratingDataflow = false;
-                    this.showDataflowProcess = false;
-                    this.showDataflowResult = false;
-                    this.dataflowAiMessages = [];
-                    this.dataflowAiInput = '';
-                    this.currentDataflowStep = 0;
-                    
-                    // 添加欢迎消息
-                    setTimeout(() => {
-                        this.dataflowAiMessages = [{
-                            content: '欢迎使用 AI 数据流程生成器，请描述您想要的数据流程，我会帮您生成对应的流程。',
-                            isUser: false
-                        }];
-                    }, 300);
-                },
-                generateDataflow() {
-                    this.isGeneratingDataflow = true;
-                    const message = this.dataflowAiInput.trim();
-                    if (message) {
-                        this.dataflowAiMessages.push({
-                            content: message,
-                            isUser: true
-                        });
-                        this.dataflowAiInput = '';
-                        
-                        // 先添加AI响应消息
-                        this.dataflowAiMessages.push({
-                            content: '正在分析您的数据流程需求...',
-                            isUser: false
-                        });
-                        
-                        // 延迟显示进度条，产生渐入效果
-                        setTimeout(() => {
-                            this.showDataflowProcess = true;
-                            
-                            // 开始生成流程
-                            this.currentDataflowStep = 1;
-                            
-                            // 模拟生成流程
-                            const steps = [
-                                '正在分析数据结构...',
-                                '正在生成流程节点...',
-                                '正在配置数据源...',
-                                '流程生成完成！'
-                            ];
-                            
-                            steps.forEach((step, index) => {
-                                setTimeout(() => {
-                                    this.currentDataflowStep = index + 1;
-                                    this.dataflowAiMessages.push({
-                                        content: step,
-                                        isUser: false
-                                    });
-                                    
-                                    // 在最后一步完成后显示结果
-                                    if (index === steps.length - 1) {
-                                        setTimeout(() => {
-                                            this.showDataflowProcess = false;
-                                            setTimeout(() => {
-                                                // 创建新的数据流程
-                                                const dataflow = {
-                                                    name: message.length > 30 ? message.substring(0, 30) + '...' : message,
-                                                    type: message.includes('同步') ? '同步流程' : '处理流程',
-                                                    source: '数据中心',
-                                                    createTime: new Date().toLocaleString(),
-                                                    status: '已停止',
-                                                    icon: message.includes('同步') ? 'el-icon-refresh' : 'el-icon-data-line',
-                                                    level: 1,
-                                                    children: []
-                                                };
-                                                
-                                                this.dataflowList.unshift(dataflow);
-                                                this.showDataflowAiDialog = false;
-                                                this.$message.success('数据流程生成成功！');
-                                            }, 300);
-                                        }, 500);
-                                    }
-                                }, (index + 1) * 1500);
-                            });
-                        }, 500);
-                    }
-                },
-                handlePageSizeChange(val) {
-                    this.pageConfig.pages.pageSize = val;
-                    this.updatePageList();
-                },
-                handlePageChange(val) {
-                    this.pageConfig.pages.currentPage = val;
-                    this.updatePageList();
-                },
-                handleWorkflowPageSizeChange(val) {
-                    this.pageConfig.workflows.pageSize = val;
-                    this.updateWorkflowList();
-                },
-                handleWorkflowPageChange(val) {
-                    this.pageConfig.workflows.currentPage = val;
-                    this.updateWorkflowList();
-                },
-                handleDataflowPageSizeChange(val) {
-                    this.pageConfig.dataflows.pageSize = val;
-                    this.updateDataflowList();
-                },
-                handleDataflowPageChange(val) {
-                    this.pageConfig.dataflows.currentPage = val;
-                    this.updateDataflowList();
-                },
-                updatePageList() {
-                    // Update total count
-                    this.pageConfig.pages.total = this.pageList.length;
-                },
-                updateWorkflowList() {
-                    // Update total count
-                    this.pageConfig.workflows.total = this.workflowList.length;
-                },
-                updateDataflowList() {
-                    // Update total count
-                    this.pageConfig.dataflows.total = this.dataflowList.length;
-                },
-                created() {
-                    // 从URL参数获取流程数据
-                    const params = new URLSearchParams(window.location.search);
-                    const dataflowData = {
-                        name: params.get('name') || '未命名流程',
-                        type: params.get('type') || '同步流程',
-                        source: params.get('source') || '数据中心',
-                        status: params.get('status') || '已停止',
-                        icon: params.get('icon') || 'el-icon-data-line'
-                    };
-                    this.dataflowData = dataflowData;
-                    
-                    // 初始化示例节点
-                    this.nodes = [
-                        // ... existing nodes ...
-                    ];
+                        this.showProcess = true;
 
-                    // 初始化分页数据
-                    this.updatePageList();
-                    this.updateWorkflowList();
-                    this.updateDataflowList();
+                        // 开始生成流程
+                        this.currentStep = 1;
+
+                        // 模拟生成流程
+                        const steps = [
+                            '正在生成页面布局...',
+                            '正在生成业务流程...',
+                            '正在配置权限规则...',
+                            '页面生成完成！'
+                        ];
+
+                        steps.forEach((step, index) => {
+                            setTimeout(() => {
+                                this.currentStep = index + 1;
+                                this.aiMessages.push({
+                                    content: step,
+                                    isUser: false
+                                });
+
+                                // 在最后一步完成后显示结果
+                                if (index === steps.length - 1) {
+                                    setTimeout(() => {
+                                        this.showProcess = false;
+                                        this.isGenerating = false;
+
+                                        // 创建新的页面
+                                        const page = {
+                                            name: pageName,
+                                            type: '管理页面',
+                                            createTime: new Date().toLocaleString(),
+                                            status: '未发布',
+                                            level: 1
+                                        };
+
+                                        this.pageList.unshift(page);
+                                        this.showAiDialog = false;
+                                        this.$message.success('页面生成成功！');
+                                    }, 500);
+                                }
+                            }, (index + 1) * 1500);
+                        });
+                    }, 500);
                 }
+            },
+            handlePreviewWorkflow(row) {
+                this.$message('预览流程图：' + row.name);
+                // 这里可以添加预览流程图的逻辑
+            },
+
+            editWorkflow(row) {
+                const params = new URLSearchParams({
+                    name: row.name,
+                    type: row.type,
+                    department: row.department,
+                    status: row.status,
+                    icon: row.icon
+                });
+                window.location.href = `workflow-editor.html?${params.toString()}`;
+            },
+
+            handleWorkflowStatus(row) {
+                const action = row.status === '已启用' ? '停用' : '启用';
+                this.$confirm(`确认${action}该流程吗？`, '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    row.status = row.status === '已启用' ? '未启用' : '已启用';
+                    this.$message.success(`${action}成功`);
+                }).catch(() => {});
+            },
+            createWorkflow() {
+                if (!this.newWorkflow.name || !this.newWorkflow.department) {
+                    this.$message.warning('请填写完整信息');
+                    return;
+                }
+
+                const workflow = {
+                    ...this.newWorkflow,
+                    createTime: new Date().toLocaleString(),
+                    status: '未启用',
+                    icon: this.newWorkflow.type === '审批流程' ? 'el-icon-document-checked' : 'el-icon-set-up',
+                    level: 1,
+                    children: []
+                };
+
+                this.workflowList.unshift(workflow);
+                this.showWorkflowDialog = false;
+                this.$message.success('创建成功');
+
+                // 重置表单
+                this.newWorkflow = {
+                    name: '',
+                    type: '工作流程',
+                    department: ''
+                };
+            },
+            handleWorkflowDialogOpen() {
+                // 重置所有状态
+                this.isGeneratingWorkflow = false;
+                this.showWorkflowProcess = false;
+                this.showWorkflowResult = false;
+                this.workflowAiMessages = [];
+                this.workflowAiInput = '';
+                this.currentWorkflowStep = 0;
+
+                // 添加欢迎消息
+                setTimeout(() => {
+                    this.workflowAiMessages = [{
+                        content: '欢迎使用 AI 流程生成器，请描述您想要的业务流程，我会帮您生成对应的工作流。',
+                        isUser: false
+                    }];
+                }, 300);
+            },
+            generateWorkflow() {
+                this.isGeneratingWorkflow = true;
+                const message = this.workflowAiInput.trim();
+                if (message) {
+                    // 截取前30个字符作为流程名称
+                    const workflowName = message.length > 30 ? message.substring(0, 30) + '...' : message;
+
+                    this.workflowAiMessages.push({
+                        content: message,
+                        isUser: true
+                    });
+                    this.workflowAiInput = '';
+
+                    // 先添加AI响应消息
+                    this.workflowAiMessages.push({
+                        content: '正在分析您的流程需求...',
+                        isUser: false
+                    });
+
+                    // 延迟显示进度条，产生渐入效果
+                    setTimeout(() => {
+                        this.showWorkflowProcess = true;
+                        this.showWorkflowResult = false;
+
+                        // 开始生成流程
+                        this.currentWorkflowStep = 1;
+
+                        // 模拟生成流程
+                        const steps = [
+                            '正在分析业务场景...',
+                            '正在生成流程节点...',
+                            '正在配置审批角色...',
+                            '流程生成完成！'
+                        ];
+
+                        steps.forEach((step, index) => {
+                            setTimeout(() => {
+                                this.currentWorkflowStep = index + 1;
+                                this.workflowAiMessages.push({
+                                    content: step,
+                                    isUser: false
+                                });
+
+                                // 在最后一步完成后显示结果
+                                if (index === steps.length - 1) {
+                                    setTimeout(() => {
+                                        this.showWorkflowProcess = false;
+                                        setTimeout(() => {
+                                            // 创建新的流程
+                                            const workflow = {
+                                                name: workflowName,  // 使用用户输入的名称
+                                                type: message.includes('审批') ? '审批流程' : '工作流程',  // 根据输入内容智能判断流程类型
+                                                department: '系统管理部',
+                                                createTime: new Date().toLocaleString(),
+                                                status: '未启用',
+                                                icon: message.includes('审批') ? 'el-icon-document-checked' : 'el-icon-set-up',  // 根据类型设置图标
+                                                level: 1,
+                                                children: []
+                                            };
+
+                                            this.workflowList.unshift(workflow);
+                                            this.showWorkflowAiDialog = false;
+                                            this.$message.success('流程生成成功！');
+                                        }, 300);
+                                    }, 500);
+                                }
+                            }, (index + 1) * 1500);
+                        });
+                    }, 500);
+                }
+            },
+            handlePreviewDataflow(row) {
+                this.$message('预览数据流程：' + row.name);
+            },
+
+            editDataflow(row) {
+                const params = new URLSearchParams({
+                    name: row.name,
+                    type: row.type,
+                    source: row.source,
+                    status: row.status,
+                    icon: row.icon
+                });
+                window.location.href = `dataflow-editor.html?${params.toString()}`;
+            },
+
+            handleDataflowStatus(row) {
+                const action = row.status === '运行中' ? '停止' : '启动';
+                this.$confirm(`确认${action}该数据流程吗？`, '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    row.status = row.status === '运行中' ? '已停止' : '运行中';
+                    this.$message.success(`${action}成功`);
+                }).catch(() => {});
+            },
+            handleDataflowDialogOpen() {
+                // 重置所有状态
+                this.isGeneratingDataflow = false;
+                this.showDataflowProcess = false;
+                this.showDataflowResult = false;
+                this.dataflowAiMessages = [];
+                this.dataflowAiInput = '';
+                this.currentDataflowStep = 0;
+
+                // 添加欢迎消息
+                setTimeout(() => {
+                    this.dataflowAiMessages = [{
+                        content: '欢迎使用 AI 数据流程生成器，请描述您想要的数据流程，我会帮您生成对应的流程。',
+                        isUser: false
+                    }];
+                }, 300);
+            },
+            generateDataflow() {
+                this.isGeneratingDataflow = true;
+                const message = this.dataflowAiInput.trim();
+                if (message) {
+                    this.dataflowAiMessages.push({
+                        content: message,
+                        isUser: true
+                    });
+                    this.dataflowAiInput = '';
+
+                    // 先添加AI响应消息
+                    this.dataflowAiMessages.push({
+                        content: '正在分析您的数据流程需求...',
+                        isUser: false
+                    });
+
+                    // 延迟显示进度条，产生渐入效果
+                    setTimeout(() => {
+                        this.showDataflowProcess = true;
+
+                        // 开始生成流程
+                        this.currentDataflowStep = 1;
+
+                        // 模拟生成流程
+                        const steps = [
+                            '正在分析数据结构...',
+                            '正在生成流程节点...',
+                            '正在配置数据源...',
+                            '流程生成完成！'
+                        ];
+
+                        steps.forEach((step, index) => {
+                            setTimeout(() => {
+                                this.currentDataflowStep = index + 1;
+                                this.dataflowAiMessages.push({
+                                    content: step,
+                                    isUser: false
+                                });
+
+                                // 在最后一步完成后显示结果
+                                if (index === steps.length - 1) {
+                                    setTimeout(() => {
+                                        this.showDataflowProcess = false;
+                                        setTimeout(() => {
+                                            // 创建新的数据流程
+                                            const dataflow = {
+                                                name: message.length > 30 ? message.substring(0, 30) + '...' : message,
+                                                type: message.includes('同步') ? '同步流程' : '处理流程',
+                                                source: '数据中心',
+                                                createTime: new Date().toLocaleString(),
+                                                status: '已停止',
+                                                icon: message.includes('同步') ? 'el-icon-refresh' : 'el-icon-data-line',
+                                                level: 1,
+                                                children: []
+                                            };
+
+                                            this.dataflowList.unshift(dataflow);
+                                            this.showDataflowAiDialog = false;
+                                            this.$message.success('数据流程生成成功！');
+                                        }, 300);
+                                    }, 500);
+                                }
+                            }, (index + 1) * 1500);
+                        });
+                    }, 500);
+                }
+            },
+            handlePageSizeChange(val) {
+                this.pageConfig.pages.pageSize = val;
+                this.updatePageList();
+            },
+            handlePageChange(val) {
+                this.pageConfig.pages.currentPage = val;
+                this.updatePageList();
+            },
+            handleWorkflowPageSizeChange(val) {
+                this.pageConfig.workflows.pageSize = val;
+                this.updateWorkflowList();
+            },
+            handleWorkflowPageChange(val) {
+                this.pageConfig.workflows.currentPage = val;
+                this.updateWorkflowList();
+            },
+            handleDataflowPageSizeChange(val) {
+                this.pageConfig.dataflows.pageSize = val;
+                this.updateDataflowList();
+            },
+            handleDataflowPageChange(val) {
+                this.pageConfig.dataflows.currentPage = val;
+                this.updateDataflowList();
+            },
+            updatePageList() {
+                // Update total count
+                this.pageConfig.pages.total = this.pageList.length;
+            },
+            updateWorkflowList() {
+                // Update total count
+                this.pageConfig.workflows.total = this.workflowList.length;
+            },
+            updateDataflowList() {
+                // Update total count
+                this.pageConfig.dataflows.total = this.dataflowList.length;
+            },
+            created() {
+                // 从URL参数获取流程数据
+                const params = new URLSearchParams(window.location.search);
+                const dataflowData = {
+                    name: params.get('name') || '未命名流程',
+                    type: params.get('type') || '同步流程',
+                    source: params.get('source') || '数据中心',
+                    status: params.get('status') || '已停止',
+                    icon: params.get('icon') || 'el-icon-data-line'
+                };
+                this.dataflowData = dataflowData;
+
+                // 初始化示例节点
+                this.nodes = [
+                    // ... existing nodes ...
+                ];
+
+                // 初始化分页数据
+                this.updatePageList();
+                this.updateWorkflowList();
+                this.updateDataflowList();
             }
-        })
-    </script>
+        }
+    })
+</script>
 </body>
 </html> 

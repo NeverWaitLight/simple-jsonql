@@ -32,35 +32,35 @@ public class MetadataTest {
 
         // 验证属性
         assertFalse(userMetadata.getProperties().isEmpty(), "User should have properties");
-        
+
         // 验证基本属性
         userMetadata.getProperties().stream()
-            .filter(prop -> prop.getRelationshipType() == null)
-            .forEach(prop -> {
-                assertNotNull(prop.getName(), "Property name should not be null");
-                assertNotNull(prop.getColumn(), "Column name should not be null");
-                assertNotNull(prop.getType(), "Type should not be null");
-            });
+                .filter(prop -> prop.getRelationshipType() == null)
+                .forEach(prop -> {
+                    assertNotNull(prop.getName(), "Property name should not be null");
+                    assertNotNull(prop.getColumn(), "Column name should not be null");
+                    assertNotNull(prop.getType(), "Type should not be null");
+                });
 
         // 验证关联属性
         userMetadata.getProperties().stream()
-            .filter(prop -> prop.getRelationshipType() != null)
-            .forEach(prop -> {
-                assertNotNull(prop.getRelationshipType(), "Relationship type should not be null");
-                assertNotNull(prop.getTargetEntity(), "Target entity should not be null");
-                
-                if (prop.getRelationshipType() == RelationshipType.ONE_TO_MANY) {
-                    assertNotNull(prop.getMappedBy(), "OneToMany should have mappedBy");
-                }
-                
-                if (prop.getRelationshipType() == RelationshipType.MANY_TO_ONE) {
-                    assertNotNull(prop.getForeignKeyName(), "ManyToOne should have foreignKeyName");
-                }
-                
-                if (prop.getRelationshipType() == RelationshipType.MANY_TO_MANY) {
-                    assertNotNull(prop.getJoinTableName(), "ManyToMany should have joinTableName");
-                }
-            });
+                .filter(prop -> prop.getRelationshipType() != null)
+                .forEach(prop -> {
+                    assertNotNull(prop.getRelationshipType(), "Relationship type should not be null");
+                    assertNotNull(prop.getTargetEntity(), "Target entity should not be null");
+
+                    if (prop.getRelationshipType() == RelationshipType.ONE_TO_MANY) {
+                        assertNotNull(prop.getMappedBy(), "OneToMany should have mappedBy");
+                    }
+
+                    if (prop.getRelationshipType() == RelationshipType.MANY_TO_ONE) {
+                        assertNotNull(prop.getForeignKeyName(), "ManyToOne should have foreignKeyName");
+                    }
+
+                    if (prop.getRelationshipType() == RelationshipType.MANY_TO_MANY) {
+                        assertNotNull(prop.getJoinTableName(), "ManyToMany should have joinTableName");
+                    }
+                });
     }
 
     @Test
@@ -73,26 +73,26 @@ public class MetadataTest {
 
         // 验证属性
         assertFalse(blogMetadata.getProperties().isEmpty(), "Blog should have properties");
-        
+
         // 验证基本属性
         blogMetadata.getProperties().stream()
-            .filter(prop -> prop.getRelationshipType() == null)
-            .forEach(prop -> {
-                assertNotNull(prop.getName(), "Property name should not be null");
-                assertNotNull(prop.getColumn(), "Column name should not be null");
-                assertNotNull(prop.getType(), "Type should not be null");
-            });
+                .filter(prop -> prop.getRelationshipType() == null)
+                .forEach(prop -> {
+                    assertNotNull(prop.getName(), "Property name should not be null");
+                    assertNotNull(prop.getColumn(), "Column name should not be null");
+                    assertNotNull(prop.getType(), "Type should not be null");
+                });
 
         // 验证关联属性
         blogMetadata.getProperties().stream()
-            .filter(prop -> prop.getRelationshipType() != null)
-            .forEach(prop -> {
-                assertNotNull(prop.getRelationshipType(), "Relationship type should not be null");
-                assertNotNull(prop.getTargetEntity(), "Target entity should not be null");
-                
-                if (prop.getRelationshipType() == RelationshipType.MANY_TO_ONE) {
-                    assertNotNull(prop.getForeignKeyName(), "ManyToOne should have foreignKeyName");
-                }
-            });
+                .filter(prop -> prop.getRelationshipType() != null)
+                .forEach(prop -> {
+                    assertNotNull(prop.getRelationshipType(), "Relationship type should not be null");
+                    assertNotNull(prop.getTargetEntity(), "Target entity should not be null");
+
+                    if (prop.getRelationshipType() == RelationshipType.MANY_TO_ONE) {
+                        assertNotNull(prop.getForeignKeyName(), "ManyToOne should have foreignKeyName");
+                    }
+                });
     }
 }

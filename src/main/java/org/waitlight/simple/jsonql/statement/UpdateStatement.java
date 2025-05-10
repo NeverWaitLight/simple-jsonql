@@ -12,7 +12,7 @@ import java.util.List;
 public class UpdateStatement extends JsonQLStatement {
     @JsonProperty("dataId")
     private String dataId;
-    
+
     @JsonProperty("fields")
     private List<Field> fields;
 } 

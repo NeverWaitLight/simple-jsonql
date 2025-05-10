@@ -11,7 +11,7 @@ import java.util.List;
 public class Filter {
     @JsonProperty("rel")
     private String rel;
-    
+
     @JsonProperty("conditions")
     private List<Condition> conditions;
 }

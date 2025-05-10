@@ -70,7 +70,7 @@ public class DataController {
     @PostMapping("/page")
     public ResponseEntity<PageResponse<Map<String, Object>>> page(@RequestBody PageRequest pageRequest) {
         PageResult<Map<String, Object>> pageResult = dataService.page(pageRequest);
-        
+
         PageResponse<Map<String, Object>> response = new PageResponse<>();
         response.setCode(200);
         response.setMessage("OK");
@@ -79,7 +79,7 @@ public class DataController {
         response.setPage(pageResult.getPage());
         response.setSize(pageResult.getSize());
         response.setTotalPages(pageResult.getTotalPages());
-        
+
         return ResponseEntity.ok(response);
     }
 } 

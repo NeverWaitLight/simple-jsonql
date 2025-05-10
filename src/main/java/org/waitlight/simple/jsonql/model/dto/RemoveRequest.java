@@ -6,22 +6,22 @@ import java.util.List;
  * 数据删除请求
  */
 public class RemoveRequest {
-    
+
     /**
      * 应用ID
      */
     private String appId;
-    
+
     /**
      * 表单ID
      */
     private String formId;
-    
+
     /**
      * 实体ID
      */
     private String entityId;
-    
+
     /**
      * 要删除的数据ID数组
      */

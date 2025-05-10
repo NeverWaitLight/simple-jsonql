@@ -1,9 +1,9 @@
 package org.waitlight.simple.jsonql.engine.sqlparser;
 
+import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.statement.JsonQLStatement;
 import org.waitlight.simple.jsonql.statement.UpdateStatement;
 import org.waitlight.simple.jsonql.statement.model.Field;
-import org.waitlight.simple.jsonql.statement.JsonQLStatement;
-import org.waitlight.simple.jsonql.metadata.MetadataSources;
 
 import java.util.ArrayList;
 import java.util.List;

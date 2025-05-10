@@ -11,8 +11,9 @@ public class ModuleRegistry {
 
     /**
      * 注册模块
+     *
      * @param moduleType 模块类型名称
-     * @param module 模块实例
+     * @param module     模块实例
      */
     public void registerModule(String moduleType, Module module) {
         modules.put(moduleType, module);
@@ -20,6 +21,7 @@ public class ModuleRegistry {
 
     /**
      * 获取模块实例
+     *
      * @param moduleType 模块类型名称
      * @return 模块实例，未找到返回null
      */

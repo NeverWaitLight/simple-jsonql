@@ -78,82 +78,82 @@
     </style>
 </head>
 <body>
-    <div id="app">
-        <el-container>
-            <el-header>
-                <div style="display: flex; justify-content: space-between; width: 100%;">
-                    <el-button @click="goBack">返回</el-button>
-                    <span style="font-size: 18px;">{{ pageName }}</span>
-                    <div>
-                        <el-button type="primary" @click="goToEditor">手动编辑</el-button>
-                        <el-button type="success" @click="handlePublish">发布</el-button>
-                    </div>
+<div id="app">
+    <el-container>
+        <el-header>
+            <div style="display: flex; justify-content: space-between; width: 100%;">
+                <el-button @click="goBack">返回</el-button>
+                <span style="font-size: 18px;">{{ pageName }}</span>
+                <div>
+                    <el-button type="primary" @click="goToEditor">手动编辑</el-button>
+                    <el-button type="success" @click="handlePublish">发布</el-button>
                 </div>
-            </el-header>
-            
-            <el-main>
-                <div class="page-container">
-                    <div class="page-header">
-                        <h2>库存管理</h2>
-                        <el-button type="primary" icon="el-icon-plus">新增商品</el-button>
-                    </div>
+            </div>
+        </el-header>
 
-                    <div class="search-form">
-                        <el-form :inline="true" :model="searchForm" size="small">
-                            <el-form-item label="商品名称">
-                                <el-input v-model="searchForm.name" placeholder="请输入商品名称"></el-input>
-                            </el-form-item>
-                            <el-form-item label="商品类别">
-                                <el-select v-model="searchForm.category" placeholder="请选择商品类别">
-                                    <el-option label="电子产品" value="electronics"></el-option>
-                                    <el-option label="服装" value="clothing"></el-option>
-                                    <el-option label="食品" value="food"></el-option>
-                                </el-select>
-                            </el-form-item>
-                            <el-form-item label="库存状态">
-                                <el-select v-model="searchForm.status" placeholder="请选择库存状态">
-                                    <el-option label="充足" value="sufficient"></el-option>
-                                    <el-option label="不足" value="insufficient"></el-option>
-                                    <el-option label="告急" value="critical"></el-option>
-                                </el-select>
-                            </el-form-item>
-                            <el-form-item>
-                                <el-button type="primary" icon="el-icon-search">搜索</el-button>
-                                <el-button icon="el-icon-refresh">重置</el-button>
-                            </el-form-item>
-                        </el-form>
-                    </div>
+        <el-main>
+            <div class="page-container">
+                <div class="page-header">
+                    <h2>库存管理</h2>
+                    <el-button type="primary" icon="el-icon-plus">新增商品</el-button>
+                </div>
 
-                    <div class="table-operations">
-                        <el-button-group>
-                            <el-button size="small" icon="el-icon-download">导出</el-button>
-                            <el-button size="small" icon="el-icon-refresh">刷新</el-button>
-                        </el-button-group>
-                    </div>
+                <div class="search-form">
+                    <el-form :inline="true" :model="searchForm" size="small">
+                        <el-form-item label="商品名称">
+                            <el-input v-model="searchForm.name" placeholder="请输入商品名称"></el-input>
+                        </el-form-item>
+                        <el-form-item label="商品类别">
+                            <el-select v-model="searchForm.category" placeholder="请选择商品类别">
+                                <el-option label="电子产品" value="electronics"></el-option>
+                                <el-option label="服装" value="clothing"></el-option>
+                                <el-option label="食品" value="food"></el-option>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="库存状态">
+                            <el-select v-model="searchForm.status" placeholder="请选择库存状态">
+                                <el-option label="充足" value="sufficient"></el-option>
+                                <el-option label="不足" value="insufficient"></el-option>
+                                <el-option label="告急" value="critical"></el-option>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-button type="primary" icon="el-icon-search">搜索</el-button>
+                            <el-button icon="el-icon-refresh">重置</el-button>
+                        </el-form-item>
+                    </el-form>
+                </div>
 
-                    <el-table :data="tableData" style="width: 100%" border>
-                        <el-table-column prop="id" label="商品编号" width="120"></el-table-column>
-                        <el-table-column prop="name" label="商品名称"></el-table-column>
-                        <el-table-column prop="category" label="类别" width="120"></el-table-column>
-                        <el-table-column prop="price" label="单价" width="120"></el-table-column>
-                        <el-table-column prop="stock" label="库存数量" width="120"></el-table-column>
-                        <el-table-column prop="status" label="状态" width="100">
-                            <template slot-scope="scope">
-                                <el-tag :type="getStatusType(scope.row.status)" class="status-tag">
-                                    {{ scope.row.status }}
-                                </el-tag>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="操作" width="200">
-                            <template slot-scope="scope">
-                                <el-button size="mini" @click="handleEdit(scope.row)">编辑</el-button>
-                                <el-button size="mini" type="danger" @click="handleDelete(scope.row)">删除</el-button>
-                            </template>
-                        </el-table-column>
-                    </el-table>
+                <div class="table-operations">
+                    <el-button-group>
+                        <el-button size="small" icon="el-icon-download">导出</el-button>
+                        <el-button size="small" icon="el-icon-refresh">刷新</el-button>
+                    </el-button-group>
+                </div>
 
-                    <div style="margin-top: 20px; text-align: right;">
-                        <el-pagination
+                <el-table :data="tableData" style="width: 100%" border>
+                    <el-table-column prop="id" label="商品编号" width="120"></el-table-column>
+                    <el-table-column prop="name" label="商品名称"></el-table-column>
+                    <el-table-column prop="category" label="类别" width="120"></el-table-column>
+                    <el-table-column prop="price" label="单价" width="120"></el-table-column>
+                    <el-table-column prop="stock" label="库存数量" width="120"></el-table-column>
+                    <el-table-column prop="status" label="状态" width="100">
+                        <template slot-scope="scope">
+                            <el-tag :type="getStatusType(scope.row.status)" class="status-tag">
+                                {{ scope.row.status }}
+                            </el-tag>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="操作" width="200">
+                        <template slot-scope="scope">
+                            <el-button size="mini" @click="handleEdit(scope.row)">编辑</el-button>
+                            <el-button size="mini" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+
+                <div style="margin-top: 20px; text-align: right;">
+                    <el-pagination
                             @size-change="handleSizeChange"
                             @current-change="handleCurrentChange"
                             :current-page="pagination.currentPage"
@@ -161,108 +161,108 @@
                             :page-size="pagination.pageSize"
                             layout="total, sizes, prev, pager, next, jumper"
                             :total="pagination.total">
-                        </el-pagination>
-                    </div>
+                    </el-pagination>
                 </div>
-            </el-main>
-        </el-container>
-    </div>
+            </div>
+        </el-main>
+    </el-container>
+</div>
 
-    <!-- 引入Vue和Element UI -->
-    <script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
-    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
-    <script>
-        new Vue({
-            el: '#app',
-            data() {
-                return {
-                    searchForm: {
-                        name: '',
-                        category: '',
-                        status: ''
+<!-- 引入Vue和Element UI -->
+<script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                searchForm: {
+                    name: '',
+                    category: '',
+                    status: ''
+                },
+                tableData: [
+                    {
+                        id: 'SP001',
+                        name: 'iPhone 13',
+                        category: '电子产品',
+                        price: '5999.00',
+                        stock: 100,
+                        status: '充足'
                     },
-                    tableData: [
-                        {
-                            id: 'SP001',
-                            name: 'iPhone 13',
-                            category: '电子产品',
-                            price: '5999.00',
-                            stock: 100,
-                            status: '充足'
-                        },
-                        {
-                            id: 'SP002',
-                            name: '休闲夹克',
-                            category: '服装',
-                            price: '299.00',
-                            stock: 15,
-                            status: '不足'
-                        },
-                        {
-                            id: 'SP003',
-                            name: '进口零食大礼包',
-                            category: '食品',
-                            price: '99.00',
-                            stock: 5,
-                            status: '告急'
-                        }
-                    ],
-                    pagination: {
-                        currentPage: 1,
-                        pageSize: 10,
-                        total: 100
+                    {
+                        id: 'SP002',
+                        name: '休闲夹克',
+                        category: '服装',
+                        price: '299.00',
+                        stock: 15,
+                        status: '不足'
+                    },
+                    {
+                        id: 'SP003',
+                        name: '进口零食大礼包',
+                        category: '食品',
+                        price: '99.00',
+                        stock: 5,
+                        status: '告急'
                     }
-                }
-            },
-            methods: {
-                goBack() {
-                    window.location.href = 'ai-generator.html';
-                },
-                goToEditor() {
-                    window.location.href = 'layout-editor.html';
-                },
-                getStatusType(status) {
-                    const types = {
-                        '充足': 'success',
-                        '不足': 'warning',
-                        '告急': 'danger'
-                    };
-                    return types[status] || 'info';
-                },
-                handleEdit(row) {
-                    this.$message.success('编辑功能开发中...');
-                },
-                handleDelete(row) {
-                    this.$confirm('确认删除该商品吗？', '提示', {
-                        type: 'warning'
-                    }).then(() => {
-                        this.$message.success('删除成功');
-                    }).catch(() => {});
-                },
-                handleSizeChange(val) {
-                    this.pagination.pageSize = val;
-                },
-                handleCurrentChange(val) {
-                    this.pagination.currentPage = val;
-                },
-                handlePublish() {
-                    this.$confirm('确认发布该页面吗？发布后将立即生效', '发布确认', {
-                        confirmButtonText: '确定',
-                        cancelButtonText: '取消',
-                        type: 'info'
-                    }).then(() => {
-                        this.$message({
-                            type: 'success',
-                            message: '发布成功！',
-                            duration: 1500,
-                            onClose: () => {
-                                window.location.href = 'index.html';
-                            }
-                        });
-                    }).catch(() => {});
+                ],
+                pagination: {
+                    currentPage: 1,
+                    pageSize: 10,
+                    total: 100
                 }
             }
-        })
-    </script>
+        },
+        methods: {
+            goBack() {
+                window.location.href = 'ai-generator.html';
+            },
+            goToEditor() {
+                window.location.href = 'layout-editor.html';
+            },
+            getStatusType(status) {
+                const types = {
+                    '充足': 'success',
+                    '不足': 'warning',
+                    '告急': 'danger'
+                };
+                return types[status] || 'info';
+            },
+            handleEdit(row) {
+                this.$message.success('编辑功能开发中...');
+            },
+            handleDelete(row) {
+                this.$confirm('确认删除该商品吗？', '提示', {
+                    type: 'warning'
+                }).then(() => {
+                    this.$message.success('删除成功');
+                }).catch(() => {});
+            },
+            handleSizeChange(val) {
+                this.pagination.pageSize = val;
+            },
+            handleCurrentChange(val) {
+                this.pagination.currentPage = val;
+            },
+            handlePublish() {
+                this.$confirm('确认发布该页面吗？发布后将立即生效', '发布确认', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'info'
+                }).then(() => {
+                    this.$message({
+                        type: 'success',
+                        message: '发布成功！',
+                        duration: 1500,
+                        onClose: () => {
+                            window.location.href = 'index.html';
+                        }
+                    });
+                }).catch(() => {});
+            }
+        }
+    })
+</script>
 </body>
 </html> 

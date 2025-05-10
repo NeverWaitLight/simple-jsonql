@@ -1,7 +1,8 @@
 package org.waitlight.simple.jsonql.engine.result;
 
-import java.util.List;
 import lombok.Value;
+
+import java.util.List;
 
 /**
  * 插入操作执行结果类，包含影响行数和生成的ID信息

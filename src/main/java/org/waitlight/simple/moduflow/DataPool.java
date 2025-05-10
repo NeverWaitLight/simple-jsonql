@@ -30,6 +30,6 @@ public class DataPool {
 
     public JsonNode getReturnParams() {
         // 实际实现需要将returnParams转换为JsonNode
-        return null; 
+        return null;
     }
 }

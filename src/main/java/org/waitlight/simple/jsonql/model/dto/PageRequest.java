@@ -6,32 +6,32 @@ import java.util.List;
  * 分页查询请求
  */
 public class PageRequest {
-    
+
     /**
      * 应用ID
      */
     private String appId;
-    
+
     /**
      * 表单ID
      */
     private String formId;
-    
+
     /**
      * 实体ID
      */
     private String entityId;
-    
+
     /**
      * 过滤条件
      */
     private Filter filters;
-    
+
     /**
      * 排序条件
      */
     private List<Sort> sort;
-    
+
     /**
      * 分页信息
      */
@@ -96,7 +96,7 @@ public class PageRequest {
          * 条件关系，"and"或"or"
          */
         private String rel;
-        
+
         /**
          * 条件数组
          */
@@ -130,22 +130,22 @@ public class PageRequest {
          * 字段名称
          */
         private String field;
-        
+
         /**
          * 匹配方法，如"eq"、"in"、"like"等
          */
         private String method;
-        
+
         /**
          * 匹配值，单值匹配时使用
          */
         private Object value;
-        
+
         /**
          * 匹配值数组，多值匹配时使用
          */
         private List<Object> values;
-        
+
         /**
          * 关系过滤条件，用于嵌套条件
          */
@@ -203,7 +203,7 @@ public class PageRequest {
          * 排序字段
          */
         private String field;
-        
+
         /**
          * 排序方向，"ASC"或"DESC"
          */
@@ -237,7 +237,7 @@ public class PageRequest {
          * 每页记录数
          */
         private int size;
-        
+
         /**
          * 页码，从1开始
          */

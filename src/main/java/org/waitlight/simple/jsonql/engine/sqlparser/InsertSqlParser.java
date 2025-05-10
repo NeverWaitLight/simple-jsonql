@@ -27,14 +27,14 @@ public class InsertSqlParser implements SqlParser<InsertStatement> {
 
     /**
      * 根据实体元数据和语句内容，生成SQL语句
-     * 
+     * <p>
      * 处理流程：
      * 1. 获取实体元数据，检查是否有关系字段
      * 2. 如果没有关系字段，直接构建简单SQL返回
      * 3. 提取非嵌套的基本字段，构造主实体语句
      * 4. 按关系类型处理嵌套实体
      * 5. 生成并返回最终SQL，包含主实体和关联实体的SQL
-     *
+     * <p>
      * 支持的关系类型：
      * - 单一实体创建
      * - 一对多关系（如User->Blog）
@@ -78,10 +78,8 @@ public class InsertSqlParser implements SqlParser<InsertStatement> {
             RelationshipType relationType = relationProperty.getRelationshipType();
 
             switch (relationType) {
-                case ONE_TO_MANY ->
-                    processOneToManyRelationship(stmt, mainStmt, relationProperty, preparedSql);
-                case MANY_TO_ONE ->
-                    processManyToOneRelationship(stmt, mainStmt, relationProperty, preparedSql);
+                case ONE_TO_MANY -> processOneToManyRelationship(stmt, mainStmt, relationProperty, preparedSql);
+                case MANY_TO_ONE -> processManyToOneRelationship(stmt, mainStmt, relationProperty, preparedSql);
                 default -> {
                 }
             }
@@ -97,7 +95,7 @@ public class InsertSqlParser implements SqlParser<InsertStatement> {
     /**
      * 处理一对多关系（如User->Blog）
      * 为"多"方添加指向"一"方的外键字段占位符，并生成嵌套SQL
-     * 
+     *
      * @param stmt             原始语句
      * @param mainStmt         主实体语句
      * @param relationProperty 关系属性
@@ -132,7 +130,7 @@ public class InsertSqlParser implements SqlParser<InsertStatement> {
     /**
      * 处理多对一关系（如Blog->User）
      * 检查嵌套语句是否只包含ID字段，如果是则将ID添加为外键
-     * 
+     *
      * @param stmt             原始语句
      * @param mainStmt         主实体语句
      * @param relationProperty 关系属性
@@ -159,7 +157,7 @@ public class InsertSqlParser implements SqlParser<InsertStatement> {
 
     /**
      * 根据属性名查找嵌套语句
-     * 
+     *
      * @param stmt         原始语句
      * @param propertyName 属性名
      * @return 嵌套语句列表
@@ -174,7 +172,7 @@ public class InsertSqlParser implements SqlParser<InsertStatement> {
 
     /**
      * 判断嵌套语句是否仅包含ID字段
-     * 
+     *
      * @param stmt 嵌套语句
      * @return 是否仅包含ID字段
      */
@@ -198,7 +196,7 @@ public class InsertSqlParser implements SqlParser<InsertStatement> {
     /**
      * 从嵌套语句中提取ID值
      * 优先使用dataId，其次查找id字段
-     * 
+     *
      * @param stmt 嵌套语句
      * @return ID值
      */
@@ -220,7 +218,7 @@ public class InsertSqlParser implements SqlParser<InsertStatement> {
 
     /**
      * 添加外键字段到主实体
-     * 
+     *
      * @param mainStmt         主实体语句
      * @param relationProperty 关系属性
      * @param foreignKeyValue  外键值
@@ -240,7 +238,7 @@ public class InsertSqlParser implements SqlParser<InsertStatement> {
 
     /**
      * 获取关联实体的外键字段名
-     * 
+     *
      * @param mainEntityId     主实体ID
      * @param relatedEntityId  关联实体ID
      * @param relationProperty 关系属性
@@ -271,7 +269,7 @@ public class InsertSqlParser implements SqlParser<InsertStatement> {
 
     /**
      * 构建SQL语句及其参数
-     * 
+     *
      * @param entity 实体语句
      * @return 预处理SQL对象
      */

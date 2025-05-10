@@ -1,8 +1,8 @@
 package org.waitlight.simple.jsonql.engine.sqlparser;
 
-import org.waitlight.simple.jsonql.metadata.MetadataSources; // Keep for potential use by ClauseExecutor
-import org.waitlight.simple.jsonql.statement.SelectStatement;
+import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.statement.JsonQLStatement;
+import org.waitlight.simple.jsonql.statement.SelectStatement;
 import org.waitlight.simple.jsonql.statement.model.Condition;
 import org.waitlight.simple.jsonql.statement.model.Filter;
 import org.waitlight.simple.jsonql.statement.model.Page;

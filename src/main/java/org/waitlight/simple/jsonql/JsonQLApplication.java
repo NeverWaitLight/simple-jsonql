@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class JsonQLApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(JsonQLApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(JsonQLApplication.class, args);
+    }
 
 }

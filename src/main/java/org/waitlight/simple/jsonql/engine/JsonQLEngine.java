@@ -1,15 +1,6 @@
 package org.waitlight.simple.jsonql.engine;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
+import lombok.extern.slf4j.Slf4j;
 import org.waitlight.simple.jsonql.config.DBConfig;
 import org.waitlight.simple.jsonql.engine.result.ExecuteResult;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
@@ -17,7 +8,11 @@ import org.waitlight.simple.jsonql.statement.JsonQLStatement;
 import org.waitlight.simple.jsonql.statement.StatementParser;
 import org.waitlight.simple.jsonql.statement.model.StatementType;
 
-import lombok.extern.slf4j.Slf4j;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.*;
 
 @Slf4j
 public class JsonQLEngine {

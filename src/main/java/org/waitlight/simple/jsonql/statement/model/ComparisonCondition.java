@@ -12,10 +12,10 @@ import lombok.Setter;
 @Setter
 public class ComparisonCondition implements WhereCondition {
     private String field;
-    
+
     @JsonProperty("operator")
     private MethodType operatorType;
-    
+
     private Object value;
     private boolean not;
 

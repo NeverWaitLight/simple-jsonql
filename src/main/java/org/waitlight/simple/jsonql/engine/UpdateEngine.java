@@ -78,7 +78,7 @@ public class UpdateEngine extends StatementEngine<UpdateStatement, UpdateResult>
 
     /**
      * 记录SQL语句和相关参数的日志信息
-     * 
+     *
      * @param stmt        更新语句
      * @param preparedSql 预处理SQL对象
      */
@@ -97,7 +97,7 @@ public class UpdateEngine extends StatementEngine<UpdateStatement, UpdateResult>
 
     /**
      * 执行主SQL语句
-     * 
+     *
      * @param conn        数据库连接
      * @param preparedSql 预处理SQL对象
      * @return MainUpdateDetail 包含影响的行数
@@ -118,7 +118,7 @@ public class UpdateEngine extends StatementEngine<UpdateStatement, UpdateResult>
 
     /**
      * 执行嵌套SQL语句
-     * 
+     *
      * @param conn      数据库连接
      * @param nestedSql 嵌套的预处理SQL对象
      * @return NestedUpdateDetail 包含影响的行数

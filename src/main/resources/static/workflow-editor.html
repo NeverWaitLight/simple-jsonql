@@ -115,195 +115,197 @@
     </style>
 </head>
 <body>
-    <div id="app">
-        <el-container>
-            <el-header>
-                <div class="header-left">
-                    <el-button @click="goBack">返回</el-button>
+<div id="app">
+    <el-container>
+        <el-header>
+            <div class="header-left">
+                <el-button @click="goBack">返回</el-button>
+            </div>
+            <div class="header-right">
+                <el-button type="primary" @click="saveWorkflow">保存</el-button>
+            </div>
+        </el-header>
+
+        <el-main>
+            <div class="workflow-container">
+                <div class="workflow-header">
+                    <h1 class="workflow-title">
+                        <i :class="workflowData.icon"></i>
+                        {{ workflowData.name }}
+                    </h1>
+                    <el-row :gutter="20" style="margin-top: 20px;">
+                        <el-col :span="8">
+                            <el-form-item label="流程类型">
+                                <el-select v-model="workflowData.type" style="width: 100%;">
+                                    <el-option label="审批流程" value="审批流程"></el-option>
+                                    <el-option label="工作流程" value="工作流程"></el-option>
+                                </el-select>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="8">
+                            <el-form-item label="所属部门">
+                                <el-input v-model="workflowData.department"></el-input>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="8">
+                            <el-form-item label="状态">
+                                <el-tag :type="workflowData.status === '已启用' ? 'success' : 'info'">
+                                    {{ workflowData.status }}
+                                </el-tag>
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
                 </div>
-                <div class="header-right">
-                    <el-button type="primary" @click="saveWorkflow">保存</el-button>
-                </div>
-            </el-header>
-            
-            <el-main>
-                <div class="workflow-container">
-                    <div class="workflow-header">
-                        <h1 class="workflow-title">
-                            <i :class="workflowData.icon"></i>
-                            {{ workflowData.name }}
-                        </h1>
-                        <el-row :gutter="20" style="margin-top: 20px;">
-                            <el-col :span="8">
-                                <el-form-item label="流程类型">
-                                    <el-select v-model="workflowData.type" style="width: 100%;">
-                                        <el-option label="审批流程" value="审批流程"></el-option>
-                                        <el-option label="工作流程" value="工作流程"></el-option>
-                                    </el-select>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="8">
-                                <el-form-item label="所属部门">
-                                    <el-input v-model="workflowData.department"></el-input>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="8">
-                                <el-form-item label="状态">
-                                    <el-tag :type="workflowData.status === '已启用' ? 'success' : 'info'">
-                                        {{ workflowData.status }}
-                                    </el-tag>
-                                </el-form-item>
-                            </el-col>
-                        </el-row>
-                    </div>
-                    
-                    <div class="node-list">
-                        <div v-for="(node, index) in nodes" :key="index" class="node-item">
-                            <div class="node-header">
-                                <span class="node-title">{{ node.title }}</span>
-                                <div class="node-actions">
-                                    <el-button size="mini" type="text" @click="editNode(index)">编辑</el-button>
-                                    <el-button size="mini" type="text" style="color: #F56C6C;" @click="deleteNode(index)">删除</el-button>
-                                </div>
-                            </div>
-                            <div class="node-content">
-                                <p>处理人：{{ node.handler }}</p>
-                                <p>处理时限：{{ node.timeLimit }}</p>
+
+                <div class="node-list">
+                    <div v-for="(node, index) in nodes" :key="index" class="node-item">
+                        <div class="node-header">
+                            <span class="node-title">{{ node.title }}</span>
+                            <div class="node-actions">
+                                <el-button size="mini" type="text" @click="editNode(index)">编辑</el-button>
+                                <el-button size="mini" type="text" style="color: #F56C6C;" @click="deleteNode(index)">
+                                    删除
+                                </el-button>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="action-bar">
-                        <el-button type="primary" icon="el-icon-plus" @click="addNode">添加节点</el-button>
+                        <div class="node-content">
+                            <p>处理人：{{ node.handler }}</p>
+                            <p>处理时限：{{ node.timeLimit }}</p>
+                        </div>
                     </div>
                 </div>
-            </el-main>
-            
-            <!-- 节点编辑对话框 -->
-            <el-dialog :title="dialogTitle" :visible.sync="showNodeDialog" width="500px">
-                <el-form :model="currentNode" label-width="100px">
-                    <el-form-item label="节点名称">
-                        <el-input v-model="currentNode.title"></el-input>
-                    </el-form-item>
-                    <el-form-item label="处理人">
-                        <el-input v-model="currentNode.handler"></el-input>
-                    </el-form-item>
-                    <el-form-item label="处理时限">
-                        <el-input v-model="currentNode.timeLimit"></el-input>
-                    </el-form-item>
-                </el-form>
-                <div slot="footer">
-                    <el-button @click="showNodeDialog = false">取消</el-button>
-                    <el-button type="primary" @click="saveNode">确定</el-button>
-                </div>
-            </el-dialog>
-        </el-container>
-    </div>
 
-    <!-- 引入Vue和Element UI -->
-    <script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
-    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
-    <script>
-        new Vue({
-            el: '#app',
-            data() {
-                return {
-                    workflowData: {
-                        name: '',
-                        type: '',
-                        department: '',
-                        status: '',
-                        icon: ''
-                    },
-                    nodes: [],
-                    showNodeDialog: false,
-                    currentNode: {
-                        title: '',
-                        handler: '',
-                        timeLimit: ''
-                    },
-                    editingNodeIndex: -1
-                }
-            },
-            computed: {
-                dialogTitle() {
-                    return this.editingNodeIndex === -1 ? '添加节点' : '编辑节点'
-                }
-            },
-            created() {
-                // 从URL参数获取流程数据
-                const params = new URLSearchParams(window.location.search);
-                const workflowData = {
-                    name: params.get('name') || '未命名流程',
-                    type: params.get('type') || '工作流程',
-                    department: params.get('department') || '系统管理部',
-                    status: params.get('status') || '未启用',
-                    icon: params.get('icon') || 'el-icon-set-up'
-                };
-                this.workflowData = workflowData;
-                
-                // 初始化示例节点
-                this.nodes = [
-                    {
-                        title: '发起申请',
-                        handler: '申请人',
-                        timeLimit: '1个工作日'
-                    },
-                    {
-                        title: '部门审批',
-                        handler: '部门主管',
-                        timeLimit: '2个工作日'
-                    }
-                ];
-            },
-            methods: {
-                goBack() {
-                    window.location.href = 'ai-generator.html';
+                <div class="action-bar">
+                    <el-button type="primary" icon="el-icon-plus" @click="addNode">添加节点</el-button>
+                </div>
+            </div>
+        </el-main>
+
+        <!-- 节点编辑对话框 -->
+        <el-dialog :title="dialogTitle" :visible.sync="showNodeDialog" width="500px">
+            <el-form :model="currentNode" label-width="100px">
+                <el-form-item label="节点名称">
+                    <el-input v-model="currentNode.title"></el-input>
+                </el-form-item>
+                <el-form-item label="处理人">
+                    <el-input v-model="currentNode.handler"></el-input>
+                </el-form-item>
+                <el-form-item label="处理时限">
+                    <el-input v-model="currentNode.timeLimit"></el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer">
+                <el-button @click="showNodeDialog = false">取消</el-button>
+                <el-button type="primary" @click="saveNode">确定</el-button>
+            </div>
+        </el-dialog>
+    </el-container>
+</div>
+
+<!-- 引入Vue和Element UI -->
+<script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                workflowData: {
+                    name: '',
+                    type: '',
+                    department: '',
+                    status: '',
+                    icon: ''
                 },
-                addNode() {
-                    this.editingNodeIndex = -1;
-                    this.currentNode = {
-                        title: '',
-                        handler: '',
-                        timeLimit: ''
-                    };
-                    this.showNodeDialog = true;
+                nodes: [],
+                showNodeDialog: false,
+                currentNode: {
+                    title: '',
+                    handler: '',
+                    timeLimit: ''
                 },
-                editNode(index) {
-                    this.editingNodeIndex = index;
-                    this.currentNode = { ...this.nodes[index] };
-                    this.showNodeDialog = true;
-                },
-                deleteNode(index) {
-                    this.$confirm('确认删除该节点吗？', '提示', {
-                        confirmButtonText: '确定',
-                        cancelButtonText: '取消',
-                        type: 'warning'
-                    }).then(() => {
-                        this.nodes.splice(index, 1);
-                        this.$message.success('删除成功');
-                    }).catch(() => {});
-                },
-                saveNode() {
-                    if (!this.currentNode.title) {
-                        this.$message.warning('请输入节点名称');
-                        return;
-                    }
-                    
-                    if (this.editingNodeIndex === -1) {
-                        this.nodes.push({ ...this.currentNode });
-                    } else {
-                        this.nodes[this.editingNodeIndex] = { ...this.currentNode };
-                    }
-                    
-                    this.showNodeDialog = false;
-                    this.$message.success('保存成功');
-                },
-                saveWorkflow() {
-                    this.$message.success('保存成功');
-                }
+                editingNodeIndex: -1
             }
-        })
-    </script>
+        },
+        computed: {
+            dialogTitle() {
+                return this.editingNodeIndex === -1 ? '添加节点' : '编辑节点'
+            }
+        },
+        created() {
+            // 从URL参数获取流程数据
+            const params = new URLSearchParams(window.location.search);
+            const workflowData = {
+                name: params.get('name') || '未命名流程',
+                type: params.get('type') || '工作流程',
+                department: params.get('department') || '系统管理部',
+                status: params.get('status') || '未启用',
+                icon: params.get('icon') || 'el-icon-set-up'
+            };
+            this.workflowData = workflowData;
+
+            // 初始化示例节点
+            this.nodes = [
+                {
+                    title: '发起申请',
+                    handler: '申请人',
+                    timeLimit: '1个工作日'
+                },
+                {
+                    title: '部门审批',
+                    handler: '部门主管',
+                    timeLimit: '2个工作日'
+                }
+            ];
+        },
+        methods: {
+            goBack() {
+                window.location.href = 'ai-generator.html';
+            },
+            addNode() {
+                this.editingNodeIndex = -1;
+                this.currentNode = {
+                    title: '',
+                    handler: '',
+                    timeLimit: ''
+                };
+                this.showNodeDialog = true;
+            },
+            editNode(index) {
+                this.editingNodeIndex = index;
+                this.currentNode = { ...this.nodes[index] };
+                this.showNodeDialog = true;
+            },
+            deleteNode(index) {
+                this.$confirm('确认删除该节点吗？', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.nodes.splice(index, 1);
+                    this.$message.success('删除成功');
+                }).catch(() => {});
+            },
+            saveNode() {
+                if (!this.currentNode.title) {
+                    this.$message.warning('请输入节点名称');
+                    return;
+                }
+
+                if (this.editingNodeIndex === -1) {
+                    this.nodes.push({ ...this.currentNode });
+                } else {
+                    this.nodes[this.editingNodeIndex] = { ...this.currentNode };
+                }
+
+                this.showNodeDialog = false;
+                this.$message.success('保存成功');
+            },
+            saveWorkflow() {
+                this.$message.success('保存成功');
+            }
+        }
+    })
+</script>
 </body>
 </html> 

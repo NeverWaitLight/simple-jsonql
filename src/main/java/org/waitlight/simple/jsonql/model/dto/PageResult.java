@@ -4,6 +4,7 @@ import java.util.List;
 
 /**
  * 分页查询结果对象
+ *
  * @param <T> 数据项类型
  */
 public class PageResult<T> {

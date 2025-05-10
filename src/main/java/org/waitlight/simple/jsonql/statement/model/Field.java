@@ -9,10 +9,10 @@ import java.util.List;
 public class Field {
     @JsonProperty("field")
     private String field;
-    
+
     @JsonProperty("value")
     private Object value;
-    
+
     @JsonProperty("values")
     private List<NestedStatement> values;
 }

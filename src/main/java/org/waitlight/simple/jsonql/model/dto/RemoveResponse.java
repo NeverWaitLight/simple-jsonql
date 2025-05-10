@@ -4,7 +4,7 @@ package org.waitlight.simple.jsonql.model.dto;
  * 数据删除响应
  */
 public class RemoveResponse {
-    
+
     /**
      * 删除的记录数量
      */

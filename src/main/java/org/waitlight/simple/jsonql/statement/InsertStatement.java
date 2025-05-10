@@ -10,7 +10,7 @@ import org.waitlight.simple.jsonql.statement.model.NestedStatement;
 public class InsertStatement extends NestedStatement {
     @JsonProperty("into")
     private String into;
-    
+
     @JsonProperty("values")
     private Object values;
 }

@@ -120,7 +120,7 @@ public class EntityMetadataBuilder {
     }
 
     private void handleJoinTableAnnotation(Field field, Class<?> entityClass, Property property,
-            ManyToMany manyToMany) {
+                                           ManyToMany manyToMany) {
         if (!field.isAnnotationPresent(JoinTable.class)) {
             return;
         }
@@ -129,7 +129,7 @@ public class EntityMetadataBuilder {
         // 设置关联表名，如果没有指定则使用默认命名规则
         String joinTableName = StringUtils.isBlank(joinTable.name())
                 ? StringUtil.camelToSnake(entityClass.getSimpleName()) + "_"
-                        + StringUtil.camelToSnake(manyToMany.targetEntity().getSimpleName())
+                + StringUtil.camelToSnake(manyToMany.targetEntity().getSimpleName())
                 : joinTable.name().toLowerCase();
         property.setJoinTableName(joinTableName);
         property.setJoinColumns(joinTable.joinColumns());

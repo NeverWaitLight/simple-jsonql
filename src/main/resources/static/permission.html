@@ -78,235 +78,239 @@
     </style>
 </head>
 <body>
-    <div id="app">
-        <el-container>
-            <el-header>
-                <div style="display: flex; justify-content: space-between; width: 100%;">
-                    <el-button type="primary" @click="goBack">返回</el-button>
-                    <div>
-                        <el-button type="primary" @click="handleAddRole">新增角色</el-button>
-                    </div>
+<div id="app">
+    <el-container>
+        <el-header>
+            <div style="display: flex; justify-content: space-between; width: 100%;">
+                <el-button type="primary" @click="goBack">返回</el-button>
+                <div>
+                    <el-button type="primary" @click="handleAddRole">新增角色</el-button>
                 </div>
-            </el-header>
-            
-            <el-container>
-                <el-aside width="300px">
-                    <el-menu
+            </div>
+        </el-header>
+
+        <el-container>
+            <el-aside width="300px">
+                <el-menu
                         default-active="1"
                         class="el-menu-vertical"
                         background-color="#f5f7fa"
                         text-color="#303133"
                         active-text-color="#409EFF">
-                        <el-menu-item index="1" @click="activeTab = 'role'">
-                            <i class="el-icon-user"></i>
-                            <span slot="title">角色管理</span>
-                        </el-menu-item>
-                        <el-menu-item index="2" @click="activeTab = 'permission'">
-                            <i class="el-icon-lock"></i>
-                            <span slot="title">权限管理</span>
-                        </el-menu-item>
-                        <el-menu-item index="3" @click="activeTab = 'user'">
-                            <i class="el-icon-s-custom"></i>
-                            <span slot="title">用户管理</span>
-                        </el-menu-item>
-                    </el-menu>
-                </el-aside>
-                
-                <el-main>
-                    <div class="permission-content">
-                        <!-- 角色管理 -->
-                        <div v-if="activeTab === 'role'">
-                            <div class="search-bar">
-                                <el-input
+                    <el-menu-item index="1" @click="activeTab = 'role'">
+                        <i class="el-icon-user"></i>
+                        <span slot="title">角色管理</span>
+                    </el-menu-item>
+                    <el-menu-item index="2" @click="activeTab = 'permission'">
+                        <i class="el-icon-lock"></i>
+                        <span slot="title">权限管理</span>
+                    </el-menu-item>
+                    <el-menu-item index="3" @click="activeTab = 'user'">
+                        <i class="el-icon-s-custom"></i>
+                        <span slot="title">用户管理</span>
+                    </el-menu-item>
+                </el-menu>
+            </el-aside>
+
+            <el-main>
+                <div class="permission-content">
+                    <!-- 角色管理 -->
+                    <div v-if="activeTab === 'role'">
+                        <div class="search-bar">
+                            <el-input
                                     placeholder="请输入角色名称"
                                     v-model="searchQuery"
                                     clearable>
-                                </el-input>
-                                <el-button type="primary" @click="handleSearch">搜索</el-button>
-                            </div>
-                            
-                            <el-table :data="roleData" style="width: 100%">
-                                <el-table-column prop="name" label="角色名称" width="180"></el-table-column>
-                                <el-table-column prop="code" label="角色编码" width="180"></el-table-column>
-                                <el-table-column prop="description" label="描述"></el-table-column>
-                                <el-table-column prop="status" label="状态">
-                                    <template slot-scope="scope">
-                                        <el-tag :type="scope.row.status === '启用' ? 'success' : 'info'">
-                                            {{ scope.row.status }}
-                                        </el-tag>
-                                    </template>
-                                </el-table-column>
-                                <el-table-column label="操作" width="250">
-                                    <template slot-scope="scope">
-                                        <el-button size="mini" @click="handleEditRole(scope.row)">编辑</el-button>
-                                        <el-button size="mini" type="success" @click="handleAssignPermission(scope.row)">分配权限</el-button>
-                                        <el-button size="mini" type="danger" @click="handleDeleteRole(scope.row)">删除</el-button>
-                                    </template>
-                                </el-table-column>
-                            </el-table>
+                            </el-input>
+                            <el-button type="primary" @click="handleSearch">搜索</el-button>
                         </div>
-                        
-                        <!-- 权限管理 -->
-                        <div v-if="activeTab === 'permission'">
-                            <el-tree
+
+                        <el-table :data="roleData" style="width: 100%">
+                            <el-table-column prop="name" label="角色名称" width="180"></el-table-column>
+                            <el-table-column prop="code" label="角色编码" width="180"></el-table-column>
+                            <el-table-column prop="description" label="描述"></el-table-column>
+                            <el-table-column prop="status" label="状态">
+                                <template slot-scope="scope">
+                                    <el-tag :type="scope.row.status === '启用' ? 'success' : 'info'">
+                                        {{ scope.row.status }}
+                                    </el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="操作" width="250">
+                                <template slot-scope="scope">
+                                    <el-button size="mini" @click="handleEditRole(scope.row)">编辑</el-button>
+                                    <el-button size="mini" type="success" @click="handleAssignPermission(scope.row)">
+                                        分配权限
+                                    </el-button>
+                                    <el-button size="mini" type="danger" @click="handleDeleteRole(scope.row)">删除
+                                    </el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </div>
+
+                    <!-- 权限管理 -->
+                    <div v-if="activeTab === 'permission'">
+                        <el-tree
                                 :data="permissionTree"
                                 :props="defaultProps"
                                 show-checkbox
                                 node-key="id"
                                 default-expand-all>
-                            </el-tree>
-                        </div>
-                        
-                        <!-- 用户管理 -->
-                        <div v-if="activeTab === 'user'">
-                            <div class="search-bar">
-                                <el-input
+                        </el-tree>
+                    </div>
+
+                    <!-- 用户管理 -->
+                    <div v-if="activeTab === 'user'">
+                        <div class="search-bar">
+                            <el-input
                                     placeholder="请输入用户名"
                                     v-model="searchQuery"
                                     clearable>
-                                </el-input>
-                                <el-button type="primary" @click="handleSearch">搜索</el-button>
-                            </div>
-                            
-                            <el-table :data="userData" style="width: 100%">
-                                <el-table-column prop="username" label="用户名" width="180"></el-table-column>
-                                <el-table-column prop="name" label="姓名" width="180"></el-table-column>
-                                <el-table-column prop="role" label="角色"></el-table-column>
-                                <el-table-column prop="status" label="状态">
-                                    <template slot-scope="scope">
-                                        <el-tag :type="scope.row.status === '启用' ? 'success' : 'info'">
-                                            {{ scope.row.status }}
-                                        </el-tag>
-                                    </template>
-                                </el-table-column>
-                                <el-table-column label="操作" width="200">
-                                    <template slot-scope="scope">
-                                        <el-button size="mini" @click="handleEditUser(scope.row)">编辑</el-button>
-                                        <el-button size="mini" type="danger" @click="handleDeleteUser(scope.row)">删除</el-button>
-                                    </template>
-                                </el-table-column>
-                            </el-table>
+                            </el-input>
+                            <el-button type="primary" @click="handleSearch">搜索</el-button>
                         </div>
-                    </div>
-                </el-main>
-            </el-container>
-        </el-container>
-    </div>
 
-    <!-- 引入Vue和Element UI -->
-    <script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
-    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
-    <script>
-        new Vue({
-            el: '#app',
-            data() {
-                return {
-                    activeTab: 'role',
-                    searchQuery: '',
-                    roleData: [{
-                        name: '管理员',
-                        code: 'ADMIN',
-                        description: '系统管理员',
-                        status: '启用'
-                    }, {
-                        name: '普通用户',
-                        code: 'USER',
-                        description: '普通用户',
-                        status: '启用'
-                    }],
-                    userData: [{
-                        username: 'admin',
-                        name: '管理员',
-                        role: '管理员',
-                        status: '启用'
-                    }, {
-                        username: 'user1',
-                        name: '张三',
-                        role: '普通用户',
-                        status: '启用'
-                    }],
-                    permissionTree: [{
-                        id: 1,
-                        label: '系统管理',
+                        <el-table :data="userData" style="width: 100%">
+                            <el-table-column prop="username" label="用户名" width="180"></el-table-column>
+                            <el-table-column prop="name" label="姓名" width="180"></el-table-column>
+                            <el-table-column prop="role" label="角色"></el-table-column>
+                            <el-table-column prop="status" label="状态">
+                                <template slot-scope="scope">
+                                    <el-tag :type="scope.row.status === '启用' ? 'success' : 'info'">
+                                        {{ scope.row.status }}
+                                    </el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="操作" width="200">
+                                <template slot-scope="scope">
+                                    <el-button size="mini" @click="handleEditUser(scope.row)">编辑</el-button>
+                                    <el-button size="mini" type="danger" @click="handleDeleteUser(scope.row)">删除
+                                    </el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </div>
+                </div>
+            </el-main>
+        </el-container>
+    </el-container>
+</div>
+
+<!-- 引入Vue和Element UI -->
+<script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                activeTab: 'role',
+                searchQuery: '',
+                roleData: [{
+                    name: '管理员',
+                    code: 'ADMIN',
+                    description: '系统管理员',
+                    status: '启用'
+                }, {
+                    name: '普通用户',
+                    code: 'USER',
+                    description: '普通用户',
+                    status: '启用'
+                }],
+                userData: [{
+                    username: 'admin',
+                    name: '管理员',
+                    role: '管理员',
+                    status: '启用'
+                }, {
+                    username: 'user1',
+                    name: '张三',
+                    role: '普通用户',
+                    status: '启用'
+                }],
+                permissionTree: [{
+                    id: 1,
+                    label: '系统管理',
+                    children: [{
+                        id: 2,
+                        label: '用户管理',
                         children: [{
-                            id: 2,
-                            label: '用户管理',
-                            children: [{
-                                id: 3,
-                                label: '查看用户'
-                            }, {
-                                id: 4,
-                                label: '新增用户'
-                            }, {
-                                id: 5,
-                                label: '编辑用户'
-                            }, {
-                                id: 6,
-                                label: '删除用户'
-                            }]
+                            id: 3,
+                            label: '查看用户'
                         }, {
-                            id: 7,
-                            label: '角色管理',
-                            children: [{
-                                id: 8,
-                                label: '查看角色'
-                            }, {
-                                id: 9,
-                                label: '新增角色'
-                            }, {
-                                id: 10,
-                                label: '编辑角色'
-                            }, {
-                                id: 11,
-                                label: '删除角色'
-                            }]
+                            id: 4,
+                            label: '新增用户'
+                        }, {
+                            id: 5,
+                            label: '编辑用户'
+                        }, {
+                            id: 6,
+                            label: '删除用户'
                         }]
-                    }],
-                    defaultProps: {
-                        children: 'children',
-                        label: 'label'
-                    }
-                }
-            },
-            methods: {
-                goBack() {
-                    window.location.href = 'index.html';
-                },
-                handleSearch() {
-                    console.log('搜索:', this.searchQuery);
-                },
-                handleAddRole() {
-                    this.$message.success('新增角色功能开发中...');
-                },
-                handleEditRole(row) {
-                    console.log('编辑角色:', row);
-                },
-                handleDeleteRole(row) {
-                    this.$confirm('确认删除该角色吗？', '提示', {
-                        confirmButtonText: '确定',
-                        cancelButtonText: '取消',
-                        type: 'warning'
-                    }).then(() => {
-                        this.$message.success('删除成功');
-                    }).catch(() => {});
-                },
-                handleAssignPermission(row) {
-                    this.$message.success('分配权限功能开发中...');
-                },
-                handleEditUser(row) {
-                    console.log('编辑用户:', row);
-                },
-                handleDeleteUser(row) {
-                    this.$confirm('确认删除该用户吗？', '提示', {
-                        confirmButtonText: '确定',
-                        cancelButtonText: '取消',
-                        type: 'warning'
-                    }).then(() => {
-                        this.$message.success('删除成功');
-                    }).catch(() => {});
+                    }, {
+                        id: 7,
+                        label: '角色管理',
+                        children: [{
+                            id: 8,
+                            label: '查看角色'
+                        }, {
+                            id: 9,
+                            label: '新增角色'
+                        }, {
+                            id: 10,
+                            label: '编辑角色'
+                        }, {
+                            id: 11,
+                            label: '删除角色'
+                        }]
+                    }]
+                }],
+                defaultProps: {
+                    children: 'children',
+                    label: 'label'
                 }
             }
-        })
-    </script>
+        },
+        methods: {
+            goBack() {
+                window.location.href = 'index.html';
+            },
+            handleSearch() {
+                console.log('搜索:', this.searchQuery);
+            },
+            handleAddRole() {
+                this.$message.success('新增角色功能开发中...');
+            },
+            handleEditRole(row) {
+                console.log('编辑角色:', row);
+            },
+            handleDeleteRole(row) {
+                this.$confirm('确认删除该角色吗？', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.$message.success('删除成功');
+                }).catch(() => {});
+            },
+            handleAssignPermission(row) {
+                this.$message.success('分配权限功能开发中...');
+            },
+            handleEditUser(row) {
+                console.log('编辑用户:', row);
+            },
+            handleDeleteUser(row) {
+                this.$confirm('确认删除该用户吗？', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.$message.success('删除成功');
+                }).catch(() => {});
+            }
+        }
+    })
+</script>
 </body>
 </html> 

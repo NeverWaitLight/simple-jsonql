@@ -6,27 +6,27 @@ import java.util.List;
  * 数据更新请求
  */
 public class UpdateRequest {
-    
+
     /**
      * 应用ID
      */
     private String appId;
-    
+
     /**
      * 表单ID
      */
     private String formId;
-    
+
     /**
      * 实体ID
      */
     private String entityId;
-    
+
     /**
      * 数据ID
      */
     private String dataId;
-    
+
     /**
      * 字段数组
      */
@@ -83,12 +83,12 @@ public class UpdateRequest {
          * 字段名称
          */
         private String field;
-        
+
         /**
          * 字段值，单值字段使用
          */
         private Object value;
-        
+
         /**
          * 字段值数组，多值字段使用
          */

@@ -19,7 +19,7 @@ public class UpdateResult implements ExecuteResult {
 
     /**
      * 创建更新结果对象
-     * 
+     *
      * @param affectedRows 总影响行数
      * @return 更新结果对象
      */
@@ -29,7 +29,7 @@ public class UpdateResult implements ExecuteResult {
 
     /**
      * 创建包含主表和嵌套表更新信息的结果对象
-     * 
+     *
      * @param mainAffectedRows   主表影响行数
      * @param nestedAffectedRows 嵌套表影响行数
      * @return 更新结果对象

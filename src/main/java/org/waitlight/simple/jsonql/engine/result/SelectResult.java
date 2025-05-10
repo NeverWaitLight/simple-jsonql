@@ -1,10 +1,10 @@
 package org.waitlight.simple.jsonql.engine.result;
 
+import lombok.Getter;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import lombok.Getter;
 
 /**
  * 查询操作执行结果类，包含查询结果记录和总记录数
@@ -25,7 +25,7 @@ public class SelectResult implements ExecuteResult {
 
     /**
      * 创建查询结果
-     * 
+     *
      * @param records    查询结果记录
      * @param totalCount 总记录数
      * @param pageSize   每页大小
@@ -41,7 +41,7 @@ public class SelectResult implements ExecuteResult {
 
     /**
      * 创建包含所有记录的查询结果（无分页）
-     * 
+     *
      * @param records 查询结果记录
      * @return 查询结果对象
      */

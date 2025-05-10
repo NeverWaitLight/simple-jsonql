@@ -1,10 +1,6 @@
 package org.waitlight.simple.jsonql.engine;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.List;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.waitlight.simple.jsonql.engine.result.DeleteResult;
 import org.waitlight.simple.jsonql.engine.sqlparser.DeleteSqlParser;
@@ -12,7 +8,10 @@ import org.waitlight.simple.jsonql.engine.sqlparser.PreparedSql;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.statement.DeleteStatement;
 
-import lombok.extern.slf4j.Slf4j;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.List;
 
 @Slf4j
 public class DeleteEngine extends StatementEngine<DeleteStatement, DeleteResult> {

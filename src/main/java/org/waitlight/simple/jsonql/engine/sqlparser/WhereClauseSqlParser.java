@@ -19,35 +19,35 @@ public class WhereClauseSqlParser extends AbstractClauseSqlParser {
             if (filters == null || filters.getConditions() == null || filters.getConditions().isEmpty()) {
                 return "";
             }
-            
+
             StringBuilder sb = new StringBuilder();
             sb.append(" WHERE ");
-            
+
             List<Condition> conditions = filters.getConditions();
             String rel = filters.getRel() != null ? filters.getRel().toUpperCase() : "AND";
-            
+
             for (int i = 0; i < conditions.size(); i++) {
                 if (i > 0) {
                     sb.append(" ").append(rel).append(" ");
                 }
-                
+
                 Condition cond = conditions.get(i);
                 sb.append(buildCondition(cond));
             }
-            
+
             return sb.toString();
         }
-        
+
         if (condition instanceof WhereCondition whereCondition) {
             return buildWhereCondition(whereCondition);
         }
         return "";
     }
-    
+
     private String buildCondition(Condition condition) {
         StringBuilder sb = new StringBuilder();
         sb.append(condition.getField()).append(" ");
-        
+
         MethodType method = condition.getMethod();
         switch (method) {
             case IS -> {
@@ -75,7 +75,7 @@ public class WhereClauseSqlParser extends AbstractClauseSqlParser {
             case LIKE -> sb.append("LIKE ").append(formatValue(condition.getValue()));
             default -> sb.append(method.getSymbol()).append(" ").append(formatValue(condition.getValue()));
         }
-        
+
         return sb.toString();
     }
 
@@ -137,7 +137,7 @@ public class WhereClauseSqlParser extends AbstractClauseSqlParser {
         if (condition.isNot()) {
             sb.append("NOT ");
         }
-        
+
         MethodType op = condition.getOperatorType();
         switch (op) {
             case IS -> {
@@ -164,7 +164,7 @@ public class WhereClauseSqlParser extends AbstractClauseSqlParser {
             }
             default -> sb.append(op.getSymbol()).append(" ").append(formatValue(condition.getValue()));
         }
-        
+
         return sb.toString();
     }
 

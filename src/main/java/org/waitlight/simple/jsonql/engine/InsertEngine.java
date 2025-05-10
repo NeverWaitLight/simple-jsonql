@@ -1,13 +1,6 @@
 package org.waitlight.simple.jsonql.engine;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.waitlight.simple.jsonql.engine.result.InsertResult;
@@ -16,7 +9,13 @@ import org.waitlight.simple.jsonql.engine.sqlparser.PreparedSql;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.statement.InsertStatement;
 
-import lombok.extern.slf4j.Slf4j;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * 处理插入语句的引擎实现类，负责将InsertStatement转换为SQL并执行
@@ -40,7 +39,7 @@ public class InsertEngine extends StatementEngine<InsertStatement, InsertResult>
 
     /**
      * 创建InsertEngine实例
-     * 
+     *
      * @param metadataSources 元数据来源，用于SQL解析器初始化
      */
     public InsertEngine(MetadataSources metadataSources) {
@@ -50,7 +49,7 @@ public class InsertEngine extends StatementEngine<InsertStatement, InsertResult>
 
     /**
      * 执行插入语句
-     * 
+     *
      * @param conn 数据库连接
      * @param stmt 待执行的插入语句
      * @return InsertExecutionResult 包含影响行数、主ID列表和嵌套ID列表的对象
@@ -115,7 +114,7 @@ public class InsertEngine extends StatementEngine<InsertStatement, InsertResult>
 
     /**
      * 记录SQL语句和相关参数的日志信息
-     * 
+     *
      * @param stmt        插入语句
      * @param preparedSql 预处理SQL对象
      */
@@ -134,7 +133,7 @@ public class InsertEngine extends StatementEngine<InsertStatement, InsertResult>
 
     /**
      * 执行主SQL语句
-     * 
+     *
      * @param conn        数据库连接
      * @param preparedSql 预处理SQL对象
      * @return MainExecutionDetail 包含生成的主键ID和影响行数
@@ -159,7 +158,7 @@ public class InsertEngine extends StatementEngine<InsertStatement, InsertResult>
 
     /**
      * 从执行结果中提取生成的主键ID
-     * 
+     *
      * @param ps               已执行的PreparedStatement
      * @param affected         受影响的行数
      * @param entityTypeForLog 日志中使用的实体类型（如 "主实体", "嵌套实体"）
@@ -183,7 +182,7 @@ public class InsertEngine extends StatementEngine<InsertStatement, InsertResult>
 
     /**
      * 执行所有嵌套SQL语句
-     * 
+     *
      * @param conn            数据库连接
      * @param preparedSql     包含嵌套SQL的预处理SQL对象
      * @param mainGeneratedId 主语句生成的ID (用于外键替换)
@@ -215,7 +214,7 @@ public class InsertEngine extends StatementEngine<InsertStatement, InsertResult>
 
     /**
      * 执行单个嵌套SQL语句
-     * 
+     *
      * @param conn            数据库连接
      * @param childSql        嵌套SQL对象
      * @param mainGeneratedId 主语句生成的ID (用于外键替换)

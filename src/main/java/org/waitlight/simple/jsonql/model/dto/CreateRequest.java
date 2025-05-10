@@ -6,22 +6,22 @@ import java.util.List;
  * 数据创建请求
  */
 public class CreateRequest {
-    
+
     /**
      * 应用ID
      */
     private String appId;
-    
+
     /**
      * 表单ID
      */
     private String formId;
-    
+
     /**
      * 实体ID
      */
     private String entityId;
-    
+
     /**
      * 字段数组
      */
@@ -70,12 +70,12 @@ public class CreateRequest {
          * 字段名称
          */
         private String field;
-        
+
         /**
          * 字段值，单值字段使用
          */
         private Object value;
-        
+
         /**
          * 字段值数组，多值字段使用
          */

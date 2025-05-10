@@ -2,6 +2,7 @@ package org.waitlight.simple.jsonql.model.dto;
 
 /**
  * API通用响应对象
+ *
  * @param <T> 响应数据类型
  */
 public class ApiResponse<T> {
@@ -20,8 +21,9 @@ public class ApiResponse<T> {
 
     /**
      * 创建成功响应
+     *
      * @param data 响应数据
-     * @param <T> 数据类型
+     * @param <T>  数据类型
      * @return 成功响应对象
      */
     public static <T> ApiResponse<T> success(T data) {
@@ -30,9 +32,10 @@ public class ApiResponse<T> {
 
     /**
      * 创建错误响应
-     * @param code 错误码
+     *
+     * @param code    错误码
      * @param message 错误信息
-     * @param <T> 数据类型
+     * @param <T>     数据类型
      * @return 错误响应对象
      */
     public static <T> ApiResponse<T> error(int code, String message) {

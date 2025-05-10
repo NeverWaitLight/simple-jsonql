@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum ConditionType {
     COMPARISON,
-    LOGICAL, 
+    LOGICAL,
     BETWEEN,
     SUBQUERY;
 

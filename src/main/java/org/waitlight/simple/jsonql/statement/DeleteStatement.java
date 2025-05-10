@@ -12,7 +12,7 @@ import java.util.List;
 public class DeleteStatement extends JsonQLStatement {
     @JsonProperty("where")
     private WhereCondition where;
-    
+
     @JsonProperty("ids")
     private List<String> ids;
 } 
