@@ -22,6 +22,19 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class InsertEngine extends StatementEngine<InsertStatement> {
+
+    // Helper record/class for main statement execution result
+    private record MainExecutionDetail(Long generatedId, int affectedRows) {
+    }
+
+    // Helper record/class for nested statement execution result
+    private record NestedExecutionDetail(Long generatedId, int affectedRows) {
+    }
+
+    // Helper record/class for aggregated nested statements execution result
+    private record NestedExecutionSummary(List<Long> generatedIds, int totalAffectedRows) {
+    }
+
     private final InsertSqlParser insertSqlParser;
 
     /**
@@ -39,36 +52,61 @@ public class InsertEngine extends StatementEngine<InsertStatement> {
      * 
      * @param conn 数据库连接
      * @param stmt 待执行的插入语句
-     * @return 受影响的行数
+     * @return InsertExecutionResult 包含影响行数、主ID列表和嵌套ID列表的对象
      * @throws SQLException 当SQL执行发生错误时抛出
      */
     @Override
-    public Object execute(Connection conn, InsertStatement stmt) throws SQLException {
+    public InsertExecutionResult execute(Connection conn, InsertStatement stmt) throws SQLException {
         final PreparedSql<InsertStatement> preparedSql = insertSqlParser.parseStmt2Sql(stmt);
 
-        if (StringUtils.isBlank(preparedSql.getSql())) {
-            return 0;
+        if (StringUtils.isBlank(preparedSql.getSql()) && CollectionUtils.isEmpty(preparedSql.getNestedSQLs())) {
+            return new InsertExecutionResult(0, Collections.emptyList(), Collections.emptyList());
         }
 
         logStatementInfo(stmt, preparedSql);
 
-        int totalAffectedRows = 0;
         boolean originalAutoCommit = conn.getAutoCommit();
+        MainExecutionDetail mainResult = null;
+        NestedExecutionSummary nestedSummary = new NestedExecutionSummary(new ArrayList<>(), 0);
+        InsertExecutionResult executionResult;
 
         try {
             conn.setAutoCommit(false);
-            Long generatedId = executeMainStatement(conn, preparedSql);
-            int nestedRows = executeNestedStatements(conn, preparedSql, generatedId);
 
-            // 将主实体和嵌套实体的行数加起来
-            totalAffectedRows = (generatedId != null ? 1 : 0) + nestedRows;
+            mainResult = executeMainStatement(conn, preparedSql);
+            nestedSummary = executeNestedStatements(conn, preparedSql,
+                    mainResult != null ? mainResult.generatedId() : null);
 
             conn.commit();
-            log.info("事务提交成功，总影响行数: {}", totalAffectedRows);
-            return totalAffectedRows;
+
+            int totalAffectedRows = (mainResult != null ? mainResult.affectedRows() : 0)
+                    + nestedSummary.totalAffectedRows();
+            List<Long> mainIds = mainResult != null && mainResult.generatedId() != null
+                    ? List.of(mainResult.generatedId())
+                    : Collections.emptyList();
+            List<Long> nestedIds = nestedSummary.generatedIds() != null ? nestedSummary.generatedIds()
+                    : Collections.emptyList();
+
+            executionResult = new InsertExecutionResult(totalAffectedRows, mainIds, nestedIds);
+
+            log.info("事务提交成功，总影响行数: {}, 主ID: {}, 嵌套ID: {}",
+                    executionResult.getAffectedRows(), executionResult.getMainIds(), executionResult.getNestedIds());
+
+            return executionResult;
         } catch (SQLException e) {
             handleTransactionError(conn, e);
-            throw e;
+            // Populate result object even in case of error for consistency
+            int currentAffected = (mainResult != null ? mainResult.affectedRows() : 0)
+                    + nestedSummary.totalAffectedRows();
+            List<Long> currentMainIds = mainResult != null && mainResult.generatedId() != null
+                    ? List.of(mainResult.generatedId())
+                    : Collections.emptyList();
+            List<Long> currentNestedIds = nestedSummary.generatedIds() != null ? nestedSummary.generatedIds()
+                    : Collections.emptyList();
+            executionResult = new InsertExecutionResult(currentAffected, currentMainIds, currentNestedIds);
+            // Log the partial/error state before throwing
+            log.error("事务执行失败，当前状态: {}", executionResult);
+            throw e; // Re-throw the exception
         } finally {
             restoreAutoCommit(conn, originalAutoCommit);
         }
@@ -82,12 +120,12 @@ public class InsertEngine extends StatementEngine<InsertStatement> {
      */
     private void logStatementInfo(InsertStatement stmt, PreparedSql<InsertStatement> preparedSql) {
         log.info("执行实体插入语句: {}", stmt.getEntityId());
-        log.info("主SQL: {}", preparedSql.getSql());
-
-        if (CollectionUtils.isNotEmpty(preparedSql.getParameters())) {
-            log.info("主SQL参数: {}", preparedSql.getParameters());
+        if (StringUtils.isNotBlank(preparedSql.getSql())) {
+            log.info("主SQL: {}", preparedSql.getSql());
+            if (CollectionUtils.isNotEmpty(preparedSql.getParameters())) {
+                log.info("主SQL参数: {}", preparedSql.getParameters());
+            }
         }
-
         if (CollectionUtils.isNotEmpty(preparedSql.getNestedSQLs())) {
             log.info("插入语句包含 {} 个嵌套SQL语句", preparedSql.getNestedSQLs().size());
         }
@@ -98,13 +136,13 @@ public class InsertEngine extends StatementEngine<InsertStatement> {
      * 
      * @param conn        数据库连接
      * @param preparedSql 预处理SQL对象
-     * @return 生成的主键ID，如果没有生成则返回null
+     * @return MainExecutionDetail 包含生成的主键ID和影响行数
      * @throws SQLException 当SQL执行发生错误时抛出
      */
-    private Long executeMainStatement(Connection conn, PreparedSql<InsertStatement> preparedSql)
+    private MainExecutionDetail executeMainStatement(Connection conn, PreparedSql<InsertStatement> preparedSql)
             throws SQLException {
         if (StringUtils.isBlank(preparedSql.getSql())) {
-            return null;
+            return new MainExecutionDetail(null, 0);
         }
 
         try (PreparedStatement ps = conn.prepareStatement(
@@ -112,20 +150,22 @@ public class InsertEngine extends StatementEngine<InsertStatement> {
 
             setStatementParameters(ps, preparedSql.getParameters());
             int affected = ps.executeUpdate();
+            Long generatedId = extractGeneratedId(ps, affected, "主实体");
 
-            return extractGeneratedId(ps, affected);
+            return new MainExecutionDetail(generatedId, affected);
         }
     }
 
     /**
      * 从执行结果中提取生成的主键ID
      * 
-     * @param ps       已执行的PreparedStatement
-     * @param affected 受影响的行数
+     * @param ps               已执行的PreparedStatement
+     * @param affected         受影响的行数
+     * @param entityTypeForLog 日志中使用的实体类型（如 "主实体", "嵌套实体"）
      * @return 生成的主键ID，如果没有生成则返回null
      * @throws SQLException 当获取生成键时发生错误时抛出
      */
-    private Long extractGeneratedId(PreparedStatement ps, int affected) throws SQLException {
+    private Long extractGeneratedId(PreparedStatement ps, int affected, String entityTypeForLog) throws SQLException {
         if (affected <= 0) {
             return null;
         }
@@ -133,70 +173,72 @@ public class InsertEngine extends StatementEngine<InsertStatement> {
         try (ResultSet rs = ps.getGeneratedKeys()) {
             if (rs.next()) {
                 Long generatedId = rs.getLong(1);
-                log.info("主实体生成ID: {}", generatedId);
+                log.info("{}生成ID: {}", entityTypeForLog, generatedId);
                 return generatedId;
             }
         }
-
         return null;
     }
 
     /**
      * 执行所有嵌套SQL语句
      * 
-     * @param conn        数据库连接
-     * @param preparedSql 包含嵌套SQL的预处理SQL对象
-     * @param generatedId 主语句生成的ID
-     * @return 嵌套语句影响的总行数
+     * @param conn            数据库连接
+     * @param preparedSql     包含嵌套SQL的预处理SQL对象
+     * @param mainGeneratedId 主语句生成的ID (用于外键替换)
+     * @return NestedExecutionSummary 包含所有嵌套生成的ID列表和总影响行数
      * @throws SQLException 当SQL执行发生错误时抛出
      */
-    private int executeNestedStatements(
-            Connection conn, PreparedSql<InsertStatement> preparedSql, Long generatedId)
+    private NestedExecutionSummary executeNestedStatements(
+            Connection conn, PreparedSql<InsertStatement> preparedSql, Long mainGeneratedId)
             throws SQLException {
 
-        int nestedAffectedRows = 0;
+        List<Long> allNestedGeneratedIds = new ArrayList<>();
+        int totalNestedAffectedRows = 0;
 
         if (CollectionUtils.isEmpty(preparedSql.getNestedSQLs())) {
-            return nestedAffectedRows;
+            return new NestedExecutionSummary(allNestedGeneratedIds, totalNestedAffectedRows);
         }
 
-        // 即使generatedId为null，仍然尝试执行嵌套SQL，因为可能存在多对一关系
-        // 这种情况下嵌套SQL可能是引用现有记录而不需要主记录ID
         for (PreparedSql<InsertStatement> childSql : preparedSql.getNestedSQLs()) {
-            // 检查SQL不为空才执行
             if (StringUtils.isNotBlank(childSql.getSql())) {
-                nestedAffectedRows += executeNestedStatement(conn, childSql, generatedId);
+                NestedExecutionDetail detail = executeNestedStatement(conn, childSql, mainGeneratedId);
+                totalNestedAffectedRows += detail.affectedRows();
+                if (detail.generatedId() != null) {
+                    allNestedGeneratedIds.add(detail.generatedId());
+                }
             }
         }
-
-        return nestedAffectedRows;
+        return new NestedExecutionSummary(allNestedGeneratedIds, totalNestedAffectedRows);
     }
 
     /**
      * 执行单个嵌套SQL语句
      * 
-     * @param conn        数据库连接
-     * @param childSql    嵌套SQL对象
-     * @param generatedId 主语句生成的ID
-     * @return 该嵌套语句影响的行数
+     * @param conn            数据库连接
+     * @param childSql        嵌套SQL对象
+     * @param mainGeneratedId 主语句生成的ID (用于外键替换)
+     * @return NestedExecutionDetail 包含该嵌套语句生成的主键ID和影响行数
      * @throws SQLException 当SQL执行发生错误时抛出
      */
-    private int executeNestedStatement(
-            Connection conn, PreparedSql<InsertStatement> childSql, Long generatedId)
+    private NestedExecutionDetail executeNestedStatement(
+            Connection conn, PreparedSql<InsertStatement> childSql, Long mainGeneratedId)
             throws SQLException {
 
         log.info("执行嵌套SQL: {}", childSql.getSql());
-
         if (CollectionUtils.isNotEmpty(childSql.getParameters())) {
             log.info("嵌套SQL参数 (ID替换前): {}", childSql.getParameters());
         }
 
-        try (PreparedStatement ps = conn.prepareStatement(childSql.getSql())) {
-            List<Object> params = replaceForeignKeyPlaceholders(childSql.getParameters(), generatedId);
+        try (PreparedStatement ps = conn.prepareStatement(childSql.getSql(), PreparedStatement.RETURN_GENERATED_KEYS)) {
+            List<Object> params = replaceForeignKeyPlaceholders(childSql.getParameters(), mainGeneratedId);
             setStatementParameters(ps, params);
-
             log.info("嵌套SQL参数 (ID替换后): {}", params);
-            return ps.executeUpdate();
+
+            int affected = ps.executeUpdate();
+            Long generatedId = extractGeneratedId(ps, affected, "嵌套实体");
+
+            return new NestedExecutionDetail(generatedId, affected);
         }
     }
 
@@ -212,7 +254,6 @@ public class InsertEngine extends StatementEngine<InsertStatement> {
                 params.set(j, generatedId);
             }
         }
-
         return params;
     }
 
@@ -220,7 +261,6 @@ public class InsertEngine extends StatementEngine<InsertStatement> {
         if (CollectionUtils.isEmpty(parameters)) {
             return;
         }
-
         for (int i = 0; i < parameters.size(); i++) {
             ps.setObject(i + 1, parameters.get(i));
         }

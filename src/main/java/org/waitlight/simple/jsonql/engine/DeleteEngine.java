@@ -1,11 +1,11 @@
 package org.waitlight.simple.jsonql.engine;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.waitlight.simple.jsonql.engine.sqlparser.DeleteSqlParser;
 import org.waitlight.simple.jsonql.engine.sqlparser.PreparedSql;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.statement.DeleteStatement;
-import org.waitlight.simple.jsonql.statement.JsonQLStatement;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -22,19 +22,34 @@ public class DeleteEngine extends StatementEngine<DeleteStatement> {
     }
 
     @Override
-    public Object execute(Connection conn, DeleteStatement statement) throws SQLException {
-        PreparedSql<DeleteStatement> preparedSql = deleteSqlParser.parseSql(statement);
+    public Object execute(Connection conn, DeleteStatement stmt) throws SQLException {
+        PreparedSql<DeleteStatement> preparedSql = deleteSqlParser.parseSql(stmt);
 
-        if (preparedSql.getStatementType() != DeleteStatement.class) {
-            throw new IllegalArgumentException("DeleteExecutor can only execute DeleteStatements");
+        if (preparedSql.getSql() == null || preparedSql.getSql().isEmpty()) {
+            log.info("生成的SQL为空，不执行删除操作。 Entity: {}", stmt.getEntityId());
+            return 0; // No SQL to execute
         }
 
-        try (PreparedStatement preparedStatement = conn.prepareStatement(preparedSql.getSql())) {
+        log.info("执行删除语句 Entity: {}", stmt.getEntityId());
+        log.info("主SQL: {}", preparedSql.getSql());
+        if (CollectionUtils.isNotEmpty(preparedSql.getParameters())) {
+            log.info("主SQL参数: {}", preparedSql.getParameters());
+        }
+
+        try (PreparedStatement ps = conn.prepareStatement(preparedSql.getSql())) {
             List<Object> parameters = preparedSql.getParameters();
-            for (int i = 0; i < parameters.size(); i++) {
-                preparedStatement.setObject(i + 1, parameters.get(i));
+            if (CollectionUtils.isNotEmpty(parameters)) {
+                for (int i = 0; i < parameters.size(); i++) {
+                    ps.setObject(i + 1, parameters.get(i));
+                }
             }
-            return preparedStatement.executeUpdate();
+            int affectedRows = ps.executeUpdate();
+            log.info("删除操作影响行数: {}", affectedRows);
+            return affectedRows;
+        } catch (SQLException e) {
+            log.error("删除操作执行失败 Entity: {}. SQL: {}. Error: {}", stmt.getEntityId(), preparedSql.getSql(),
+                    e.getMessage());
+            throw e;
         }
     }
 }

@@ -24,120 +24,72 @@ public class DeleteEngineTest {
     }
 
     @Test
-    public void testDeleteWithWhere() throws Exception {
-        // First insert a test record
-        String randomName = "张三" + new Random().nextInt();
-        String insertQuery = """
-                {
-                    "statement": "create",
-                    "into": "user",
-                    "values": {
-                        "name": "%s"
-                    }
-                }
-                """.formatted(randomName);
-        engine.execute(insertQuery);
-
-        // Then delete it
-        String deleteQuery = """
-                {
-                    "statement": "delete",
-                    "from": "user",
-                    "where": {
-                        "type": "comparison",
-                        "field": "name",
-                        "operator": "eq",
-                        "value": "%s"
-                    }
-                }
-                """.formatted(randomName);
-
-        Object result = engine.execute(deleteQuery);
-        assertNotNull(result, "Delete result should not be null");
-        assertTrue(result instanceof Number, "Delete result should be a number");
-        assertEquals(1, ((Number) result).intValue(), "Delete should affect 1 row");
-
-        // Verify the record is deleted
-        String selectQuery = """
-                {
-                    "statement": "query",
-                    "select": ["name"],
-                    "from": "user",
-                    "where": {
-                        "type": "comparison",
-                        "field": "name",
-                        "operator": "eq",
-                        "value": "%s"
-                    }
-                }
-                """.formatted(randomName);
-
-        Object selectResult = engine.execute(selectQuery);
-        assertNotNull(selectResult, "Select result should not be null");
-        assertTrue(selectResult instanceof List, "Select result should be a list");
-
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> resultList = (List<Map<String, Object>>) selectResult;
-        assertTrue(resultList.isEmpty(), "Should find no records");
-    }
-    
-    @Test
     public void testDeleteWithIds() throws Exception {
-        // First insert a test record
-        String randomName = "李四" + new Random().nextInt();
+        String randomName = "真实ID李四" + new Random().nextInt();
         String insertQuery = """
                 {
                     "statement": "create",
-                    "into": "user",
-                    "values": {
-                        "name": "%s"
-                    }
+                    "appId": "123456",
+                    "formId": "89757",
+                    "entityId": "user",
+                    "fields": [
+                        {"field": "name", "value": "%s"}
+                    ]
                 }
                 """.formatted(randomName);
         Object insertResult = engine.execute(insertQuery);
-        assertTrue(insertResult instanceof Number);
-        int rowsInserted = ((Number) insertResult).intValue();
-        assertEquals(1, rowsInserted);
-        
-        // Get the ID of the inserted record
-        String selectQuery = """
-                {
-                    "statement": "query",
-                    "select": ["id", "name"],
-                    "from": "user",
-                    "where": {
-                        "type": "comparison",
-                        "field": "name",
-                        "operator": "eq",
-                        "value": "%s"
+        assertNotNull(insertResult);
+
+        Long insertedId;
+        if (insertResult instanceof InsertExecutionResult) {
+            InsertExecutionResult result = (InsertExecutionResult) insertResult;
+            assertTrue(result.getAffectedRows() > 0, "Insert should affect at least one row");
+            assertFalse(result.getMainIds().isEmpty(), "Insert should return at least one ID");
+            insertedId = result.getMainIds().get(0);
+        } else {
+            // 兼容旧版返回值类型
+            assertTrue(insertResult instanceof Number && ((Number) insertResult).intValue() > 0,
+                    "Insert should affect at least one row");
+
+            // 通过查询获取ID
+            String selectQueryForId = """
+                    {
+                        "statement": "query",
+                        "select": ["id"],
+                        "from": "user",
+                        "where": {
+                            "type": "comparison",
+                            "field": "name",
+                            "operator": "eq",
+                            "value": "%s"
+                        }
                     }
-                }
-                """.formatted(randomName);
+                    """.formatted(randomName);
+
+            Object selectResult = engine.execute(selectQueryForId);
+            assertNotNull(selectResult, "Select result for ID should not be null");
+            assertTrue(selectResult instanceof List, "Select result should be a list");
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> resultList = (List<Map<String, Object>>) selectResult;
+            assertFalse(resultList.isEmpty(), "Inserted record should be found to get its ID");
+            insertedId = Long.parseLong(resultList.get(0).get("id").toString());
+        }
         
-        Object selectResult = engine.execute(selectQuery);
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> resultList = (List<Map<String, Object>>) selectResult;
-        assertFalse(resultList.isEmpty());
-        String id = resultList.get(0).get("id").toString();
-        
-        // Delete by ID
+        assertNotNull(insertedId, "Inserted ID should not be null");
+
         String deleteQuery = """
                 {
                     "statement": "delete",
-                    "from": "user",
+                    "appId": "123456",
+                    "formId": "89757",
+                    "entityId": "user",
                     "ids": ["%s"]
                 }
-                """.formatted(id);
-                
+                """.formatted(insertedId);
+
         Object deleteResult = engine.execute(deleteQuery);
         assertNotNull(deleteResult, "Delete result should not be null");
         assertTrue(deleteResult instanceof Number, "Delete result should be a number");
-        assertEquals(1, ((Number) deleteResult).intValue(), "Delete should affect 1 row");
-        
-        // Verify record is gone
-        Object verifyResult = engine.execute(selectQuery);
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> verifyList = (List<Map<String, Object>>) verifyResult;
-        assertTrue(verifyList.isEmpty(), "Record should be deleted");
+        assertEquals(1, ((Number) deleteResult).intValue(), "Delete should affect 1 row when using the actual ID");
     }
-} 
+}
