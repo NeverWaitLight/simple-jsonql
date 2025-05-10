@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.waitlight.simple.jsonql.engine.result.InsertResult;
 import org.waitlight.simple.jsonql.engine.sqlparser.InsertSqlParser;
 import org.waitlight.simple.jsonql.engine.sqlparser.PreparedSql;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
@@ -21,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
  * 处理插入语句的引擎实现类，负责将InsertStatement转换为SQL并执行
  */
 @Slf4j
-public class InsertEngine extends StatementEngine<InsertStatement> {
+public class InsertEngine extends StatementEngine<InsertStatement, InsertResult> {
 
     // Helper record/class for main statement execution result
     private record MainExecutionDetail(Long generatedId, int affectedRows) {
@@ -56,11 +57,11 @@ public class InsertEngine extends StatementEngine<InsertStatement> {
      * @throws SQLException 当SQL执行发生错误时抛出
      */
     @Override
-    public InsertExecutionResult execute(Connection conn, InsertStatement stmt) throws SQLException {
+    public InsertResult execute(Connection conn, InsertStatement stmt) throws SQLException {
         final PreparedSql<InsertStatement> preparedSql = insertSqlParser.parseStmt2Sql(stmt);
 
         if (StringUtils.isBlank(preparedSql.getSql()) && CollectionUtils.isEmpty(preparedSql.getNestedSQLs())) {
-            return new InsertExecutionResult(0, Collections.emptyList(), Collections.emptyList());
+            return new InsertResult(0, Collections.emptyList(), Collections.emptyList());
         }
 
         logStatementInfo(stmt, preparedSql);
@@ -68,7 +69,7 @@ public class InsertEngine extends StatementEngine<InsertStatement> {
         boolean originalAutoCommit = conn.getAutoCommit();
         MainExecutionDetail mainResult = null;
         NestedExecutionSummary nestedSummary = new NestedExecutionSummary(new ArrayList<>(), 0);
-        InsertExecutionResult executionResult;
+        InsertResult executionResult;
 
         try {
             conn.setAutoCommit(false);
@@ -87,7 +88,7 @@ public class InsertEngine extends StatementEngine<InsertStatement> {
             List<Long> nestedIds = nestedSummary.generatedIds() != null ? nestedSummary.generatedIds()
                     : Collections.emptyList();
 
-            executionResult = new InsertExecutionResult(totalAffectedRows, mainIds, nestedIds);
+            executionResult = new InsertResult(totalAffectedRows, mainIds, nestedIds);
 
             log.info("事务提交成功，总影响行数: {}, 主ID: {}, 嵌套ID: {}",
                     executionResult.getAffectedRows(), executionResult.getMainIds(), executionResult.getNestedIds());
@@ -103,7 +104,7 @@ public class InsertEngine extends StatementEngine<InsertStatement> {
                     : Collections.emptyList();
             List<Long> currentNestedIds = nestedSummary.generatedIds() != null ? nestedSummary.generatedIds()
                     : Collections.emptyList();
-            executionResult = new InsertExecutionResult(currentAffected, currentMainIds, currentNestedIds);
+            executionResult = new InsertResult(currentAffected, currentMainIds, currentNestedIds);
             // Log the partial/error state before throwing
             log.error("事务执行失败，当前状态: {}", executionResult);
             throw e; // Re-throw the exception

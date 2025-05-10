@@ -1,24 +1,30 @@
 package org.waitlight.simple.jsonql.engine;
 
-import lombok.extern.slf4j.Slf4j;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.waitlight.simple.jsonql.config.DBConfig;
+import org.waitlight.simple.jsonql.engine.result.ExecuteResult;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.statement.JsonQLStatement;
 import org.waitlight.simple.jsonql.statement.StatementParser;
 import org.waitlight.simple.jsonql.statement.model.StatementType;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.util.*;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class JsonQLEngine {
 
     private final MetadataSources metadataSources;
     private final StatementParser parser;
-    private final Map<StatementType, StatementEngine> executors;
+    private final Map<StatementType, StatementEngine<? extends JsonQLStatement, ? extends ExecuteResult>> executors;
 
     public JsonQLEngine(MetadataSources metadataSources) {
         this.metadataSources = metadataSources;
@@ -26,27 +32,30 @@ public class JsonQLEngine {
         this.executors = initializeExecutors();
     }
 
-    private Map<StatementType, StatementEngine> initializeExecutors() {
-        Map<StatementType, StatementEngine> executors = new HashMap<>();
-        executors.put(StatementType.QUERY, new SelectEngine(metadataSources));
-        executors.put(StatementType.CREATE, new InsertEngine(metadataSources));
+    private Map<StatementType, StatementEngine<? extends JsonQLStatement, ? extends ExecuteResult>> initializeExecutors() {
+        Map<StatementType, StatementEngine<? extends JsonQLStatement, ? extends ExecuteResult>> executors = new HashMap<>();
+        executors.put(StatementType.SELECT, new SelectEngine(metadataSources));
+        executors.put(StatementType.INSERT, new InsertEngine(metadataSources));
         executors.put(StatementType.UPDATE, new UpdateEngine(metadataSources));
         executors.put(StatementType.DELETE, new DeleteEngine(metadataSources));
         return executors;
     }
 
-    public Object execute(String jsonQuery) throws Exception {
+    public ExecuteResult execute(String jsonQuery) throws Exception {
         JsonQLStatement statement = parser.parse2Stmt(jsonQuery);
         try (Connection conn = DBConfig.getConnection()) {
             return execute(conn, statement);
         }
     }
 
-    private Object execute(Connection conn, JsonQLStatement statement) throws SQLException {
-        StatementEngine executor = executors.get(statement.getStatement());
+    private ExecuteResult execute(Connection conn, JsonQLStatement statement) throws SQLException {
+        StatementEngine<JsonQLStatement, ExecuteResult> executor = (StatementEngine<JsonQLStatement, ExecuteResult>) executors
+                .get(statement.getStatement());
+
         if (executor == null) {
             throw new IllegalStateException("Unsupported statement type: " + statement.getStatement());
         }
+
         return executor.execute(conn, statement);
     }
 

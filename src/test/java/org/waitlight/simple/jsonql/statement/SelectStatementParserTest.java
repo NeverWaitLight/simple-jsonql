@@ -37,7 +37,7 @@ public class SelectStatementParserTest {
         SelectStatement statement = (SelectStatement) parser.parse2Stmt(json);
 
         // 验证基本字段
-        assertEquals(StatementType.QUERY, statement.getStatement());
+        assertEquals(StatementType.SELECT, statement.getStatement());
         assertEquals("123456", statement.getAppId());
         assertEquals("89757", statement.getFormId());
         assertEquals("89757", statement.getEntityId());

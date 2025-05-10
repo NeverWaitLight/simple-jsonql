@@ -29,8 +29,8 @@ public class StatementParser {
             }
 
             return switch (statementType) {
-                case QUERY -> parseQuery(jsonMap);
-                case CREATE -> parseCreate(jsonMap);
+                case SELECT -> parseQuery(jsonMap);
+                case INSERT -> parseCreate(jsonMap);
                 case UPDATE -> parseUpdate(jsonMap);
                 case DELETE -> parseDelete(jsonMap);
                 default -> throw new JsonqlParseException("Unsupported statement type: " + statementType);
@@ -45,7 +45,7 @@ public class StatementParser {
 
     private SelectStatement parseQuery(Map<String, Object> jsonMap) throws JsonqlParseException {
         SelectStatement statement = new SelectStatement();
-        statement.setStatement(StatementType.QUERY);
+        statement.setStatement(StatementType.SELECT);
         
         // 设置CRUD.md中定义的字段
         if (jsonMap.containsKey("appId")) {
@@ -107,7 +107,7 @@ public class StatementParser {
             InsertStatement statement = objectMapper.readValue(json, InsertStatement.class);
             
             // Set the statement type
-            statement.setStatement(StatementType.CREATE);
+            statement.setStatement(StatementType.INSERT);
             
             return statement;
         } catch (Exception e) {

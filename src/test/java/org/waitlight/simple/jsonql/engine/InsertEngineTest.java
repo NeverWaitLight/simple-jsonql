@@ -2,6 +2,8 @@ package org.waitlight.simple.jsonql.engine;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.waitlight.simple.jsonql.engine.result.ExecuteResult;
+import org.waitlight.simple.jsonql.engine.result.InsertResult;
 import org.waitlight.simple.jsonql.entity.Blog;
 import org.waitlight.simple.jsonql.entity.User;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
@@ -24,7 +26,7 @@ public class InsertEngineTest {
         // Create a single user entity
         String jsonCreate = """
                 {
-                    "statement": "create",
+                    "statement": "insert",
                     "appId": "123456",
                     "formId": "89757",
                     "entityId": "user",
@@ -34,12 +36,14 @@ public class InsertEngineTest {
                 }
                 """;
 
-        Object result = engine.execute(jsonCreate);
+        ExecuteResult result = engine.execute(jsonCreate);
 
-        // The result should be the number of affected rows
+        // The result should be an InsertResult
         assertNotNull(result);
-        assertTrue(result instanceof Integer);
-        assertEquals(1, result);
+        assertTrue(result instanceof InsertResult);
+        InsertResult insertResult = (InsertResult) result;
+        assertTrue(insertResult.getAffectedRows() > 0);
+        assertFalse(insertResult.getMainIds().isEmpty());
     }
 
     @Test
@@ -47,7 +51,7 @@ public class InsertEngineTest {
         // Create a user with nested blog entities
         String jsonCreate = """
                 {
-                    "statement": "create",
+                    "statement": "insert",
                     "appId": "123456",
                     "formId": "89757",
                     "entityId": "user",
@@ -80,11 +84,14 @@ public class InsertEngineTest {
                 }
                 """;
 
-        Object result = engine.execute(jsonCreate);
+        ExecuteResult result = engine.execute(jsonCreate);
 
         assertNotNull(result);
-        assertTrue(result instanceof Integer);
-        assertEquals(3, result);
+        assertTrue(result instanceof InsertResult);
+        InsertResult insertResult = (InsertResult) result;
+        assertTrue(insertResult.getAffectedRows() > 0);
+        assertFalse(insertResult.getMainIds().isEmpty());
+        assertFalse(insertResult.getNestedIds().isEmpty());
     }
 
     @Test
@@ -92,7 +99,7 @@ public class InsertEngineTest {
         // Create with a field that doesn't exist in the entity
         String jsonCreate = """
                 {
-                    "statement": "create",
+                    "statement": "insert",
                     "appId": "123456",
                     "formId": "89757",
                     "entityId": "user",
@@ -112,7 +119,7 @@ public class InsertEngineTest {
     public void testCreateBlogDirectly() throws Exception {
         String jsonCreate = """
                 {
-                  "statement": "create",
+                  "statement": "insert",
                   "appId": "123456",
                   "formId": "89758",
                   "entityId": "blog",
@@ -134,10 +141,12 @@ public class InsertEngineTest {
                 }
                 """;
 
-        Object result = engine.execute(jsonCreate);
+        ExecuteResult result = engine.execute(jsonCreate);
 
         assertNotNull(result);
-        assertTrue(result instanceof Integer);
-        assertEquals(1, result); // 应该插入1条记录
+        assertTrue(result instanceof InsertResult);
+        InsertResult insertResult = (InsertResult) result;
+        assertTrue(insertResult.getAffectedRows() > 0);
+        assertFalse(insertResult.getMainIds().isEmpty());
     }
 }

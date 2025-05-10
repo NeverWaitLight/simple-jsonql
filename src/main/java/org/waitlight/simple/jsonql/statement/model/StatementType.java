@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum StatementType {
-    QUERY,
-    CREATE,
+    SELECT,
+    INSERT,
     UPDATE,
     DELETE;
 

@@ -29,6 +29,6 @@ public class SelectStatement extends JsonQLStatement {
     private Page page;
 
     public SelectStatement() {
-        setStatement(StatementType.QUERY);
+        setStatement(StatementType.SELECT);
     }
 }

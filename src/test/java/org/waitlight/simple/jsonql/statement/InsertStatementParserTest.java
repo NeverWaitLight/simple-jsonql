@@ -28,7 +28,7 @@ public class InsertStatementParserTest {
 
         InsertStatement statement = (InsertStatement) parser.parse2Stmt(json);
 
-        assertEquals(StatementType.CREATE, statement.getStatement());
+        assertEquals(StatementType.INSERT, statement.getStatement());
         assertEquals("user", statement.getEntityId());
         assertEquals("123456", statement.getAppId());
         assertEquals("89757", statement.getFormId());
@@ -77,7 +77,7 @@ public class InsertStatementParserTest {
 
         InsertStatement statement = (InsertStatement) parser.parse2Stmt(json);
 
-        assertEquals(StatementType.CREATE, statement.getStatement());
+        assertEquals(StatementType.INSERT, statement.getStatement());
         assertEquals("user", statement.getEntityId());
         assertEquals("123456", statement.getAppId());
         assertEquals("89757", statement.getFormId());
