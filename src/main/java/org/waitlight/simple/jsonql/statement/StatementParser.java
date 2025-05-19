@@ -16,19 +16,19 @@ public class StatementParser {
         this.objectMapper = new ObjectMapper();
     }
 
-    public JsonQLStatement parse2Stmt(String jsonQL) throws JsonqlParseException {
+    public JsonQLStatement parse2Stmt(String jsonQL) throws JsonQLStatmentException {
         try {
             Map<String, Object> jsonMap = objectMapper.readValue(jsonQL, Map.class);
             String statementStr = (String) jsonMap.get("statement");
             if (statementStr == null) {
-                throw new JsonqlParseException("Statement type is required");
+                throw new JsonQLStatmentException("Statement type is required");
             }
 
             StatementType statementType;
             try {
                 statementType = StatementType.fromValue(statementStr);
             } catch (IllegalArgumentException e) {
-                throw new JsonqlParseException("Unsupported statement type: " + statementStr);
+                throw new JsonQLStatmentException("Unsupported statement type: " + statementStr);
             }
 
             return switch (statementType) {
@@ -36,17 +36,17 @@ public class StatementParser {
                 case INSERT -> parseCreate(jsonMap);
                 case UPDATE -> parseUpdate(jsonMap);
                 case DELETE -> parseDelete(jsonMap);
-                default -> throw new JsonqlParseException("Unsupported statement type: " + statementType);
+                default -> throw new JsonQLStatmentException("Unsupported statement type: " + statementType);
             };
         } catch (Exception e) {
-            if (e instanceof JsonqlParseException) {
-                throw (JsonqlParseException) e;
+            if (e instanceof JsonQLStatmentException) {
+                throw (JsonQLStatmentException) e;
             }
-            throw new JsonqlParseException("Failed to parse JSONQL: " + e.getMessage(), e);
+            throw new JsonQLStatmentException("Failed to parse JSONQL: " + e.getMessage(), e);
         }
     }
 
-    private SelectStatement parseQuery(Map<String, Object> jsonMap) throws JsonqlParseException {
+    private SelectStatement parseQuery(Map<String, Object> jsonMap) throws JsonQLStatmentException {
         SelectStatement statement = new SelectStatement();
         statement.setStatement(StatementType.SELECT);
 
@@ -70,7 +70,7 @@ public class StatementParser {
                 FilterCriteria filters = objectMapper.readValue(json, FilterCriteria.class);
                 statement.setFilters(filters);
             } catch (Exception e) {
-                throw new JsonqlParseException("Failed to parse filters: " + e.getMessage(), e);
+                throw new JsonQLStatmentException("Failed to parse filters: " + e.getMessage(), e);
             }
         }
 
@@ -82,7 +82,7 @@ public class StatementParser {
                         objectMapper.getTypeFactory().constructCollectionType(List.class, SortCriteria.class));
                 statement.setSort(sort);
             } catch (Exception e) {
-                throw new JsonqlParseException("Failed to parse sort: " + e.getMessage(), e);
+                throw new JsonQLStatmentException("Failed to parse sort: " + e.getMessage(), e);
             }
         }
 
@@ -93,14 +93,14 @@ public class StatementParser {
                 PageCriteria page = objectMapper.readValue(json, PageCriteria.class);
                 statement.setPage(page);
             } catch (Exception e) {
-                throw new JsonqlParseException("Failed to parse page: " + e.getMessage(), e);
+                throw new JsonQLStatmentException("Failed to parse page: " + e.getMessage(), e);
             }
         }
 
         return statement;
     }
 
-    private InsertStatement parseCreate(Map<String, Object> jsonMap) throws JsonqlParseException {
+    private InsertStatement parseCreate(Map<String, Object> jsonMap) throws JsonQLStatmentException {
         try {
             // Remove the statement field as it's already processed
             jsonMap.remove("statement");
@@ -114,14 +114,14 @@ public class StatementParser {
 
             return statement;
         } catch (Exception e) {
-            if (e instanceof JsonqlParseException) {
-                throw (JsonqlParseException) e;
+            if (e instanceof JsonQLStatmentException) {
+                throw (JsonQLStatmentException) e;
             }
-            throw new JsonqlParseException("Failed to parse CREATE statement: " + e.getMessage(), e);
+            throw new JsonQLStatmentException("Failed to parse CREATE statement: " + e.getMessage(), e);
         }
     }
 
-    private UpdateStatement parseUpdate(Map<String, Object> jsonMap) throws JsonqlParseException {
+    private UpdateStatement parseUpdate(Map<String, Object> jsonMap) throws JsonQLStatmentException {
         try {
             // Remove the statement field as it's already processed
             jsonMap.remove("statement");
@@ -135,14 +135,14 @@ public class StatementParser {
 
             return statement;
         } catch (Exception e) {
-            if (e instanceof JsonqlParseException) {
-                throw (JsonqlParseException) e;
+            if (e instanceof JsonQLStatmentException) {
+                throw (JsonQLStatmentException) e;
             }
-            throw new JsonqlParseException("Failed to parse UPDATE statement: " + e.getMessage(), e);
+            throw new JsonQLStatmentException("Failed to parse UPDATE statement: " + e.getMessage(), e);
         }
     }
 
-    private DeleteStatement parseDelete(Map<String, Object> jsonMap) throws JsonqlParseException {
+    private DeleteStatement parseDelete(Map<String, Object> jsonMap) throws JsonQLStatmentException {
         try {
             // Remove the statement field as it's already processed
             jsonMap.remove("statement");
@@ -156,10 +156,10 @@ public class StatementParser {
 
             return statement;
         } catch (Exception e) {
-            if (e instanceof JsonqlParseException) {
-                throw (JsonqlParseException) e;
+            if (e instanceof JsonQLStatmentException) {
+                throw (JsonQLStatmentException) e;
             }
-            throw new JsonqlParseException("Failed to parse DELETE statement: " + e.getMessage(), e);
+            throw new JsonQLStatmentException("Failed to parse DELETE statement: " + e.getMessage(), e);
         }
     }
 } 

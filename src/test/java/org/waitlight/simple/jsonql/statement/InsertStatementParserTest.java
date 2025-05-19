@@ -11,7 +11,7 @@ public class InsertStatementParserTest {
     private final StatementParser parser = new StatementParser();
 
     @Test
-    public void create() throws JsonqlParseException {
+    public void create() throws JsonQLStatmentException {
         String json = """
                 {
                     "statement": "insert",
@@ -45,7 +45,7 @@ public class InsertStatementParserTest {
     }
 
     @Test
-    public void createWithNestedEntities() throws JsonqlParseException {
+    public void createWithNestedEntities() throws JsonQLStatmentException {
         String json = """
                 {
                     "statement": "insert",

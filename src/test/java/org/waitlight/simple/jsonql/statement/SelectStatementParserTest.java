@@ -12,7 +12,7 @@ public class SelectStatementParserTest {
     private final StatementParser parser = new StatementParser();
 
     @Test
-    public void query() throws JsonqlParseException {
+    public void query() throws JsonQLStatmentException {
         String json = """
                 {
                   "statement": "select",
