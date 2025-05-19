@@ -66,9 +66,9 @@ public class SelectStatementParserTest {
         assertNotNull(sort);
         assertEquals(2, sort.size());
         assertEquals("name", sort.get(0).getField());
-        assertEquals("DESC", sort.get(0).getDirection());
+        assertEquals(DirectionType.DESC, sort.get(0).getDirection());
         assertEquals("createTime", sort.get(1).getField());
-        assertEquals("ASC", sort.get(1).getDirection());
+        assertEquals(DirectionType.ASC, sort.get(1).getDirection());
 
         // 验证分页
         PageCriteria page = statement.getPage();

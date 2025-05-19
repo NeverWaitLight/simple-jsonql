@@ -7,5 +7,5 @@ import lombok.Setter;
 @Setter
 public class SortCriteria {
     private String field;
-    private String direction;
+    private DirectionType direction;
 }

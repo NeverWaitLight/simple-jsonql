@@ -110,7 +110,7 @@ public class SelectSqlParser {
             List<String> sortClauses = new ArrayList<>();
             for (SortCriteria sortItem : sort) {
                 // TODO: Sanitize sortItem.getField()
-                String direction = sortItem.getDirection() != null ? sortItem.getDirection().toUpperCase() : "ASC";
+                String direction = sortItem.getDirection() != null ? sortItem.getDirection().getValue() : "ASC";
                 if (!("ASC".equals(direction) || "DESC".equals(direction))) {
                     direction = "ASC"; // Default to ASC if invalid direction
                 }
