@@ -18,12 +18,12 @@ Hibernate 会将每个 Entity 的字段、主键、关联关系等信息封装�
 
 ```java
 // 创建 MetadataSources，扫描并注册 Entity 类
-MetadataSources metadataSources = new MetadataSources(standardRegistry);
-metadataSources.addAnnotatedClass(User.class);
-metadataSources.addAnnotatedClass(Order.class);
+MetadataSources metadataSource = new MetadataSources(standardRegistry);
+metadataSource.addAnnotatedClass(User.class);
+metadataSource.addAnnotatedClass(Order.class);
 
 // 构建 Metadata 对象
-Metadata metadata = metadataSources.getMetadataBuilder().build();
+Metadata metadata = metadataSource.getMetadataBuilder().build();
 
 // 获取 User 实体对应的元数据 PersistentClass
 PersistentClass userPersistentClass = metadata.getEntityBinding(User.class.getName());

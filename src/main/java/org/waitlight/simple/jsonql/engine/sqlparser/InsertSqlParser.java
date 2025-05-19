@@ -57,7 +57,7 @@ public class InsertSqlParser implements SqlParser<InsertStatement> {
         }
 
         List<Property> relationProperties = persistentClass.getProperties().stream()
-                .filter(prop -> Objects.nonNull(prop.getRelationshipType()))
+                .filter(prop -> Objects.nonNull(prop.getRelationship()))
                 .toList();
 
         if (CollectionUtils.isEmpty(relationProperties)) {
@@ -75,7 +75,7 @@ public class InsertSqlParser implements SqlParser<InsertStatement> {
         final PreparedSql<InsertStatement> preparedSql = new PreparedSql<>();
 
         for (Property relationProperty : relationProperties) {
-            RelationshipType relationType = relationProperty.getRelationshipType();
+            RelationshipType relationType = relationProperty.getRelationship();
 
             switch (relationType) {
                 case ONE_TO_MANY -> processOneToManyRelationship(stmt, mainStmt, relationProperty, preparedSql);
@@ -103,7 +103,7 @@ public class InsertSqlParser implements SqlParser<InsertStatement> {
      */
     private void processOneToManyRelationship(InsertStatement stmt, InsertStatement mainStmt,
                                               Property relationProperty, PreparedSql<InsertStatement> preparedSql) {
-        List<NestedStatement> nestedStatements = findNestedStatements(stmt, relationProperty.getName());
+        List<NestedStatement> nestedStatements = findNestedStatements(stmt, relationProperty.getFieldName());
 
         if (CollectionUtils.isEmpty(nestedStatements)) {
             return;
@@ -138,7 +138,7 @@ public class InsertSqlParser implements SqlParser<InsertStatement> {
      */
     private void processManyToOneRelationship(InsertStatement stmt, InsertStatement mainStmt,
                                               Property relationProperty, PreparedSql<InsertStatement> preparedSql) {
-        List<NestedStatement> nestedStatements = findNestedStatements(stmt, relationProperty.getName());
+        List<NestedStatement> nestedStatements = findNestedStatements(stmt, relationProperty.getFieldName());
 
         if (CollectionUtils.isEmpty(nestedStatements)) {
             return;
@@ -226,7 +226,7 @@ public class InsertSqlParser implements SqlParser<InsertStatement> {
     private void addForeignKeyField(InsertStatement mainStmt, Property relationProperty, String foreignKeyValue) {
         String foreignKeyFieldName = relationProperty.getForeignKeyName();
         if (StringUtils.isBlank(foreignKeyFieldName)) {
-            log.error("Could not determine foreign key field name for property {}", relationProperty.getName());
+            log.error("Could not determine foreign key field name for property {}", relationProperty.getFieldName());
             return;
         }
 
@@ -255,7 +255,7 @@ public class InsertSqlParser implements SqlParser<InsertStatement> {
         }
 
         for (Property property : relatedEntityClass.getProperties()) {
-            if (property.getRelationshipType() != null) {
+            if (property.getRelationship() != null) {
                 Class<?> targetEntity = property.getTargetEntity();
                 if (targetEntity != null && targetEntity.getSimpleName().equals(mainEntityId) &&
                         StringUtils.isNotBlank(property.getForeignKeyName())) {

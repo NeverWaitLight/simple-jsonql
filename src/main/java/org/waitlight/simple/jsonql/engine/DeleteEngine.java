@@ -5,7 +5,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.waitlight.simple.jsonql.engine.result.DeleteResult;
 import org.waitlight.simple.jsonql.engine.sqlparser.DeleteSqlParser;
 import org.waitlight.simple.jsonql.engine.sqlparser.PreparedSql;
-import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.metadata.MetadataSource;
 import org.waitlight.simple.jsonql.statement.DeleteStatement;
 
 import java.sql.Connection;
@@ -17,8 +17,8 @@ import java.util.List;
 public class DeleteEngine extends StatementEngine<DeleteStatement, DeleteResult> {
     private final DeleteSqlParser deleteSqlParser;
 
-    public DeleteEngine(MetadataSources metadataSources) {
-        super(metadataSources);
+    public DeleteEngine(MetadataSource metadataSource) {
+        super(metadataSource);
         this.deleteSqlParser = new DeleteSqlParser();
     }
 

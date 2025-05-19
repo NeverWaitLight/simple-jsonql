@@ -3,7 +3,7 @@ package org.waitlight.simple.jsonql.util;
 /**
  * 字符串工具类
  */
-public class StringUtil {
+public class IStringUtil {
 
     /**
      * 将驼峰命名转换为下划线风格

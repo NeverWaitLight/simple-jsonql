@@ -5,7 +5,7 @@ import org.waitlight.simple.jsonql.engine.result.SelectResult;
 import org.waitlight.simple.jsonql.engine.sqlparser.ClauseSqlParser;
 import org.waitlight.simple.jsonql.engine.sqlparser.PreparedSql;
 import org.waitlight.simple.jsonql.engine.sqlparser.SelectSqlParser;
-import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.metadata.MetadataSource;
 import org.waitlight.simple.jsonql.statement.SelectStatement;
 import org.waitlight.simple.jsonql.statement.model.PageCriteria;
 
@@ -20,10 +20,10 @@ public class SelectEngine extends StatementEngine<SelectStatement, SelectResult>
     private final ClauseSqlParser clauseSqlParser;
     private final SelectSqlParser selectSqlParser;
 
-    public SelectEngine(MetadataSources metadataSources) {
-        super(metadataSources);
-        this.clauseSqlParser = new ClauseSqlParser(metadataSources);
-        this.selectSqlParser = new SelectSqlParser(metadataSources);
+    public SelectEngine(MetadataSource metadataSource) {
+        super(metadataSource);
+        this.clauseSqlParser = new ClauseSqlParser(metadataSource);
+        this.selectSqlParser = new SelectSqlParser(metadataSource);
     }
 
     @Override

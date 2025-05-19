@@ -1,26 +1,26 @@
 package org.waitlight.simple.jsonql.engine.sqlparser;
 
-import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.metadata.MetadataSource;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ClauseSqlParser {
     private final List<AbstractClauseSqlParser> executors;
-    protected final MetadataSources metadataSources;
+    protected final MetadataSource metadataSource;
 
-    public ClauseSqlParser(MetadataSources metadataSources) {
-        this.metadataSources = metadataSources;
+    public ClauseSqlParser(MetadataSource metadataSource) {
+        this.metadataSource = metadataSource;
         this.executors = new ArrayList<>();
         initExecutors();
     }
 
     private void initExecutors() {
         // 按照 SQL 子句的执行顺序添加执行器
-        executors.add(new WhereClauseSqlParser(metadataSources));
-        executors.add(new JoinClauseSqlParser(metadataSources));
-        executors.add(new OrderByClauseSqlParser(metadataSources));
-        executors.add(new LimitClauseSqlParser(metadataSources));
+        executors.add(new WhereClauseSqlParser(metadataSource));
+        executors.add(new JoinClauseSqlParser(metadataSource));
+        executors.add(new OrderByClauseSqlParser(metadataSource));
+        executors.add(new LimitClauseSqlParser(metadataSource));
     }
 
     public void buildClause(Object condition, StringBuilder sql) {

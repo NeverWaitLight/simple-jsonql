@@ -1,6 +1,6 @@
 package org.waitlight.simple.jsonql.engine.sqlparser;
 
-import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.metadata.MetadataSource;
 import org.waitlight.simple.jsonql.statement.SelectStatement;
 import org.waitlight.simple.jsonql.statement.model.*;
 
@@ -8,8 +8,8 @@ import java.util.List;
 
 public class WhereClauseSqlParser extends AbstractClauseSqlParser {
 
-    public WhereClauseSqlParser(MetadataSources metadataSources) {
-        super(metadataSources);
+    public WhereClauseSqlParser(MetadataSource metadataSource) {
+        super(metadataSource);
     }
 
     @Override
@@ -95,7 +95,7 @@ public class WhereClauseSqlParser extends AbstractClauseSqlParser {
             sb.append("NOT ");
         }
         sb.append("EXISTS (")
-                .append(new SelectSqlParser(metadataSources).parseSql(condition.getSubquery()).getSql())
+                .append(new SelectSqlParser(metadataSource).parseSql(condition.getSubquery()).getSql())
                 .append(")");
         return sb.toString();
     }

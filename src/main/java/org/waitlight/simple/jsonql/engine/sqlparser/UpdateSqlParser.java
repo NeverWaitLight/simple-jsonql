@@ -1,6 +1,6 @@
 package org.waitlight.simple.jsonql.engine.sqlparser;
 
-import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.metadata.MetadataSource;
 import org.waitlight.simple.jsonql.statement.JsonQLStatement;
 import org.waitlight.simple.jsonql.statement.UpdateStatement;
 import org.waitlight.simple.jsonql.statement.model.FieldStatement;
@@ -10,13 +10,13 @@ import java.util.List;
 
 public class UpdateSqlParser {
 
-    private final MetadataSources metadataSources;
+    private final MetadataSource metadataSource;
     // If WhereClauseExecutor logic needs to be integrated, it would be a dependency
     // here.
     // private final WhereClauseExecutor whereClauseExecutor;
 
-    public UpdateSqlParser(MetadataSources metadataSources) {
-        this.metadataSources = metadataSources;
+    public UpdateSqlParser(MetadataSource metadataSource) {
+        this.metadataSource = metadataSource;
         // this.whereClauseExecutor = new WhereClauseExecutor(this.metadataSources); //
         // If needed
     }

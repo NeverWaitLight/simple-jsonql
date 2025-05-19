@@ -6,7 +6,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.waitlight.simple.jsonql.engine.result.InsertResult;
 import org.waitlight.simple.jsonql.engine.sqlparser.InsertSqlParser;
 import org.waitlight.simple.jsonql.engine.sqlparser.PreparedSql;
-import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.metadata.MetadataBuilderFactory;
+import org.waitlight.simple.jsonql.metadata.MetadataSource;
 import org.waitlight.simple.jsonql.statement.InsertStatement;
 
 import java.sql.Connection;
@@ -40,11 +41,11 @@ public class InsertEngine extends StatementEngine<InsertStatement, InsertResult>
     /**
      * 创建InsertEngine实例
      *
-     * @param metadataSources 元数据来源，用于SQL解析器初始化
+     * @param metadataSource 元数据来源，用于SQL解析器初始化
      */
-    public InsertEngine(MetadataSources metadataSources) {
-        super(metadataSources);
-        this.insertSqlParser = new InsertSqlParser(metadataSources.buildMetadata());
+    public InsertEngine(MetadataSource metadataSource) {
+        super(metadataSource);
+        this.insertSqlParser = new InsertSqlParser(MetadataBuilderFactory.createLocalBuilder(metadataSource).build());
     }
 
     /**

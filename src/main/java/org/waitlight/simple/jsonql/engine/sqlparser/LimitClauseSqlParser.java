@@ -1,12 +1,12 @@
 package org.waitlight.simple.jsonql.engine.sqlparser;
 
-import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.metadata.MetadataSource;
 import org.waitlight.simple.jsonql.statement.SelectStatement;
 import org.waitlight.simple.jsonql.statement.model.PageCriteria;
 
 public class LimitClauseSqlParser extends AbstractClauseSqlParser {
-    public LimitClauseSqlParser(MetadataSources metadataSources) {
-        super(metadataSources);
+    public LimitClauseSqlParser(MetadataSource metadataSource) {
+        super(metadataSource);
     }
 
     @Override

@@ -1,13 +1,13 @@
 package org.waitlight.simple.jsonql.engine.sqlparser;
 
-import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.metadata.MetadataSource;
 import org.waitlight.simple.jsonql.statement.SelectStatement;
 import org.waitlight.simple.jsonql.statement.model.FilterCriteria;
 
 public class JoinClauseSqlParser extends AbstractClauseSqlParser {
 
-    public JoinClauseSqlParser(MetadataSources metadataSources) {
-        super(metadataSources);
+    public JoinClauseSqlParser(MetadataSource metadataSource) {
+        super(metadataSource);
     }
 
     @Override

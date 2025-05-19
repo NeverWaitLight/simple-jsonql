@@ -1,6 +1,6 @@
 package org.waitlight.simple.jsonql.engine.sqlparser;
 
-import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.metadata.MetadataSource;
 import org.waitlight.simple.jsonql.statement.JsonQLStatement;
 import org.waitlight.simple.jsonql.statement.SelectStatement;
 import org.waitlight.simple.jsonql.statement.model.FilterCondition;
@@ -15,14 +15,14 @@ public class SelectSqlParser {
 
     private final ClauseSqlParser clauseSqlParser; // For potential future use to delegate clause building
 
-    public SelectSqlParser(MetadataSources metadataSources) {
+    public SelectSqlParser(MetadataSource metadataSource) {
         // Initialize ClauseExecutor if it's going to be used by the parser directly
         // Or, if QueryExecutor manages it, it could be passed in.
         // For now, let's assume if this parser becomes complex, it might instantiate
         // its own clause handlers
         // or be given them.
         // As per QueryExecutor, ClauseExecutor takes MetadataSources.
-        this.clauseSqlParser = new ClauseSqlParser(metadataSources);
+        this.clauseSqlParser = new ClauseSqlParser(metadataSource);
     }
 
     public PreparedSql<SelectStatement> parseSql(JsonQLStatement statement) {

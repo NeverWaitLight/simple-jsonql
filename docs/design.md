@@ -74,7 +74,7 @@ classDiagram
 
     class StatementEngine {
         <<abstract>>
-        #MetadataSources metadataSources
+        #MetadataSources metadataSource
         +Object execute(Connection, JsonQLStatement)
     }
 

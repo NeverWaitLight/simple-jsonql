@@ -3,7 +3,7 @@ package org.waitlight.simple.jsonql.engine;
 import lombok.extern.slf4j.Slf4j;
 import org.waitlight.simple.jsonql.config.DBConfig;
 import org.waitlight.simple.jsonql.engine.result.ExecuteResult;
-import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.metadata.MetadataSource;
 import org.waitlight.simple.jsonql.statement.*;
 
 import java.sql.Connection;
@@ -15,22 +15,22 @@ import java.util.*;
 @Slf4j
 public class JsonQLEngine {
 
-    private final MetadataSources metadataSources;
+    private final MetadataSource metadataSource;
     private final StatementParser parser;
     private final Map<Class<? extends JsonQLStatement>, StatementEngine<? extends JsonQLStatement, ? extends ExecuteResult>> executors;
 
-    public JsonQLEngine(MetadataSources metadataSources) {
-        this.metadataSources = metadataSources;
+    public JsonQLEngine(MetadataSource metadataSource) {
+        this.metadataSource = metadataSource;
         this.parser = new StatementParser();
         this.executors = initializeExecutors();
     }
 
     private Map<Class<? extends JsonQLStatement>, StatementEngine<? extends JsonQLStatement, ? extends ExecuteResult>> initializeExecutors() {
         Map<Class<? extends JsonQLStatement>, StatementEngine<? extends JsonQLStatement, ? extends ExecuteResult>> executors = new HashMap<>();
-        executors.put(SelectStatement.class, new SelectEngine(metadataSources));
-        executors.put(InsertStatement.class, new InsertEngine(metadataSources));
-        executors.put(UpdateStatement.class, new UpdateEngine(metadataSources));
-        executors.put(DeleteStatement.class, new DeleteEngine(metadataSources));
+        executors.put(SelectStatement.class, new SelectEngine(metadataSource));
+        executors.put(InsertStatement.class, new InsertEngine(metadataSource));
+        executors.put(UpdateStatement.class, new UpdateEngine(metadataSource));
+        executors.put(DeleteStatement.class, new DeleteEngine(metadataSource));
         return executors;
     }
 

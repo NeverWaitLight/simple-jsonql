@@ -7,7 +7,7 @@ import org.waitlight.simple.jsonql.engine.result.UpdateResult;
 import org.waitlight.simple.jsonql.engine.sqlparser.PreparedSql;
 import org.waitlight.simple.jsonql.engine.sqlparser.UpdateSqlParser;
 import org.waitlight.simple.jsonql.engine.sqlparser.WhereClauseSqlParser;
-import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.metadata.MetadataSource;
 import org.waitlight.simple.jsonql.statement.UpdateStatement;
 
 import java.sql.Connection;
@@ -28,10 +28,10 @@ public class UpdateEngine extends StatementEngine<UpdateStatement, UpdateResult>
     private record NestedUpdateDetail(int affectedRows) {
     }
 
-    public UpdateEngine(MetadataSources metadataSources) {
-        super(metadataSources);
-        this.whereClauseExecutor = new WhereClauseSqlParser(metadataSources);
-        this.updateSqlParser = new UpdateSqlParser(metadataSources);
+    public UpdateEngine(MetadataSource metadataSource) {
+        super(metadataSource);
+        this.whereClauseExecutor = new WhereClauseSqlParser(metadataSource);
+        this.updateSqlParser = new UpdateSqlParser(metadataSource);
     }
 
     @Override

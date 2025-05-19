@@ -1,22 +1,22 @@
 package org.waitlight.simple.jsonql.metadata;
 
 import jakarta.persistence.JoinColumn;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class Property {
-    private String name;
-    private String column;
+    private String fieldName;
+    private String columnName;
     private String type;
 
     /**
      * 关系类型（一对一、一对多、多对一、多对多）
      */
-    private RelationshipType relationshipType;
+    private RelationshipType relationship;
 
     /**
      * 关联的目标实体类
@@ -53,9 +53,9 @@ public class Property {
      */
     private JoinColumn[] inverseJoinColumns;
 
-    public Property(String name, String column, String type) {
-        this.name = name;
-        this.column = column;
+    public Property(String fieldName, String columnName, String type) {
+        this.fieldName = fieldName;
+        this.columnName = columnName;
         this.type = type;
     }
 }

@@ -6,14 +6,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Metadata {
-    private final Map<String, PersistentClass> entityBindings = new HashMap<>();
+    private final Map<String, PersistentClass> entities = new HashMap<>();
 
-    public void addEntityBinding(String entityName, PersistentClass persistentClass) {
-        entityBindings.put(entityName, persistentClass);
+    public void addEntity(String entityName, PersistentClass persistentClass) {
+        if (entities.containsKey(entityName)) {
+            throw new RuntimeException("Duplicate entity name: '" + entityName + "'");
+        }
+        entities.put(entityName, persistentClass);
     }
 
     public PersistentClass getEntity(String entityName) {
         if (StringUtils.isBlank(entityName)) throw new RuntimeException("Entity not found");
-        return entityBindings.get(entityName.toLowerCase());
+        return entities.get(entityName.toLowerCase());
     }
 }

@@ -8,7 +8,7 @@ import org.waitlight.simple.jsonql.engine.result.InsertResult;
 import org.waitlight.simple.jsonql.engine.result.SelectResult;
 import org.waitlight.simple.jsonql.entity.Blog;
 import org.waitlight.simple.jsonql.entity.User;
-import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.metadata.MetadataSource;
 import org.waitlight.simple.jsonql.statement.InsertStatement;
 import org.waitlight.simple.jsonql.statement.SelectStatement;
 
@@ -27,10 +27,10 @@ public class SelectEngineTest {
 
     @BeforeAll
     public static void setUp() {
-        MetadataSources metadataSources = new MetadataSources();
-        metadataSources.addAnnotatedClass(User.class);
-        metadataSources.addAnnotatedClass(Blog.class);
-        engine = new JsonQLEngine(metadataSources);
+        MetadataSource metadataSource = new MetadataSource();
+        metadataSource.addAnnotatedClass(User.class);
+        metadataSource.addAnnotatedClass(Blog.class);
+        engine = new JsonQLEngine(metadataSource);
     }
 
     @BeforeEach
