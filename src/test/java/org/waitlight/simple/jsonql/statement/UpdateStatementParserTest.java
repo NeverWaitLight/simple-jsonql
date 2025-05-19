@@ -3,7 +3,6 @@ package org.waitlight.simple.jsonql.statement;
 import org.junit.jupiter.api.Test;
 import org.waitlight.simple.jsonql.statement.model.FieldStatement;
 import org.waitlight.simple.jsonql.statement.model.NestedStatement;
-import org.waitlight.simple.jsonql.statement.model.StatementType;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -12,14 +11,13 @@ public class UpdateStatementParserTest {
     private final StatementParser parser = new StatementParser();
 
     @Test
-    public void update() throws JsonQLStatmentException {
+    public void update() throws JsonQLStatementException {
         String json = """
                 {
                     "appId": "123456",
                     "formId": "89757",
                     "entityId": "147258",
                     "dataId": "1",
-                    "statement": "update",
                     "fields": [
                         {"field": "name", "value": "高桥凉介"},
                         {
@@ -38,9 +36,8 @@ public class UpdateStatementParserTest {
                 }
                 """;
 
-        UpdateStatement statement = (UpdateStatement) parser.parse2Stmt(json);
+        UpdateStatement statement = parser.parse(json, UpdateStatement.class);
 
-        assertEquals(StatementType.UPDATE, statement.getStatement());
         assertEquals("123456", statement.getAppId());
         assertEquals("89757", statement.getFormId());
         assertEquals("147258", statement.getEntityId());

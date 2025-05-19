@@ -12,10 +12,9 @@ public class SelectStatementParserTest {
     private final StatementParser parser = new StatementParser();
 
     @Test
-    public void query() throws JsonQLStatmentException {
+    public void query() throws JsonQLStatementException {
         String json = """
                 {
-                  "statement": "select",
                   "appId": "123456",
                   "formId": "89757",
                   "entityId": "89757",
@@ -34,10 +33,9 @@ public class SelectStatementParserTest {
                 }
                 """;
 
-        SelectStatement statement = (SelectStatement) parser.parse2Stmt(json);
+        SelectStatement statement = parser.parse(json, SelectStatement.class);
 
         // 验证基本字段
-        assertEquals(StatementType.SELECT, statement.getStatement());
         assertEquals("123456", statement.getAppId());
         assertEquals("89757", statement.getFormId());
         assertEquals("89757", statement.getEntityId());

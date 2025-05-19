@@ -55,7 +55,7 @@ public class CalciteSqlGeneratorTests {
                 }
                 """;
 
-        SelectStatement selectStatement = (SelectStatement) statementParser.parse2Stmt(jsonQuery);
+        SelectStatement selectStatement = (SelectStatement) statementParser.parse(jsonQuery);
 
         // 创建Schema和表定义
         SchemaPlus schema = CalciteSchema.createRootSchema(false).plus();

@@ -3,7 +3,6 @@ package org.waitlight.simple.jsonql.statement;
 import org.junit.jupiter.api.Test;
 import org.waitlight.simple.jsonql.statement.model.FieldStatement;
 import org.waitlight.simple.jsonql.statement.model.NestedStatement;
-import org.waitlight.simple.jsonql.statement.model.StatementType;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -11,10 +10,9 @@ public class InsertStatementParserTest {
     private final StatementParser parser = new StatementParser();
 
     @Test
-    public void create() throws JsonQLStatmentException {
+    public void create() throws JsonQLStatementException {
         String json = """
                 {
-                    "statement": "insert",
                     "appId": "123456",
                     "formId": "89757",
                     "entityId": "user",
@@ -26,9 +24,8 @@ public class InsertStatementParserTest {
                 }
                 """;
 
-        InsertStatement statement = (InsertStatement) parser.parse2Stmt(json);
+        InsertStatement statement = parser.parse(json, InsertStatement.class);
 
-        assertEquals(StatementType.INSERT, statement.getStatement());
         assertEquals("user", statement.getEntityId());
         assertEquals("123456", statement.getAppId());
         assertEquals("89757", statement.getFormId());
@@ -45,10 +42,9 @@ public class InsertStatementParserTest {
     }
 
     @Test
-    public void createWithNestedEntities() throws JsonQLStatmentException {
+    public void createWithNestedEntities() throws JsonQLStatementException {
         String json = """
                 {
-                    "statement": "insert",
                     "appId": "123456",
                     "formId": "89757",
                     "entityId": "user",
@@ -75,9 +71,8 @@ public class InsertStatementParserTest {
                 }
                 """;
 
-        InsertStatement statement = (InsertStatement) parser.parse2Stmt(json);
+        InsertStatement statement = parser.parse(json, InsertStatement.class);
 
-        assertEquals(StatementType.INSERT, statement.getStatement());
         assertEquals("user", statement.getEntityId());
         assertEquals("123456", statement.getAppId());
         assertEquals("89757", statement.getFormId());

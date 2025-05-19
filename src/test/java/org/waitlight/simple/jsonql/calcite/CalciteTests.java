@@ -60,7 +60,7 @@ public class CalciteTests {
                 """;
 
         // 解析JSON为SelectStatement
-        SelectStatement selectStatement = (SelectStatement) statementParser.parse2Stmt(query);
+        SelectStatement selectStatement = (SelectStatement) statementParser.parse(query);
 
         // 生成SQL
         String sql = generateSql(selectStatement);

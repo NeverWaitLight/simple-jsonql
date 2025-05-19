@@ -9,4 +9,4 @@ import java.util.List;
 @Getter
 public class DeleteStatement extends JsonQLStatement {
     private List<String> ids;
-} 
+}
