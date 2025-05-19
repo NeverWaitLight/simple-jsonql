@@ -1,16 +1,14 @@
 package org.waitlight.simple.jsonql.statement;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import org.waitlight.simple.jsonql.statement.model.FieldStatement;
 import org.waitlight.simple.jsonql.statement.model.NestedStatement;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class InsertStatement extends NestedStatement {
-    @JsonProperty("into")
-    private String into;
+import java.util.List;
 
-    @JsonProperty("values")
-    private Object values;
+@Getter
+@Setter
+public class InsertStatement extends NestedStatement {
+    private List<FieldStatement> fields;
 }

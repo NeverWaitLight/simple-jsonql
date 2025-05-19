@@ -23,11 +23,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.waitlight.simple.jsonql.statement.SelectStatement;
 import org.waitlight.simple.jsonql.statement.StatementParser;
-import org.waitlight.simple.jsonql.statement.model.Condition;
+import org.waitlight.simple.jsonql.statement.model.FilterCondition;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.StringJoiner;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -637,7 +636,7 @@ public class CalciteTests {
         if (selectStatement.getFilters() != null && selectStatement.getFilters().getConditions() != null) {
             var conditions = selectStatement.getFilters().getConditions();
 
-            for (Condition condition : conditions) {
+            for (FilterCondition condition : conditions) {
                 String field = condition.getField();
                 String methodStr = condition.getMethod().toString();
                 Object value = condition.getValue();

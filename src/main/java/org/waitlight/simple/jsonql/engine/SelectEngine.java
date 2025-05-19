@@ -7,7 +7,7 @@ import org.waitlight.simple.jsonql.engine.sqlparser.PreparedSql;
 import org.waitlight.simple.jsonql.engine.sqlparser.SelectSqlParser;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.statement.SelectStatement;
-import org.waitlight.simple.jsonql.statement.model.Page;
+import org.waitlight.simple.jsonql.statement.model.PageCriteria;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -49,7 +49,7 @@ public class SelectEngine extends StatementEngine<SelectStatement, SelectResult>
                 List<Map<String, Object>> records = processResultSet(rs);
 
                 // 处理分页信息
-                Page page = statement.getPage();
+                PageCriteria page = statement.getPage();
                 int pageSize = (page != null && page.getSize() != null) ? page.getSize() : records.size();
                 int pageNumber = (page != null && page.getNumber() != null) ? page.getNumber() : 1;
 

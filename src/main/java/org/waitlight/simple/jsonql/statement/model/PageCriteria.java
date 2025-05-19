@@ -6,10 +6,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class Sort {
-    @JsonProperty("field")
-    private String field;
+public class PageCriteria {
+    @JsonProperty("size")
+    private Integer size;
 
-    @JsonProperty("direction")
-    private String direction;
+    @JsonProperty("number")
+    private Integer number;
 }

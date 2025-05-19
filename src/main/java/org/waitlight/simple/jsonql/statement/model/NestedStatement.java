@@ -14,5 +14,5 @@ public class NestedStatement extends JsonQLStatement {
     private String dataId;
 
     @JsonProperty("fields")
-    private List<Field> fields;
+    private List<FieldStatement> fields;
 }

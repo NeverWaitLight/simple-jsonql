@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.waitlight.simple.jsonql.metadata.*;
 import org.waitlight.simple.jsonql.statement.InsertStatement;
-import org.waitlight.simple.jsonql.statement.model.Field;
+import org.waitlight.simple.jsonql.statement.model.FieldStatement;
 import org.waitlight.simple.jsonql.statement.model.NestedStatement;
 
 import java.util.ArrayList;
@@ -64,7 +64,7 @@ public class InsertSqlParser implements SqlParser<InsertStatement> {
             return buildSql(stmt);
         }
 
-        List<Field> regularFields = stmt.getFields().stream()
+        List<FieldStatement> regularFields = stmt.getFields().stream()
                 .filter(field -> CollectionUtils.isEmpty(field.getValues()))
                 .toList();
 
@@ -114,7 +114,7 @@ public class InsertSqlParser implements SqlParser<InsertStatement> {
                     nestedStmt.getEntityId(), relationProperty);
 
             if (StringUtils.isNotBlank(foreignKeyFieldName)) {
-                Field foreignKeyField = new Field();
+                FieldStatement foreignKeyField = new FieldStatement();
                 foreignKeyField.setField(foreignKeyFieldName);
                 foreignKeyField.setValue(FOREIGN_KEY_PLACEHOLDER);
                 nestedStmt.getFields().add(foreignKeyField);
@@ -186,7 +186,7 @@ public class InsertSqlParser implements SqlParser<InsertStatement> {
         }
 
         if (stmt.getFields().size() == 1) {
-            Field field = stmt.getFields().get(0);
+            FieldStatement field = stmt.getFields().get(0);
             return "id".equals(field.getField());
         }
 
@@ -206,7 +206,7 @@ public class InsertSqlParser implements SqlParser<InsertStatement> {
         }
 
         if (CollectionUtils.isNotEmpty(stmt.getFields())) {
-            for (Field field : stmt.getFields()) {
+            for (FieldStatement field : stmt.getFields()) {
                 if ("id".equals(field.getField()) && field.getValue() != null) {
                     return field.getValue().toString();
                 }
@@ -230,7 +230,7 @@ public class InsertSqlParser implements SqlParser<InsertStatement> {
             return;
         }
 
-        Field foreignKeyField = new Field();
+        FieldStatement foreignKeyField = new FieldStatement();
         foreignKeyField.setField(foreignKeyFieldName);
         foreignKeyField.setValue(foreignKeyValue);
         mainStmt.getFields().add(foreignKeyField);
@@ -278,8 +278,8 @@ public class InsertSqlParser implements SqlParser<InsertStatement> {
             return new PreparedSql<>();
         }
 
-        List<String> fieldNames = entity.getFields().stream().map(Field::getField).toList();
-        List<Object> parameters = entity.getFields().stream().map(Field::getValue).toList();
+        List<String> fieldNames = entity.getFields().stream().map(FieldStatement::getField).toList();
+        List<Object> parameters = entity.getFields().stream().map(FieldStatement::getValue).toList();
 
         if (fieldNames.isEmpty() || parameters.isEmpty()) {
             return new PreparedSql<>();

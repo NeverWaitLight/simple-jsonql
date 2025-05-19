@@ -2,7 +2,7 @@ package org.waitlight.simple.jsonql.engine.sqlparser;
 
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.statement.SelectStatement;
-import org.waitlight.simple.jsonql.statement.model.Sort;
+import org.waitlight.simple.jsonql.statement.model.SortCriteria;
 
 import java.util.List;
 
@@ -16,7 +16,7 @@ public class OrderByClauseSqlParser extends AbstractClauseSqlParser {
     public String buildClause(Object condition) {
         if (condition instanceof SelectStatement) {
             SelectStatement select = (SelectStatement) condition;
-            List<Sort> sortList = select.getSort();
+            List<SortCriteria> sortList = select.getSort();
 
             if (sortList == null || sortList.isEmpty()) {
                 return "";

@@ -3,7 +3,7 @@ package org.waitlight.simple.jsonql.engine.sqlparser;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.statement.JsonQLStatement;
 import org.waitlight.simple.jsonql.statement.UpdateStatement;
-import org.waitlight.simple.jsonql.statement.model.Field;
+import org.waitlight.simple.jsonql.statement.model.FieldStatement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +44,7 @@ public class UpdateSqlParser {
         List<String> setClauses = new ArrayList<>();
         List<Object> parameters = new ArrayList<>();
 
-        for (Field field : updateStatement.getFields()) {
+        for (FieldStatement field : updateStatement.getFields()) {
             setClauses.add(field.getField() + " = ?");
             parameters.add(field.getValue());
         }

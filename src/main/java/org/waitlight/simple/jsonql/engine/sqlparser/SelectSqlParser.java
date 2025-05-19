@@ -3,10 +3,10 @@ package org.waitlight.simple.jsonql.engine.sqlparser;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.statement.JsonQLStatement;
 import org.waitlight.simple.jsonql.statement.SelectStatement;
-import org.waitlight.simple.jsonql.statement.model.Condition;
-import org.waitlight.simple.jsonql.statement.model.Filter;
-import org.waitlight.simple.jsonql.statement.model.Page;
-import org.waitlight.simple.jsonql.statement.model.Sort;
+import org.waitlight.simple.jsonql.statement.model.FilterCondition;
+import org.waitlight.simple.jsonql.statement.model.FilterCriteria;
+import org.waitlight.simple.jsonql.statement.model.PageCriteria;
+import org.waitlight.simple.jsonql.statement.model.SortCriteria;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,9 +34,9 @@ public class SelectSqlParser {
         StringBuilder sql = new StringBuilder();
         List<Object> parameters = new ArrayList<>();
 
-        Page page = selectStatement.getPage();
-        Filter filters = selectStatement.getFilters();
-        List<Sort> sort = selectStatement.getSort();
+        PageCriteria page = selectStatement.getPage();
+        FilterCriteria filters = selectStatement.getFilters();
+        List<SortCriteria> sort = selectStatement.getSort();
 
         String entityId = selectStatement.getEntityId();
         if (entityId == null || entityId.isBlank()) {
@@ -51,14 +51,14 @@ public class SelectSqlParser {
         if (filters != null && filters.getConditions() != null && !filters.getConditions().isEmpty()) {
             sql.append(" WHERE ");
             String rel = filters.getRel() != null ? filters.getRel().toUpperCase() : "AND";
-            List<Condition> conditions = filters.getConditions();
+            List<FilterCondition> conditions = filters.getConditions();
 
             for (int i = 0; i < conditions.size(); i++) {
                 if (i > 0) {
                     sql.append(" ").append(rel).append(" ");
                 }
 
-                Condition condition = conditions.get(i);
+                FilterCondition condition = conditions.get(i);
                 // TODO: Sanitize condition.getField() to prevent SQL injection if not from
                 // trusted source
                 sql.append(condition.getField()).append(" ");
@@ -108,7 +108,7 @@ public class SelectSqlParser {
         if (sort != null && !sort.isEmpty()) {
             sql.append(" ORDER BY ");
             List<String> sortClauses = new ArrayList<>();
-            for (Sort sortItem : sort) {
+            for (SortCriteria sortItem : sort) {
                 // TODO: Sanitize sortItem.getField()
                 String direction = sortItem.getDirection() != null ? sortItem.getDirection().toUpperCase() : "ASC";
                 if (!("ASC".equals(direction) || "DESC".equals(direction))) {

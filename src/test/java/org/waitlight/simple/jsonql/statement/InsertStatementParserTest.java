@@ -1,7 +1,7 @@
 package org.waitlight.simple.jsonql.statement;
 
 import org.junit.jupiter.api.Test;
-import org.waitlight.simple.jsonql.statement.model.Field;
+import org.waitlight.simple.jsonql.statement.model.FieldStatement;
 import org.waitlight.simple.jsonql.statement.model.NestedStatement;
 import org.waitlight.simple.jsonql.statement.model.StatementType;
 
@@ -14,7 +14,7 @@ public class InsertStatementParserTest {
     public void create() throws JsonqlParseException {
         String json = """
                 {
-                    "statement": "create",
+                    "statement": "insert",
                     "appId": "123456",
                     "formId": "89757",
                     "entityId": "user",
@@ -48,7 +48,7 @@ public class InsertStatementParserTest {
     public void createWithNestedEntities() throws JsonqlParseException {
         String json = """
                 {
-                    "statement": "create",
+                    "statement": "insert",
                     "appId": "123456",
                     "formId": "89757",
                     "entityId": "user",
@@ -84,12 +84,12 @@ public class InsertStatementParserTest {
         assertEquals(2, statement.getFields().size());
 
         // Verify first field
-        Field nameField = statement.getFields().get(0);
+        FieldStatement nameField = statement.getFields().get(0);
         assertEquals("name", nameField.getField());
         assertEquals("tom", nameField.getValue());
 
         // Verify nested entity field
-        Field blogsField = statement.getFields().get(1);
+        FieldStatement blogsField = statement.getFields().get(1);
         assertEquals("blogs", blogsField.getField());
         assertEquals(2, blogsField.getValues().size());
 

@@ -1,9 +1,9 @@
 package org.waitlight.simple.jsonql.statement;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.waitlight.simple.jsonql.statement.model.Filter;
-import org.waitlight.simple.jsonql.statement.model.Page;
-import org.waitlight.simple.jsonql.statement.model.Sort;
+import org.waitlight.simple.jsonql.statement.model.FilterCriteria;
+import org.waitlight.simple.jsonql.statement.model.PageCriteria;
+import org.waitlight.simple.jsonql.statement.model.SortCriteria;
 import org.waitlight.simple.jsonql.statement.model.StatementType;
 
 import java.util.List;
@@ -67,7 +67,7 @@ public class StatementParser {
             try {
                 Map<String, Object> filtersMap = (Map<String, Object>) jsonMap.get("filters");
                 String json = objectMapper.writeValueAsString(filtersMap);
-                Filter filters = objectMapper.readValue(json, Filter.class);
+                FilterCriteria filters = objectMapper.readValue(json, FilterCriteria.class);
                 statement.setFilters(filters);
             } catch (Exception e) {
                 throw new JsonqlParseException("Failed to parse filters: " + e.getMessage(), e);
@@ -78,8 +78,8 @@ public class StatementParser {
             try {
                 List<Map<String, Object>> sortList = (List<Map<String, Object>>) jsonMap.get("sort");
                 String json = objectMapper.writeValueAsString(sortList);
-                List<Sort> sort = objectMapper.readValue(json,
-                        objectMapper.getTypeFactory().constructCollectionType(List.class, Sort.class));
+                List<SortCriteria> sort = objectMapper.readValue(json,
+                        objectMapper.getTypeFactory().constructCollectionType(List.class, SortCriteria.class));
                 statement.setSort(sort);
             } catch (Exception e) {
                 throw new JsonqlParseException("Failed to parse sort: " + e.getMessage(), e);
@@ -90,7 +90,7 @@ public class StatementParser {
             try {
                 Map<String, Object> pageMap = (Map<String, Object>) jsonMap.get("page");
                 String json = objectMapper.writeValueAsString(pageMap);
-                Page page = objectMapper.readValue(json, Page.class);
+                PageCriteria page = objectMapper.readValue(json, PageCriteria.class);
                 statement.setPage(page);
             } catch (Exception e) {
                 throw new JsonqlParseException("Failed to parse page: " + e.getMessage(), e);

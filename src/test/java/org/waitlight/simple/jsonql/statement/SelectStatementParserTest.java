@@ -15,7 +15,7 @@ public class SelectStatementParserTest {
     public void query() throws JsonqlParseException {
         String json = """
                 {
-                  "statement": "query",
+                  "statement": "select",
                   "appId": "123456",
                   "formId": "89757",
                   "entityId": "89757",
@@ -43,19 +43,19 @@ public class SelectStatementParserTest {
         assertEquals("89757", statement.getEntityId());
 
         // 验证filters
-        Filter filters = statement.getFilters();
+        FilterCriteria filters = statement.getFilters();
         assertNotNull(filters);
         assertEquals("or", filters.getRel());
         assertEquals(2, filters.getConditions().size());
 
         // 验证第一个条件
-        Condition firstCondition = filters.getConditions().get(0);
+        FilterCondition firstCondition = filters.getConditions().get(0);
         assertEquals("status", firstCondition.getField());
         assertEquals(MethodType.EQ, firstCondition.getMethod());
         assertEquals("active", firstCondition.getValue());
 
         // 验证第二个条件
-        Condition secondCondition = filters.getConditions().get(1);
+        FilterCondition secondCondition = filters.getConditions().get(1);
         assertEquals("name", secondCondition.getField());
         assertEquals(MethodType.IN, secondCondition.getMethod());
         assertNotNull(secondCondition.getValues());
@@ -64,7 +64,7 @@ public class SelectStatementParserTest {
         assertEquals("B", secondCondition.getValues().get(1));
 
         // 验证排序
-        List<Sort> sort = statement.getSort();
+        List<SortCriteria> sort = statement.getSort();
         assertNotNull(sort);
         assertEquals(2, sort.size());
         assertEquals("name", sort.get(0).getField());
@@ -73,7 +73,7 @@ public class SelectStatementParserTest {
         assertEquals("ASC", sort.get(1).getDirection());
 
         // 验证分页
-        Page page = statement.getPage();
+        PageCriteria page = statement.getPage();
         assertNotNull(page);
         assertEquals(20, page.getSize());
         assertEquals(1, page.getNumber());

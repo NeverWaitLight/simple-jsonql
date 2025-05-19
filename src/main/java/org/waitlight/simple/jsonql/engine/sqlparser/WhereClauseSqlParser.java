@@ -15,7 +15,7 @@ public class WhereClauseSqlParser extends AbstractClauseSqlParser {
     @Override
     public String buildClause(Object condition) {
         if (condition instanceof SelectStatement selectStatement) {
-            Filter filters = selectStatement.getFilters();
+            FilterCriteria filters = selectStatement.getFilters();
             if (filters == null || filters.getConditions() == null || filters.getConditions().isEmpty()) {
                 return "";
             }
@@ -23,7 +23,7 @@ public class WhereClauseSqlParser extends AbstractClauseSqlParser {
             StringBuilder sb = new StringBuilder();
             sb.append(" WHERE ");
 
-            List<Condition> conditions = filters.getConditions();
+            List<FilterCondition> conditions = filters.getConditions();
             String rel = filters.getRel() != null ? filters.getRel().toUpperCase() : "AND";
 
             for (int i = 0; i < conditions.size(); i++) {
@@ -31,7 +31,7 @@ public class WhereClauseSqlParser extends AbstractClauseSqlParser {
                     sb.append(" ").append(rel).append(" ");
                 }
 
-                Condition cond = conditions.get(i);
+                FilterCondition cond = conditions.get(i);
                 sb.append(buildCondition(cond));
             }
 
@@ -44,7 +44,7 @@ public class WhereClauseSqlParser extends AbstractClauseSqlParser {
         return "";
     }
 
-    private String buildCondition(Condition condition) {
+    private String buildCondition(FilterCondition condition) {
         StringBuilder sb = new StringBuilder();
         sb.append(condition.getField()).append(" ");
 

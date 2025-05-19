@@ -8,7 +8,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class Condition {
+public class FilterCondition {
     @JsonProperty("field")
     private String field;
 

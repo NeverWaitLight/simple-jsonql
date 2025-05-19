@@ -2,7 +2,7 @@ package org.waitlight.simple.jsonql.engine.sqlparser;
 
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
 import org.waitlight.simple.jsonql.statement.SelectStatement;
-import org.waitlight.simple.jsonql.statement.model.Filter;
+import org.waitlight.simple.jsonql.statement.model.FilterCriteria;
 
 public class JoinClauseSqlParser extends AbstractClauseSqlParser {
 
@@ -15,7 +15,7 @@ public class JoinClauseSqlParser extends AbstractClauseSqlParser {
         if (!(condition instanceof SelectStatement select)) return "";
 
         // 新版本的QueryStatement没有joins属性，我们需要从filters中获取关联信息
-        Filter filters = select.getFilters();
+        FilterCriteria filters = select.getFilters();
         if (filters == null) return "";
 
         // 如果filters中指定了rel属性，我们可以创建一个JOIN子句

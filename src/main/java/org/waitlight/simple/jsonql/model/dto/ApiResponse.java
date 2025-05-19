@@ -1,10 +1,15 @@
 package org.waitlight.simple.jsonql.model.dto;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * API通用响应对象
  *
  * @param <T> 响应数据类型
  */
+@Setter
+@Getter
 public class ApiResponse<T> {
     private int code;
     private String message;
@@ -42,27 +47,4 @@ public class ApiResponse<T> {
         return new ApiResponse<>(code, message, null);
     }
 
-    public int getCode() {
-        return code;
-    }
-
-    public void setCode(int code) {
-        this.code = code;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public T getData() {
-        return data;
-    }
-
-    public void setData(T data) {
-        this.data = data;
-    }
-} 
+}

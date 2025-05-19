@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class Field {
+public class FieldStatement {
     @JsonProperty("field")
     private String field;
 
