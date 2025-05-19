@@ -9,6 +9,9 @@ import org.waitlight.simple.jsonql.engine.result.UpdateResult;
 import org.waitlight.simple.jsonql.entity.Blog;
 import org.waitlight.simple.jsonql.entity.User;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.statement.InsertStatement;
+import org.waitlight.simple.jsonql.statement.SelectStatement;
+import org.waitlight.simple.jsonql.statement.UpdateStatement;
 
 import java.util.List;
 import java.util.Map;
@@ -45,7 +48,7 @@ public class UpdateEngineTest {
                 }
                 """.formatted(randomName);
 
-        ExecuteResult insertResultObj = engine.execute(insertQuery);
+        ExecuteResult insertResultObj = engine.execute(insertQuery, InsertStatement.class);
         assertTrue(insertResultObj instanceof InsertResult);
         InsertResult insertResult = (InsertResult) insertResultObj;
         assertTrue(insertResult.getAffectedRows() > 0);
@@ -67,7 +70,7 @@ public class UpdateEngineTest {
                 }
                 """.formatted(userId, updatedName);
 
-        ExecuteResult updateResultObj = engine.execute(updateQuery);
+        ExecuteResult updateResultObj = engine.execute(updateQuery, UpdateStatement.class);
         assertNotNull(updateResultObj);
         assertTrue(updateResultObj instanceof UpdateResult);
         UpdateResult updateResult = (UpdateResult) updateResultObj;
@@ -90,7 +93,7 @@ public class UpdateEngineTest {
                 }
                 """.formatted(userId);
 
-        ExecuteResult selectResultObj = engine.execute(selectQuery);
+        ExecuteResult selectResultObj = engine.execute(selectQuery, SelectStatement.class);
         assertNotNull(selectResultObj);
         assertTrue(selectResultObj instanceof SelectResult);
         SelectResult selectResult = (SelectResult) selectResultObj;
@@ -134,7 +137,7 @@ public class UpdateEngineTest {
                 }
                 """.formatted(randomName, originalTitle);
 
-        ExecuteResult insertResultObj = engine.execute(insertQuery);
+        ExecuteResult insertResultObj = engine.execute(insertQuery, InsertStatement.class);
         assertTrue(insertResultObj instanceof InsertResult);
         InsertResult insertResult = (InsertResult) insertResultObj;
         assertTrue(insertResult.getAffectedRows() > 0);
@@ -158,7 +161,7 @@ public class UpdateEngineTest {
                 }
                 """.formatted(blogId, updatedTitle);
 
-        ExecuteResult updateResultObj = engine.execute(updateQuery);
+        ExecuteResult updateResultObj = engine.execute(updateQuery, UpdateStatement.class);
         assertNotNull(updateResultObj);
         assertTrue(updateResultObj instanceof UpdateResult);
         UpdateResult updateResult = (UpdateResult) updateResultObj;
@@ -181,7 +184,7 @@ public class UpdateEngineTest {
                 }
                 """.formatted(blogId);
 
-        ExecuteResult selectResultObj = engine.execute(selectQuery);
+        ExecuteResult selectResultObj = engine.execute(selectQuery, SelectStatement.class);
         assertNotNull(selectResultObj);
         assertTrue(selectResultObj instanceof SelectResult);
         SelectResult selectResult = (SelectResult) selectResultObj;

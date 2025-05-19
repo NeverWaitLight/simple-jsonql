@@ -9,6 +9,8 @@ import org.waitlight.simple.jsonql.engine.result.SelectResult;
 import org.waitlight.simple.jsonql.entity.Blog;
 import org.waitlight.simple.jsonql.entity.User;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.statement.InsertStatement;
+import org.waitlight.simple.jsonql.statement.SelectStatement;
 
 import java.util.List;
 import java.util.Map;
@@ -65,7 +67,7 @@ public class SelectEngineTest {
                 }
                 """.formatted(userName, blogTitle);
 
-        ExecuteResult result = engine.execute(insertQuery);
+        ExecuteResult result = engine.execute(insertQuery, InsertStatement.class);
         assertTrue(result instanceof InsertResult);
         InsertResult insertResult = (InsertResult) result;
         userId = insertResult.getMainIds().get(0);
@@ -85,7 +87,7 @@ public class SelectEngineTest {
                 }
                 """;
 
-        ExecuteResult result = engine.execute(query);
+        ExecuteResult result = engine.execute(query, SelectStatement.class);
         assertNotNull(result);
         assertTrue(result instanceof SelectResult);
         SelectResult selectResult = (SelectResult) result;
@@ -117,7 +119,7 @@ public class SelectEngineTest {
                 }
                 """.formatted(userId);
 
-        ExecuteResult result = engine.execute(query);
+        ExecuteResult result = engine.execute(query, SelectStatement.class);
         assertNotNull(result);
         assertTrue(result instanceof SelectResult);
         SelectResult selectResult = (SelectResult) result;
@@ -144,7 +146,7 @@ public class SelectEngineTest {
                 }
                 """;
 
-        ExecuteResult result = engine.execute(query);
+        ExecuteResult result = engine.execute(query, SelectStatement.class);
         assertNotNull(result);
         assertTrue(result instanceof SelectResult);
         SelectResult selectResult = (SelectResult) result;
@@ -185,7 +187,7 @@ public class SelectEngineTest {
                 }
                 """.formatted(userName);
 
-        ExecuteResult result = engine.execute(query);
+        ExecuteResult result = engine.execute(query, SelectStatement.class);
         assertNotNull(result);
         assertTrue(result instanceof SelectResult);
         SelectResult selectResult = (SelectResult) result;

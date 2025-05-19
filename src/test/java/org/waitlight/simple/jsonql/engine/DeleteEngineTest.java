@@ -8,6 +8,8 @@ import org.waitlight.simple.jsonql.engine.result.InsertResult;
 import org.waitlight.simple.jsonql.entity.Blog;
 import org.waitlight.simple.jsonql.entity.User;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.statement.DeleteStatement;
+import org.waitlight.simple.jsonql.statement.InsertStatement;
 
 import java.util.Random;
 
@@ -38,7 +40,7 @@ public class DeleteEngineTest {
                     ]
                 }
                 """.formatted(randomName);
-        ExecuteResult insertResultObj = engine.execute(insertQuery);
+        ExecuteResult insertResultObj = engine.execute(insertQuery, InsertStatement.class);
         assertNotNull(insertResultObj);
         assertTrue(insertResultObj instanceof InsertResult, "Result should be InsertResult");
 
@@ -59,7 +61,7 @@ public class DeleteEngineTest {
                 }
                 """.formatted(insertedId);
 
-        ExecuteResult deleteResultObj = engine.execute(deleteQuery);
+        ExecuteResult deleteResultObj = engine.execute(deleteQuery, DeleteStatement.class);
         assertNotNull(deleteResultObj, "Delete result should not be null");
         assertTrue(deleteResultObj instanceof DeleteResult, "Result should be DeleteResult");
 

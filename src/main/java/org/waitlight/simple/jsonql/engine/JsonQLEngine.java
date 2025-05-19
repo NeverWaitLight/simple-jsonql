@@ -34,8 +34,8 @@ public class JsonQLEngine {
         return executors;
     }
 
-    public ExecuteResult execute(String jsonQuery) throws Exception {
-        JsonQLStatement statement = parser.parse(jsonQuery);
+    public ExecuteResult execute(String jsonQuery, Class<? extends JsonQLStatement> jsonQLStatementType) throws Exception {
+        JsonQLStatement statement = parser.parse(jsonQuery, jsonQLStatementType);
         try (Connection conn = DBConfig.getConnection()) {
             return execute(conn, statement);
         }

@@ -7,6 +7,7 @@ import org.waitlight.simple.jsonql.engine.result.InsertResult;
 import org.waitlight.simple.jsonql.entity.Blog;
 import org.waitlight.simple.jsonql.entity.User;
 import org.waitlight.simple.jsonql.metadata.MetadataSources;
+import org.waitlight.simple.jsonql.statement.InsertStatement;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -36,7 +37,7 @@ public class InsertEngineTest {
                 }
                 """;
 
-        ExecuteResult result = engine.execute(jsonCreate);
+        ExecuteResult result = engine.execute(jsonCreate, InsertStatement.class);
 
         // The result should be an InsertResult
         assertNotNull(result);
@@ -84,7 +85,7 @@ public class InsertEngineTest {
                 }
                 """;
 
-        ExecuteResult result = engine.execute(jsonCreate);
+        ExecuteResult result = engine.execute(jsonCreate, InsertStatement.class);
 
         assertNotNull(result);
         assertTrue(result instanceof InsertResult);
@@ -111,7 +112,7 @@ public class InsertEngineTest {
                 }
                 """;
 
-        Exception exception = assertThrows(Exception.class, () -> engine.execute(jsonCreate));
+        Exception exception = assertThrows(Exception.class, () -> engine.execute(jsonCreate, InsertStatement.class));
         assertTrue(exception.getMessage().contains("nonexistent") || exception.getMessage().contains("field"));
     }
 
@@ -141,7 +142,7 @@ public class InsertEngineTest {
                 }
                 """;
 
-        ExecuteResult result = engine.execute(jsonCreate);
+        ExecuteResult result = engine.execute(jsonCreate,  InsertStatement.class);
 
         assertNotNull(result);
         assertTrue(result instanceof InsertResult);

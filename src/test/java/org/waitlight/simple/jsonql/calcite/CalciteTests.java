@@ -19,58 +19,17 @@ import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.calcite.tools.FrameworkConfig;
 import org.apache.calcite.tools.Frameworks;
 import org.apache.calcite.tools.RelBuilder;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.waitlight.simple.jsonql.statement.SelectStatement;
-import org.waitlight.simple.jsonql.statement.StatementParser;
 import org.waitlight.simple.jsonql.statement.model.FilterCondition;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class CalciteTests {
-
-    private static StatementParser statementParser;
-
-    @BeforeAll
-    public static void setUp() {
-        statementParser = new StatementParser();
-    }
-
-    @Test
-    public void testQueryWithFilters() throws Exception {
-        // 带过滤条件的查询，参照SelectEngineTest中的testQueryWithFilters
-        String query = """
-                {
-                    "statement": "select",
-                    "appId": "123456",
-                    "formId": "89757",
-                    "entityId": "user",
-                    "filters": {
-                        "rel": "and",
-                        "conditions": [
-                            {"field": "id", "method": "eq", "value": 1}
-                        ]
-                    },
-                    "page": {"size": 10, "number": 1}
-                }
-                """;
-
-        // 解析JSON为SelectStatement
-        SelectStatement selectStatement = (SelectStatement) statementParser.parse(query);
-
-        // 生成SQL
-        String sql = generateSql(selectStatement);
-        System.out.println("生成的带过滤条件的SQL: " + sql);
-
-        // 验证生成的SQL
-        assertNotNull(sql);
-        assertTrue(sql.contains("WHERE"));
-        assertTrue(sql.contains("`id` = 1"));
-    }
 
     @Test
     public void testDirectCalciteApiWithMultipleConditions() {
