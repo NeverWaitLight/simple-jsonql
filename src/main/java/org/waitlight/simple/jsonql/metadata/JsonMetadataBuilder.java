@@ -1,6 +1,6 @@
 package org.waitlight.simple.jsonql.metadata;
 
-public class JsonMetadataBuilder implements MetadataBuilder {
+public class JsonMetadataBuilder extends MetadataBuilder {
     private final MetadataSource metadataSource;
 
     public JsonMetadataBuilder(MetadataSource metadataSource) {

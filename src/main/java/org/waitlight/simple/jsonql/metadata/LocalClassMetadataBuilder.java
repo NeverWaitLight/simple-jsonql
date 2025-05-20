@@ -6,11 +6,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.waitlight.simple.jsonql.util.IStringUtil;
 
 import java.lang.reflect.Field;
-import java.sql.JDBCType;
 import java.util.Collection;
 import java.util.Objects;
 
-public class LocalClassMetadataBuilder implements MetadataBuilder {
+public class LocalClassMetadataBuilder extends MetadataBuilder {
 
     private final MetadataSource metadataSource;
 
@@ -56,13 +55,13 @@ public class LocalClassMetadataBuilder implements MetadataBuilder {
             handleTableAnnotation(entityClass, persistentClass);
 
             for (Field field : entityClass.getDeclaredFields()) {
-                Property property = handlePropertyMapping(field);
+                Property.Builder propertyBuilder = handlePropertyMapping(field);
 
-                handleOneToManyAnnotation(field, entityClass, property);
-                handleManyToOneAnnotation(field, property);
-                handleManyToManyAnnotation(field, entityClass, property);
+                handleOneToManyAnnotation(field, entityClass, propertyBuilder);
+                handleManyToOneAnnotation(field, propertyBuilder);
+                handleManyToManyAnnotation(field, entityClass, propertyBuilder);
 
-                persistentClass.addProperty(property);
+                persistentClass.addProperty(propertyBuilder.build());
             }
 
             metadata.add(persistentClass);
@@ -79,52 +78,53 @@ public class LocalClassMetadataBuilder implements MetadataBuilder {
     }
 
 
-    private void handleOneToManyAnnotation(Field field, Class<?> entityClass, Property property) {
+    private void handleOneToManyAnnotation(Field field, Class<?> entityClass, Property.Builder propertyBuilder) {
         if (!field.isAnnotationPresent(OneToMany.class)) {
             return;
         }
 
         OneToMany oneToMany = field.getAnnotation(OneToMany.class);
-        property.setRelationship(RelationshipType.ONE_TO_MANY);
-        property.setTargetEntity(oneToMany.targetEntity());
-        property.setJoinTableName(IStringUtil.camelToSnake(property.getTargetEntity().getSimpleName()));
-        property.setForeignKeyName(IStringUtil.camelToSnake(entityClass.getSimpleName()) + "_id");
-        property.setMappedBy(oneToMany.mappedBy());
+        propertyBuilder.setRelationship(RelationshipType.ONE_TO_MANY);
+        Class<?> targetEntity = oneToMany.targetEntity();
+        propertyBuilder.setTargetEntity(targetEntity);
+        propertyBuilder.setJoinTableName(IStringUtil.camelToSnake(targetEntity.getSimpleName()));
+        propertyBuilder.setForeignKeyName(IStringUtil.camelToSnake(entityClass.getSimpleName()) + "_id");
+        propertyBuilder.setMappedBy(oneToMany.mappedBy());
     }
 
-    private void handleManyToOneAnnotation(Field field, Property property) {
+    private void handleManyToOneAnnotation(Field field, Property.Builder propertyBuilder) {
         if (!field.isAnnotationPresent(ManyToOne.class)) {
             return;
         }
 
-        property.setRelationship(RelationshipType.MANY_TO_ONE);
-        property.setTargetEntity(field.getClass());
+        propertyBuilder.setRelationship(RelationshipType.MANY_TO_ONE);
+        propertyBuilder.setTargetEntity(field.getClass());
         JoinColumn joinColumn = field.getAnnotation(JoinColumn.class);
         if (joinColumn != null) {
-            property.setForeignKeyName(joinColumn.name());
+            propertyBuilder.setForeignKeyName(joinColumn.name());
         }
     }
 
-    private void handleManyToManyAnnotation(Field field, Class<?> entityClass, Property property) {
+    private void handleManyToManyAnnotation(Field field, Class<?> entityClass, Property.Builder propertyBuilder) {
         if (!field.isAnnotationPresent(ManyToMany.class)) {
             return;
         }
 
-        property.setRelationship(RelationshipType.MANY_TO_MANY);
+        propertyBuilder.setRelationship(RelationshipType.MANY_TO_MANY);
 
         ManyToMany manyToMany = field.getAnnotation(ManyToMany.class);
-        property.setTargetEntity(manyToMany.targetEntity());
+        propertyBuilder.setTargetEntity(manyToMany.targetEntity());
 
         if (field.isAnnotationPresent(JoinTable.class)) {
-            handleJoinTableAnnotation(field, entityClass, property, manyToMany);
+            handleJoinTableAnnotation(field, entityClass, propertyBuilder, manyToMany);
         } else {
             String joinTableName = IStringUtil.camelToSnake(entityClass.getSimpleName()) + "_"
                     + IStringUtil.camelToSnake(manyToMany.targetEntity().getSimpleName());
-            property.setJoinTableName(joinTableName);
+            propertyBuilder.setJoinTableName(joinTableName);
         }
     }
 
-    private void handleJoinTableAnnotation(Field field, Class<?> entityClass, Property property, ManyToMany manyToMany) {
+    private void handleJoinTableAnnotation(Field field, Class<?> entityClass, Property.Builder propertyBuilder, ManyToMany manyToMany) {
         if (!field.isAnnotationPresent(JoinTable.class)) {
             return;
         }
@@ -135,9 +135,9 @@ public class LocalClassMetadataBuilder implements MetadataBuilder {
                 ? IStringUtil.camelToSnake(entityClass.getSimpleName()) + "_"
                 + IStringUtil.camelToSnake(manyToMany.targetEntity().getSimpleName())
                 : joinTable.name().toLowerCase();
-        property.setJoinTableName(joinTableName);
-        property.setJoinColumns(joinTable.joinColumns());
-        property.setInverseJoinColumns(joinTable.inverseJoinColumns());
+        propertyBuilder.setJoinTableName(joinTableName);
+        propertyBuilder.setJoinColumns(joinTable.joinColumns());
+        propertyBuilder.setInverseJoinColumns(joinTable.inverseJoinColumns());
     }
 
     /**
@@ -146,9 +146,12 @@ public class LocalClassMetadataBuilder implements MetadataBuilder {
      * @param field 字段
      * @return 创建的属性对象
      */
-    private Property handlePropertyMapping(Field field) {
+    private Property.Builder handlePropertyMapping(Field field) {
+        Property.Builder builder = new Property.Builder();
         String fieldName = field.getName();
+        builder.setFieldName(fieldName);
         Class<?> fieldType = field.getType();
+        builder.setFieldType(fieldType);
 
         String columnName;
         if (field.isAnnotationPresent(Column.class)) {
@@ -159,50 +162,9 @@ public class LocalClassMetadataBuilder implements MetadataBuilder {
         } else {
             columnName = IStringUtil.camelToSnake(fieldName);
         }
+        builder.setColumnName(columnName);
 
-        JDBCType columnType = getJDBCTypeFromJavaType(fieldType);
-        return new Property(fieldName, fieldType, columnName, columnType);
-    }
-
-    /**
-     * 将Java类型转换为对应的JDBC类型
-     *
-     * @param javaType Java类型
-     * @return 对应的JDBC类型
-     */
-    private JDBCType getJDBCTypeFromJavaType(Class<?> javaType) {
-        if (javaType == String.class) {
-            return JDBCType.VARCHAR;
-        } else if (javaType == Integer.class || javaType == int.class) {
-            return JDBCType.INTEGER;
-        } else if (javaType == Long.class || javaType == long.class) {
-            return JDBCType.BIGINT;
-        } else if (javaType == Double.class || javaType == double.class) {
-            return JDBCType.DOUBLE;
-        } else if (javaType == Float.class || javaType == float.class) {
-            return JDBCType.FLOAT;
-        } else if (javaType == Boolean.class || javaType == boolean.class) {
-            return JDBCType.BOOLEAN;
-        } else if (javaType == java.util.Date.class) {
-            return JDBCType.TIMESTAMP;
-        } else if (javaType == java.sql.Date.class) {
-            return JDBCType.DATE;
-        } else if (javaType == java.sql.Time.class) {
-            return JDBCType.TIME;
-        } else if (javaType == java.sql.Timestamp.class) {
-            return JDBCType.TIMESTAMP;
-        } else if (javaType == byte[].class) {
-            return JDBCType.VARBINARY;
-        } else if (javaType == Short.class || javaType == short.class) {
-            return JDBCType.SMALLINT;
-        } else if (javaType == Byte.class || javaType == byte.class) {
-            return JDBCType.TINYINT;
-        } else if (javaType == java.math.BigDecimal.class) {
-            return JDBCType.DECIMAL;
-        } else if (javaType == Character.class || javaType == char.class) {
-            return JDBCType.CHAR;
-        } else {
-            return JDBCType.VARCHAR;
-        }
+        builder.setColumnType(getJDBCType(fieldType));
+        return builder;
     }
 }

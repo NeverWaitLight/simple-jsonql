@@ -1,5 +1,6 @@
 package org.waitlight.simple.jsonql.metadata;
 
+import lombok.Getter;
 import org.apache.calcite.jdbc.CalciteSchema;
 import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
 import org.apache.calcite.rel.type.RelDataType;
@@ -8,6 +9,8 @@ import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.schema.Table;
 import org.apache.calcite.schema.impl.AbstractTable;
 import org.apache.calcite.sql.type.SqlTypeName;
+import org.apache.calcite.tools.FrameworkConfig;
+import org.apache.calcite.tools.Frameworks;
 import org.apache.commons.lang3.StringUtils;
 
 import java.sql.JDBCType;
@@ -19,9 +22,14 @@ import java.util.Optional;
 public class Metadata {
     private final Map<String, PersistentClass> entities = new HashMap<>();
     private final SchemaPlus schema;
+    @Getter
+    private final FrameworkConfig frameworkConfig;
 
     public Metadata() {
         this.schema = CalciteSchema.createRootSchema(true, true).plus();
+        this.frameworkConfig = Frameworks.newConfigBuilder()
+                .defaultSchema(schema)
+                .build();
     }
 
     /**
@@ -64,8 +72,8 @@ public class Metadata {
         RelDataTypeFactory.Builder builder = typeFactory.builder();
 
         for (Property property : persistentClass.getProperties()) {
-            String columnName = property.getColumnName();
-            JDBCType columnType = property.getColumnType();
+            String columnName = property.columnName();
+            JDBCType columnType = property.columnType();
             SqlTypeName sqlTypeName = SqlTypeName.getNameForJdbcType(columnType.getVendorTypeNumber());
             if (Objects.nonNull(sqlTypeName)) {
                 builder.add(columnName, sqlTypeName);
