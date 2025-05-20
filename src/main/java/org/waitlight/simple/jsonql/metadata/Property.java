@@ -13,13 +13,13 @@ public record Property(
         JDBCType columnType,
         SqlTypeName columnTypeName,
 
-        RelationshipType relationship, // 关系类型
-        Class<?> targetEntity, // 关联的目标实体类
-        String mappedBy, // 双向关系的映射字段
-        String foreignKeyName, // 外键约束名称
-        String joinTableName, // 多对多关系的关联表名
-        JoinColumn[] joinColumns, // 多对多关系的主表连接列
-        JoinColumn[] inverseJoinColumns // 多对多关系的从表连接列
+        RelationshipType relationship,      // 关系类型
+        Class<?> targetEntity,              // 关联的目标实体类
+        String mappedBy,                    // 双向关系的映射字段
+        String foreignKeyName,              // 外键约束名称
+        String joinTableName,               // 多对多关系的关联表名
+        JoinColumn[] joinColumns,           // 多对多关系的主表连接列
+        JoinColumn[] inverseJoinColumns     // 多对多关系的从表连接列
 ) {
     public static class Builder {
         private String fieldName;
