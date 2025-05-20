@@ -1,7 +1,7 @@
 package org.waitlight.simple.jsonql.execute;
 
 import lombok.extern.slf4j.Slf4j;
-import org.waitlight.simple.jsonql.builder.SqlBuildeException;
+import org.waitlight.simple.jsonql.builder.SqlBuildException;
 import org.waitlight.simple.jsonql.config.DBConfig;
 import org.waitlight.simple.jsonql.execute.result.ExecuteResult;
 import org.waitlight.simple.jsonql.metadata.MetadataSource;
@@ -50,7 +50,7 @@ public class ExecuteEngine {
         }
     }
 
-    private ExecuteResult execute(Connection conn, JsonQLStatement statement) throws SQLException, SqlBuildeException {
+    private ExecuteResult execute(Connection conn, JsonQLStatement statement) throws SQLException, SqlBuildException {
         StatementEngine<JsonQLStatement, ExecuteResult> executor = (StatementEngine<JsonQLStatement, ExecuteResult>) executors.get(statement.getClass());
 
         if (executor == null) {

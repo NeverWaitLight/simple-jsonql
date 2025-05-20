@@ -16,15 +16,8 @@ public abstract class AbstractSqlBuilder<T extends JsonQLStatement> implements S
 
     protected final Metadata metadata;
 
-    /**
-     * SQL 方言
-     */
-    private final SqlDialect dialect = SqlDialect.DatabaseProduct.MYSQL.getDialect();
-
-    /**
-     * SQL 转换器
-     */
-    private final RelToSqlConverter converter = new RelToSqlConverter(dialect);
+    private final SqlDialect dialect = SqlDialect.DatabaseProduct.MYSQL.getDialect();   // SQL 方言
+    private final RelToSqlConverter converter = new RelToSqlConverter(dialect);         // SQL 转换器
 
 
     public AbstractSqlBuilder(Metadata metadata) {
@@ -35,9 +28,12 @@ public abstract class AbstractSqlBuilder<T extends JsonQLStatement> implements S
         return null;
     }
 
-    protected String build(RelNode relNode) throws SqlBuildeException {
+    /**
+     * Base on apache calcite
+     */
+    protected String build(RelNode relNode) throws SqlBuildException {
         if (Objects.isNull(relNode)) {
-            throw new SqlBuildeException("RelNode is null");
+            throw new SqlBuildException("RelNode is null");
         }
 
         SqlNode sqlNode = converter.visitRoot(relNode).asStatement();

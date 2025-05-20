@@ -2,7 +2,7 @@ package org.waitlight.simple.jsonql.statement;
 
 import org.junit.jupiter.api.Test;
 import org.waitlight.simple.jsonql.statement.model.FieldStatement;
-import org.waitlight.simple.jsonql.statement.model.NestedStatement;
+import org.waitlight.simple.jsonql.statement.model.PersistStatement;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -89,7 +89,7 @@ public class InsertStatementParserTest {
         assertEquals(2, blogsField.getValues().size());
 
         // Verify first nested entity
-        NestedStatement firstBlog = blogsField.getValues().get(0);
+        PersistStatement firstBlog = blogsField.getValues().get(0);
         assertEquals("123456", firstBlog.getAppId());
         assertEquals("89758", firstBlog.getFormId());
         assertEquals("147259", firstBlog.getEntityId());
@@ -98,7 +98,7 @@ public class InsertStatementParserTest {
         assertEquals("太阳照常升起", firstBlog.getFields().get(0).getValue());
 
         // Verify second nested entity
-        NestedStatement secondBlog = blogsField.getValues().get(1);
+        PersistStatement secondBlog = blogsField.getValues().get(1);
         assertEquals("123456", secondBlog.getAppId());
         assertEquals("89758", secondBlog.getFormId());
         assertEquals("147259", secondBlog.getEntityId());

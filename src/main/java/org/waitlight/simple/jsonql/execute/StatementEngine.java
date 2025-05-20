@@ -1,7 +1,7 @@
 package org.waitlight.simple.jsonql.execute;
 
 import lombok.extern.slf4j.Slf4j;
-import org.waitlight.simple.jsonql.builder.SqlBuildeException;
+import org.waitlight.simple.jsonql.builder.SqlBuildException;
 import org.waitlight.simple.jsonql.execute.result.ExecuteResult;
 import org.waitlight.simple.jsonql.metadata.Metadata;
 import org.waitlight.simple.jsonql.metadata.MetadataSource;
@@ -19,5 +19,5 @@ public abstract class StatementEngine<T extends JsonQLStatement, R extends Execu
         this.metadataSource = metadataSource;
     }
 
-    public abstract R execute(Connection conn, T stmt) throws SQLException, SqlBuildeException;
+    public abstract R execute(Connection conn, T stmt) throws SQLException, SqlBuildException;
 } 

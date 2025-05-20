@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.waitlight.simple.jsonql.metadata.*;
 import org.waitlight.simple.jsonql.statement.InsertStatement;
 import org.waitlight.simple.jsonql.statement.model.FieldStatement;
-import org.waitlight.simple.jsonql.statement.model.NestedStatement;
+import org.waitlight.simple.jsonql.statement.model.PersistStatement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,16 +45,21 @@ public class InsertSqlBuilder extends AbstractSqlBuilder<InsertStatement> {
      * - 一对多关系（如User->Blog）
      * - 多对一关系（如Blog->User）
      *
-     * @param stmt 待解析的CreateStatement语句
+     * @param statement 待解析的CreateStatement语句
      * @return 包含SQL和参数的PreparedSql对象
+     * @throws SqlBuildException 如果解析过程中发生错误，将抛出异常
      */
     @Override
-    public PreparedSql<InsertStatement> build(InsertStatement stmt) throws SqlBuildeException {
-        if (Objects.isNull(stmt)) {
-            throw new SqlBuildeException("Statement is null");
+    public PreparedSql<InsertStatement> build(InsertStatement statement) throws SqlBuildException {
+        if (Objects.isNull(statement)) {
+            throw new SqlBuildException("Statement is null");
         }
 
-        final String mainEntityId = stmt.getEntityId();
+        List<PersistStatement> persistStatements = convert2SingleLayer(statement);
+        for (PersistStatement persistStatement : persistStatements) {
+            PreparedSql<InsertStatement> preparedSql = buildSql(persistStatement);
+        }
+        final String mainEntityId = statement.getEntityId();
 
         PersistentClass persistentClass = metadata.getEntity(mainEntityId);
         if (Objects.isNull(persistentClass)) {
@@ -66,10 +71,10 @@ public class InsertSqlBuilder extends AbstractSqlBuilder<InsertStatement> {
                 .toList();
 
         if (CollectionUtils.isEmpty(relationProperties)) {
-            return buildSql(stmt);
+            return buildSql(statement);
         }
 
-        List<FieldStatement> regularFields = stmt.getFields().stream()
+        List<FieldStatement> regularFields = statement.getFields().stream()
                 .filter(field -> CollectionUtils.isEmpty(field.getValues()))
                 .toList();
 
@@ -83,8 +88,8 @@ public class InsertSqlBuilder extends AbstractSqlBuilder<InsertStatement> {
             RelationshipType relationType = relationProperty.relationship();
 
             switch (relationType) {
-                case ONE_TO_MANY -> processOneToManyRelationship(stmt, mainStmt, relationProperty, preparedSql);
-                case MANY_TO_ONE -> processManyToOneRelationship(stmt, mainStmt, relationProperty, preparedSql);
+                case ONE_TO_MANY -> processOneToManyRelationship(statement, mainStmt, relationProperty, preparedSql);
+                case MANY_TO_ONE -> processManyToOneRelationship(statement, mainStmt, relationProperty, preparedSql);
                 default -> {
                 }
             }
@@ -97,6 +102,31 @@ public class InsertSqlBuilder extends AbstractSqlBuilder<InsertStatement> {
         return preparedSql;
     }
 
+    @Override
+    public List<PersistStatement> convert2SingleLayer(InsertStatement statement) {
+        List<FieldStatement> rootFieldStatements = statement.getFields().stream()
+                .filter(field -> field.isInvalid() || !field.hasNestedStatement())
+                .toList();
+
+        PersistStatement rootStatement = new PersistStatement();
+        rootStatement.setAppId(statement.getAppId());
+        rootStatement.setFormId(statement.getFormId());
+        rootStatement.setEntityId(statement.getEntityId());
+        rootStatement.setFields(new ArrayList<>(rootFieldStatements));
+
+        List<PersistStatement> statements = new ArrayList<>();
+        statements.add(rootStatement);
+
+        List<PersistStatement> persistStatements = statement.getFields().stream()
+                .filter(FieldStatement::isValid)
+                .filter(FieldStatement::hasNestedStatement)
+                .flatMap(field -> field.getValues().stream())
+                .toList();
+        statements.addAll(persistStatements);
+
+        return statements;
+    }
+
     /**
      * 处理一对多关系（如User->Blog）
      * 为"多"方添加指向"一"方的外键字段占位符，并生成嵌套SQL
@@ -107,14 +137,14 @@ public class InsertSqlBuilder extends AbstractSqlBuilder<InsertStatement> {
      * @param preparedSql      预处理SQL对象
      */
     private void processOneToManyRelationship(InsertStatement stmt, InsertStatement mainStmt,
-                                              Property relationProperty, PreparedSql<InsertStatement> preparedSql) throws SqlBuildeException {
-        List<NestedStatement> nestedStatements = findNestedStatements(stmt, relationProperty.fieldName());
+                                              Property relationProperty, PreparedSql<InsertStatement> preparedSql) throws SqlBuildException {
+        List<PersistStatement> persistStatements = findNestedStatements(stmt, relationProperty.fieldName());
 
-        if (CollectionUtils.isEmpty(nestedStatements)) {
+        if (CollectionUtils.isEmpty(persistStatements)) {
             return;
         }
 
-        for (NestedStatement nestedStmt : nestedStatements) {
+        for (PersistStatement nestedStmt : persistStatements) {
             String foreignKeyFieldName = getForeignKeyName(mainStmt.getEntityId(),
                     nestedStmt.getEntityId(), relationProperty);
 
@@ -143,13 +173,13 @@ public class InsertSqlBuilder extends AbstractSqlBuilder<InsertStatement> {
      */
     private void processManyToOneRelationship(InsertStatement stmt, InsertStatement mainStmt,
                                               Property relationProperty, PreparedSql<InsertStatement> preparedSql) {
-        List<NestedStatement> nestedStatements = findNestedStatements(stmt, relationProperty.fieldName());
+        List<PersistStatement> persistStatements = findNestedStatements(stmt, relationProperty.fieldName());
 
-        if (CollectionUtils.isEmpty(nestedStatements)) {
+        if (CollectionUtils.isEmpty(persistStatements)) {
             return;
         }
 
-        NestedStatement nestedStmt = nestedStatements.get(0);
+        PersistStatement nestedStmt = persistStatements.get(0);
 
         if (isReferenceOnlyStatement(nestedStmt)) {
             String referencedId = extractIdFromNestedStatement(nestedStmt);
@@ -167,7 +197,7 @@ public class InsertSqlBuilder extends AbstractSqlBuilder<InsertStatement> {
      * @param propertyName 属性名
      * @return 嵌套语句列表
      */
-    private List<NestedStatement> findNestedStatements(InsertStatement stmt, String propertyName) {
+    private List<PersistStatement> findNestedStatements(InsertStatement stmt, String propertyName) {
         return stmt.getFields().stream()
                 .filter(field -> StringUtils.equals(field.getField(), propertyName))
                 .filter(field -> CollectionUtils.isNotEmpty(field.getValues()))
@@ -181,7 +211,7 @@ public class InsertSqlBuilder extends AbstractSqlBuilder<InsertStatement> {
      * @param stmt 嵌套语句
      * @return 是否仅包含ID字段
      */
-    private boolean isReferenceOnlyStatement(NestedStatement stmt) {
+    private boolean isReferenceOnlyStatement(PersistStatement stmt) {
         if (StringUtils.isNotBlank(stmt.getDataId())) {
             return true;
         }
@@ -205,7 +235,7 @@ public class InsertSqlBuilder extends AbstractSqlBuilder<InsertStatement> {
      * @param stmt 嵌套语句
      * @return ID值
      */
-    private String extractIdFromNestedStatement(NestedStatement stmt) {
+    private String extractIdFromNestedStatement(PersistStatement stmt) {
         if (StringUtils.isNotBlank(stmt.getDataId())) {
             return stmt.getDataId();
         }
@@ -278,7 +308,7 @@ public class InsertSqlBuilder extends AbstractSqlBuilder<InsertStatement> {
      * @param statement 实体语句
      * @return 预处理SQL对象
      */
-    private PreparedSql<InsertStatement> buildSql(NestedStatement statement) throws SqlBuildeException {
+    private PreparedSql<InsertStatement> buildSql(PersistStatement statement) throws SqlBuildException {
         if (Objects.isNull(statement)) {
             return new PreparedSql<>();
         }
@@ -308,7 +338,7 @@ public class InsertSqlBuilder extends AbstractSqlBuilder<InsertStatement> {
         String sql = super.build(relNode);
 
         PreparedSql<InsertStatement> preparedSql = new PreparedSql<>(sql, parameters, InsertStatement.class);
-        preparedSql.addRelNode(relNode);
+        preparedSql.setRelNode(relNode);
         return preparedSql;
     }
 }

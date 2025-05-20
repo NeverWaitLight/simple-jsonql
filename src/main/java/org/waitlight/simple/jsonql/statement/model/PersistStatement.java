@@ -6,9 +6,12 @@ import org.waitlight.simple.jsonql.statement.JsonQLStatement;
 
 import java.util.List;
 
+/**
+ * 持久化语句 （INSERT、UPDATE）
+ */
 @Getter
 @Setter
-public class NestedStatement extends JsonQLStatement {
+public class PersistStatement extends JsonQLStatement {
     private String dataId;
     private List<FieldStatement> fields;
 }

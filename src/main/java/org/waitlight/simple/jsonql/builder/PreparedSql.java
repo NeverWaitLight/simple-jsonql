@@ -11,6 +11,7 @@ import java.util.List;
 
 @Data
 public class PreparedSql<T extends JsonQLStatement> {
+    private RelNode relNode;
     private String sql;
     private List<Object> parameters;
     private Class<T> statementType;

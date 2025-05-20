@@ -5,7 +5,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.waitlight.simple.jsonql.builder.InsertSqlBuilder;
 import org.waitlight.simple.jsonql.builder.PreparedSql;
-import org.waitlight.simple.jsonql.builder.SqlBuildeException;
+import org.waitlight.simple.jsonql.builder.SqlBuildException;
 import org.waitlight.simple.jsonql.execute.result.InsertResult;
 import org.waitlight.simple.jsonql.metadata.Metadata;
 import org.waitlight.simple.jsonql.metadata.MetadataBuilderFactory;
@@ -52,7 +52,7 @@ public class InsertEngine extends StatementEngine<InsertStatement, InsertResult>
     }
 
     @Override
-    public InsertResult execute(Connection conn, InsertStatement stmt) throws SQLException, SqlBuildeException {
+    public InsertResult execute(Connection conn, InsertStatement stmt) throws SQLException, SqlBuildException {
         final PreparedSql<InsertStatement> preparedSql = insertSqlBuilder.build(stmt);
 
         if (StringUtils.isBlank(preparedSql.getSql()) && CollectionUtils.isEmpty(preparedSql.getNestedSQLs())) {

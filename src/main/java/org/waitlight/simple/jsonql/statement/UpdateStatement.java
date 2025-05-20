@@ -2,13 +2,9 @@ package org.waitlight.simple.jsonql.statement;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.waitlight.simple.jsonql.statement.model.FieldStatement;
-
-import java.util.List;
+import org.waitlight.simple.jsonql.statement.model.PersistStatement;
 
 @Setter
 @Getter
-public class UpdateStatement extends JsonQLStatement {
-    private String dataId;
-    private List<FieldStatement> fields;
-} 
+public class UpdateStatement extends PersistStatement {
+}
