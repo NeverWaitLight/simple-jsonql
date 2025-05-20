@@ -84,12 +84,12 @@ public class LocalClassMetadataBuilder extends MetadataBuilder {
         }
 
         OneToMany oneToMany = field.getAnnotation(OneToMany.class);
-        propertyBuilder.setRelationship(RelationshipType.ONE_TO_MANY);
         Class<?> targetEntity = oneToMany.targetEntity();
-        propertyBuilder.setTargetEntity(targetEntity);
-        propertyBuilder.setJoinTableName(IStringUtil.camelToSnake(targetEntity.getSimpleName()));
-        propertyBuilder.setForeignKeyName(IStringUtil.camelToSnake(entityClass.getSimpleName()) + "_id");
-        propertyBuilder.setMappedBy(oneToMany.mappedBy());
+        propertyBuilder.setRelationship(RelationshipType.ONE_TO_MANY)
+                .setTargetEntity(targetEntity)
+                .setJoinTableName(IStringUtil.camelToSnake(targetEntity.getSimpleName()))
+                .setForeignKeyName(IStringUtil.camelToSnake(entityClass.getSimpleName()) + "_id")
+                .setMappedBy(oneToMany.mappedBy());
     }
 
     private void handleManyToOneAnnotation(Field field, Property.Builder propertyBuilder) {
@@ -110,10 +110,9 @@ public class LocalClassMetadataBuilder extends MetadataBuilder {
             return;
         }
 
-        propertyBuilder.setRelationship(RelationshipType.MANY_TO_MANY);
-
         ManyToMany manyToMany = field.getAnnotation(ManyToMany.class);
-        propertyBuilder.setTargetEntity(manyToMany.targetEntity());
+        propertyBuilder.setRelationship(RelationshipType.MANY_TO_MANY)
+                .setTargetEntity(manyToMany.targetEntity());
 
         if (field.isAnnotationPresent(JoinTable.class)) {
             handleJoinTableAnnotation(field, entityClass, propertyBuilder, manyToMany);
@@ -135,9 +134,9 @@ public class LocalClassMetadataBuilder extends MetadataBuilder {
                 ? IStringUtil.camelToSnake(entityClass.getSimpleName()) + "_"
                 + IStringUtil.camelToSnake(manyToMany.targetEntity().getSimpleName())
                 : joinTable.name().toLowerCase();
-        propertyBuilder.setJoinTableName(joinTableName);
-        propertyBuilder.setJoinColumns(joinTable.joinColumns());
-        propertyBuilder.setInverseJoinColumns(joinTable.inverseJoinColumns());
+        propertyBuilder.setJoinTableName(joinTableName)
+                .setJoinColumns(joinTable.joinColumns())
+                .setInverseJoinColumns(joinTable.inverseJoinColumns());
     }
 
     /**
@@ -147,11 +146,8 @@ public class LocalClassMetadataBuilder extends MetadataBuilder {
      * @return 创建的属性对象
      */
     private Property.Builder handlePropertyMapping(Field field) {
-        Property.Builder builder = new Property.Builder();
         String fieldName = field.getName();
-        builder.setFieldName(fieldName);
         Class<?> fieldType = field.getType();
-        builder.setFieldType(fieldType);
 
         String columnName;
         if (field.isAnnotationPresent(Column.class)) {
@@ -162,9 +158,11 @@ public class LocalClassMetadataBuilder extends MetadataBuilder {
         } else {
             columnName = IStringUtil.camelToSnake(fieldName);
         }
-        builder.setColumnName(columnName);
 
-        builder.setColumnType(getJDBCType(fieldType));
-        return builder;
+        return new Property.Builder()
+                .setFieldName(fieldName)
+                .setFieldType(fieldType)
+                .setColumnName(columnName)
+                .setColumnType(getJDBCType(fieldType));
     }
 }
