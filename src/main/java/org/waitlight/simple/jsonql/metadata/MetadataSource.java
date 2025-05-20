@@ -2,15 +2,15 @@ package org.waitlight.simple.jsonql.metadata;
 
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 public class MetadataSource {
 
-    private final List<Class<?>> entityClasses = new ArrayList<>();
+    private final Set<Class<?>> entityClasses = new HashSet<>();
 
-    public void addAnnotatedClass(Class<?> entityClass) {
+    public void registry(Class<?> entityClass) {
         entityClasses.add(entityClass);
     }
 

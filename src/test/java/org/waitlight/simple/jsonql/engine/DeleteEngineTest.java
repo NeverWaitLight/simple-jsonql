@@ -21,8 +21,8 @@ public class DeleteEngineTest {
     @BeforeAll
     public static void setUp() {
         MetadataSource metadataSource = new MetadataSource();
-        metadataSource.addAnnotatedClass(User.class);
-        metadataSource.addAnnotatedClass(Blog.class);
+        metadataSource.registry(User.class);
+        metadataSource.registry(Blog.class);
         engine = new JsonQLEngine(metadataSource);
     }
 

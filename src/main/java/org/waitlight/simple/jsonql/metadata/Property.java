@@ -5,13 +5,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.sql.JDBCType;
+
 @Getter
 @Setter
 @NoArgsConstructor
 public class Property {
     private String fieldName;
+    private Class<?> fieldType;
     private String columnName;
-    private String type;
+    private JDBCType columnType;
 
     /**
      * 关系类型（一对一、一对多、多对一、多对多）
@@ -53,9 +56,10 @@ public class Property {
      */
     private JoinColumn[] inverseJoinColumns;
 
-    public Property(String fieldName, String columnName, String type) {
+    public Property(String fieldName, Class<?> fieldType, String columnName, JDBCType columnType) {
         this.fieldName = fieldName;
+        this.fieldType = fieldType;
         this.columnName = columnName;
-        this.type = type;
+        this.columnType = columnType;
     }
 }
