@@ -9,6 +9,8 @@ import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Objects;
 
+import static org.waitlight.simple.jsonql.util.JDBCTypeUtils.getJDBCType;
+
 public class LocalClassMetadataBuilder extends MetadataBuilder {
 
     private final MetadataSource metadataSource;
