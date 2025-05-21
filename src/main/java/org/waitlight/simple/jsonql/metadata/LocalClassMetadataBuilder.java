@@ -165,7 +165,6 @@ public class LocalClassMetadataBuilder extends MetadataBuilder {
                 .setFieldName(fieldName)
                 .setFieldType(fieldType)
                 .setColumnName(columnName)
-                .setColumnType(getJDBCType(fieldType))
-                .setColumnTypeName(getSqlTypeName(fieldType));
+                .setColumnType(getJDBCType(fieldType));
     }
 }

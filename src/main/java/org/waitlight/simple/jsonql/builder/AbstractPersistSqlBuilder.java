@@ -16,6 +16,7 @@ import org.waitlight.simple.jsonql.metadata.PersistentClass;
 import org.waitlight.simple.jsonql.metadata.Property;
 import org.waitlight.simple.jsonql.statement.model.FieldStatement;
 import org.waitlight.simple.jsonql.statement.model.PersistStatement;
+import org.waitlight.simple.jsonql.util.JDBCTypeUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -267,7 +268,7 @@ public abstract class AbstractPersistSqlBuilder<T extends PersistStatement> exte
         for (FieldStatement field : statement.getFields()) {
             Property property = map.get(field);
             String columnName = property.columnName();
-            SqlTypeName columnTypeName = property.columnTypeName();
+            SqlTypeName columnTypeName = JDBCTypeUtils.getSqlTypeName(property.columnType());
             relDataTypeBuilder.add(columnName, columnTypeName);
         }
         RelDataType relDataType = relDataTypeBuilder.build();
