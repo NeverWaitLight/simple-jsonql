@@ -16,9 +16,7 @@ import org.waitlight.simple.jsonql.metadata.PersistentClass;
 import org.waitlight.simple.jsonql.metadata.Property;
 import org.waitlight.simple.jsonql.statement.model.FieldStatement;
 import org.waitlight.simple.jsonql.statement.model.PersistStatement;
-import org.waitlight.simple.jsonql.util.JDBCTypeUtils;
 
-import java.sql.JDBCType;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +56,7 @@ public abstract class AbstractPersistSqlBuilder<T extends PersistStatement> exte
     @Override
     protected Map<FieldStatement, Property> map(String entityName, PersistStatement statement) {
         Map<FieldStatement, Property> result = new HashMap<>();
-        List<Property> properties = Metadata.DEFAULT_METADATA_CACHE.get(entityName).getProperties();
+        List<Property> properties = metadata.getEntity(entityName).getProperties();
         List<FieldStatement> fieldStatements = statement.getFields().stream().filter(FieldStatement::isValid).toList();
         for (FieldStatement fieldStatement : fieldStatements) {
             Property property = properties.stream()
@@ -227,7 +225,7 @@ public abstract class AbstractPersistSqlBuilder<T extends PersistStatement> exte
             return relationProperty.foreignKeyName();
         }
 
-        PersistentClass relatedEntityClass = Metadata.DEFAULT_METADATA_CACHE.get(relatedEntityId);
+        PersistentClass relatedEntityClass = metadata.getEntity(relatedEntityId);
         if (Objects.isNull(relatedEntityClass)) {
             return null;
         }
@@ -269,12 +267,11 @@ public abstract class AbstractPersistSqlBuilder<T extends PersistStatement> exte
         for (FieldStatement field : statement.getFields()) {
             Property property = map.get(field);
             String columnName = property.columnName();
-            JDBCType jdbcType = property.columnType();
-            SqlTypeName columnTypeName = JDBCTypeUtils.getSqlTypeName(jdbcType);
+            SqlTypeName columnTypeName = property.columnTypeName();
             relDataTypeBuilder.add(columnName, columnTypeName);
         }
         RelDataType relDataType = relDataTypeBuilder.build();
-        RelBuilder builder = RelBuilder.create(Metadata.CALCITE_METADATA_CACHE.getFrameworkConfig());
+        RelBuilder builder = RelBuilder.create(metadata.getFrameworkConfig());
         builder.values(relDataType, parameters.toArray());
         builder.push(builder.scan(statement.getEntityId()).build());
         RelNode relNode = builder.build();

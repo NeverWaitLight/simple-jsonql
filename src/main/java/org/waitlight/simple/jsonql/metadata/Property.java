@@ -1,6 +1,7 @@
 package org.waitlight.simple.jsonql.metadata;
 
 import jakarta.persistence.JoinColumn;
+import org.apache.calcite.sql.type.SqlTypeName;
 
 import java.sql.JDBCType;
 
@@ -10,6 +11,7 @@ public record Property(
 
         String columnName,
         JDBCType columnType,
+        SqlTypeName columnTypeName,
 
         RelationshipType relationship,      // 关系类型
         Class<?> targetEntity,              // 关联的目标实体类
@@ -24,6 +26,7 @@ public record Property(
         private Class<?> fieldType;
         private String columnName;
         private JDBCType columnType;
+        private SqlTypeName columnTypeName;
         private RelationshipType relationship;
         private Class<?> targetEntity;
         private String mappedBy;
@@ -41,6 +44,7 @@ public record Property(
                 this.fieldType = property.fieldType();
                 this.columnName = property.columnName();
                 this.columnType = property.columnType();
+                this.columnTypeName = property.columnTypeName();
                 this.relationship = property.relationship();
                 this.targetEntity = property.targetEntity();
                 this.mappedBy = property.mappedBy();
@@ -68,6 +72,11 @@ public record Property(
 
         public Builder setColumnType(JDBCType columnType) {
             this.columnType = columnType;
+            return this;
+        }
+
+        public Builder setColumnTypeName(SqlTypeName columnTypeName) {
+            this.columnTypeName = columnTypeName;
             return this;
         }
 
@@ -112,6 +121,7 @@ public record Property(
                     fieldType,
                     columnName,
                     columnType,
+                    columnTypeName,
                     relationship,
                     targetEntity,
                     mappedBy,

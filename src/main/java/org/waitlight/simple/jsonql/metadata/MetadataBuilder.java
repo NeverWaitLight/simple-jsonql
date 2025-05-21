@@ -1,10 +1,8 @@
 package org.waitlight.simple.jsonql.metadata;
 
 import org.apache.calcite.sql.type.SqlTypeName;
-import org.jooq.impl.SQLDataType;
 
 import java.sql.JDBCType;
-import java.sql.Types;
 
 public abstract class MetadataBuilder {
     /**
@@ -18,5 +16,87 @@ public abstract class MetadataBuilder {
      */
     public abstract Metadata build();
 
+    /**
+     * 将Java类型转换为对应的JDBC类型
+     *
+     * @param javaType Java类型
+     * @return 对应的JDBC类型
+     */
+    protected JDBCType getJDBCType(Class<?> javaType) {
+        if (javaType == String.class) {
+            return JDBCType.VARCHAR;
+        } else if (javaType == Integer.class || javaType == int.class) {
+            return JDBCType.INTEGER;
+        } else if (javaType == Long.class || javaType == long.class) {
+            return JDBCType.BIGINT;
+        } else if (javaType == Double.class || javaType == double.class) {
+            return JDBCType.DOUBLE;
+        } else if (javaType == Float.class || javaType == float.class) {
+            return JDBCType.FLOAT;
+        } else if (javaType == Boolean.class || javaType == boolean.class) {
+            return JDBCType.BOOLEAN;
+        } else if (javaType == java.util.Date.class) {
+            return JDBCType.TIMESTAMP;
+        } else if (javaType == java.sql.Date.class) {
+            return JDBCType.DATE;
+        } else if (javaType == java.sql.Time.class) {
+            return JDBCType.TIME;
+        } else if (javaType == java.sql.Timestamp.class) {
+            return JDBCType.TIMESTAMP;
+        } else if (javaType == byte[].class) {
+            return JDBCType.VARBINARY;
+        } else if (javaType == Short.class || javaType == short.class) {
+            return JDBCType.SMALLINT;
+        } else if (javaType == Byte.class || javaType == byte.class) {
+            return JDBCType.TINYINT;
+        } else if (javaType == java.math.BigDecimal.class) {
+            return JDBCType.DECIMAL;
+        } else if (javaType == Character.class || javaType == char.class) {
+            return JDBCType.CHAR;
+        } else {
+            return JDBCType.VARCHAR;
+        }
+    }
 
+    /**
+     * 将Java类型转换为对应的{@link SqlTypeName}
+     *
+     * @param javaType Java类型
+     * @return 对应的SQL类型名称
+     */
+    protected SqlTypeName getSqlTypeName(Class<?> javaType) {
+        if (javaType == String.class) {
+            return SqlTypeName.VARCHAR;
+        } else if (javaType == Integer.class || javaType == int.class) {
+            return SqlTypeName.INTEGER;
+        } else if (javaType == Long.class || javaType == long.class) {
+            return SqlTypeName.BIGINT;
+        } else if (javaType == Double.class || javaType == double.class) {
+            return SqlTypeName.DOUBLE;
+        } else if (javaType == Float.class || javaType == float.class) {
+            return SqlTypeName.FLOAT;
+        } else if (javaType == Boolean.class || javaType == boolean.class) {
+            return SqlTypeName.BOOLEAN;
+        } else if (javaType == java.util.Date.class) {
+            return SqlTypeName.TIMESTAMP;
+        } else if (javaType == java.sql.Date.class) {
+            return SqlTypeName.DATE;
+        } else if (javaType == java.sql.Time.class) {
+            return SqlTypeName.TIME;
+        } else if (javaType == java.sql.Timestamp.class) {
+            return SqlTypeName.TIMESTAMP;
+        } else if (javaType == byte[].class) {
+            return SqlTypeName.VARBINARY;
+        } else if (javaType == Short.class || javaType == short.class) {
+            return SqlTypeName.SMALLINT;
+        } else if (javaType == Byte.class || javaType == byte.class) {
+            return SqlTypeName.TINYINT;
+        } else if (javaType == java.math.BigDecimal.class) {
+            return SqlTypeName.DECIMAL;
+        } else if (javaType == Character.class || javaType == char.class) {
+            return SqlTypeName.CHAR;
+        } else {
+            return SqlTypeName.VARCHAR;
+        }
+    }
 }

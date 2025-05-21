@@ -1,10 +1,15 @@
 package org.waitlight.simple.jsonql.builder;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
+import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.type.RelDataType;
+import org.apache.calcite.rel.type.RelDataTypeFactory;
+import org.apache.calcite.sql.type.SqlTypeName;
+import org.apache.calcite.tools.RelBuilder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.DSLContext;
-import org.jooq.impl.DSL;
-import org.jooq.impl.DefaultConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.waitlight.simple.jsonql.metadata.*;
@@ -13,6 +18,9 @@ import org.waitlight.simple.jsonql.statement.JsonQLStatement;
 import org.waitlight.simple.jsonql.statement.StatementsPairs;
 import org.waitlight.simple.jsonql.statement.model.FieldStatement;
 import org.waitlight.simple.jsonql.statement.model.PersistStatement;
+import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
+import org.jooq.impl.DefaultConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +70,7 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
         }
         final String mainEntityId = statement.getEntityId();
 
-        PersistentClass persistentClass = Metadata.DEFAULT_METADATA_CACHE.get(mainEntityId);
+        PersistentClass persistentClass = metadata.getEntity(mainEntityId);
         if (Objects.isNull(persistentClass)) {
             throw new MetadataException("Could not find metadata definition for entity: " + mainEntityId);
         }
@@ -261,7 +269,7 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
             return relationProperty.foreignKeyName();
         }
 
-        PersistentClass relatedEntityClass = Metadata.DEFAULT_METADATA_CACHE.get(relatedEntityId);
+        PersistentClass relatedEntityClass = metadata.getEntity(relatedEntityId);
         if (Objects.isNull(relatedEntityClass)) {
             return null;
         }

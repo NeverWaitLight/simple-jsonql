@@ -22,7 +22,7 @@ public class MetadataTest {
     @Test
     void testUserMetadata() {
         // 验证Users元数据
-        PersistentClass userMetadata = Metadata.DEFAULT_METADATA_CACHE.get(User.class.getSimpleName());
+        PersistentClass userMetadata = metadata.getEntity(User.class.getSimpleName());
         assertNotNull(userMetadata, "User metadata should not be null");
         assertEquals("User", userMetadata.getEntityName(), "Entity name should be 'User'");
         assertEquals("user", userMetadata.getTableName(), "Table name should be 'user'");
@@ -63,7 +63,7 @@ public class MetadataTest {
     @Test
     void testBlogMetadata() {
         // 验证Blogs元数据
-        PersistentClass blogMetadata = Metadata.DEFAULT_METADATA_CACHE.get(Blog.class.getSimpleName());
+        PersistentClass blogMetadata = metadata.getEntity(Blog.class.getSimpleName());
         assertNotNull(blogMetadata, "Blog metadata should not be null");
         assertEquals("Blog", blogMetadata.getEntityName(), "Entity name should be 'Blog'");
         assertEquals("blog", blogMetadata.getTableName(), "Table name should be 'blog'");
