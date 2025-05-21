@@ -26,7 +26,7 @@ metadataSource.addAnnotatedClass(Order.class);
 Metadata metadata = metadataSource.getMetadataBuilder().build();
 
 // 获取 User 实体对应的元数据 PersistentClass
-PersistentClass userPersistentClass = metadata.getEntityBinding(User.class.getName());
+PersistentClass userPersistentClass = Metadata.DEFAULT_METADATA_CACHE.getBinding(User.class.getName());
 ```
 
 ---
@@ -87,7 +87,7 @@ Hibernate 最终会将关联关系存储为以下形式：
 - **`User` 实体元数据（PersistentClass）**：
 
   ```java
-  PersistentClass userClass = metadata.getEntityBinding(User.class.getName());
+  PersistentClass userClass = Metadata.DEFAULT_METADATA_CACHE.getBinding(User.class.getName());
 
   // 获取关联属性 "orders" 的元数据
   Property ordersProperty = userClass.getProperty("orders");
@@ -100,7 +100,7 @@ Hibernate 最终会将关联关系存储为以下形式：
 - **`Order` 实体元数据（PersistentClass）**：
 
   ```java
-  PersistentClass orderClass = metadata.getEntityBinding(Order.class.getName());
+  PersistentClass orderClass = Metadata.DEFAULT_METADATA_CACHE.getBinding(Order.class.getName());
 
   // 获取关联属性 "user" 的元数据
   Property userProperty = orderClass.getProperty("user");
