@@ -17,7 +17,6 @@ import java.sql.JDBCType;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 public class Metadata {
     private final Map<String, PersistentClass> entities = new HashMap<>();
@@ -40,6 +39,8 @@ public class Metadata {
      */
     public void add(PersistentClass persistentClass) {
         String entityName = persistentClass.getEntityName();
+        entityName = StringUtils.uncapitalize(entityName);
+
         if (entities.containsKey(entityName)) {
             throw new MetadataException("Duplicate entity name: '" + entityName + "'");
         }
@@ -49,10 +50,18 @@ public class Metadata {
 
     public PersistentClass getEntity(String entityName) {
         if (StringUtils.isBlank(entityName)) {
-            throw new RuntimeException("Entity not found");
+            throw new MetadataException("Entity [null] not found");
         }
-        return Optional.ofNullable(entities.get(entityName))
-                .orElse(entities.get(entityName.toLowerCase()));
+
+        PersistentClass entity = entities.get(entityName);
+        if (entity == null) {
+            entity = entities.get(entityName.toLowerCase());
+        }
+        if (entity == null) {
+            throw new MetadataException("Entity [%s] not found", entityName);
+        }
+        return entity;
+
     }
 
 
@@ -64,7 +73,7 @@ public class Metadata {
      */
     private void add2Schema(PersistentClass persistentClass) {
         String tableName = persistentClass.getTableName();
-        if (Objects.nonNull(schema.getTable(tableName))) {
+        if (Objects.nonNull(schema.tables().get(tableName))) {
             throw new MetadataException("Duplicate table name: '" + tableName + "'");
         }
 
@@ -75,7 +84,7 @@ public class Metadata {
             String columnName = property.columnName();
             JDBCType columnType = property.columnType();
             SqlTypeName sqlTypeName = SqlTypeName.getNameForJdbcType(columnType.getVendorTypeNumber());
-            if (Objects.nonNull(sqlTypeName)) {
+            if (sqlTypeName != null) {
                 builder.add(columnName, sqlTypeName);
             }
         }

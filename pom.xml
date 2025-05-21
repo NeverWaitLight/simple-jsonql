@@ -19,7 +19,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <apache.commons.version>4.4</apache.commons.version>
-        <apache.calcite.version>1.36.0</apache.calcite.version>
+        <apache.calcite.version>1.39.0</apache.calcite.version>
     </properties>
     <dependencies>
         <dependency>
@@ -76,13 +76,16 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
         </dependency>
-
-        <!-- apache calcite -->
         <dependency>
             <groupId>org.apache.calcite</groupId>
             <artifactId>calcite-core</artifactId>
             <version>${apache.calcite.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

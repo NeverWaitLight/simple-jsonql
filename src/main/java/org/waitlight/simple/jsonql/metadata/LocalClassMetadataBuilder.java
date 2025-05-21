@@ -51,9 +51,7 @@ public class LocalClassMetadataBuilder extends MetadataBuilder {
             }
 
             final PersistentClass persistentClass = new PersistentClass(entityClass, entityClass.getSimpleName());
-
             handleTableAnnotation(entityClass, persistentClass);
-
             for (Field field : entityClass.getDeclaredFields()) {
                 Property.Builder propertyBuilder = handlePropertyMapping(field);
 
@@ -63,7 +61,6 @@ public class LocalClassMetadataBuilder extends MetadataBuilder {
 
                 persistentClass.addProperty(propertyBuilder.build());
             }
-
             metadata.add(persistentClass);
         }
     }
@@ -100,8 +97,13 @@ public class LocalClassMetadataBuilder extends MetadataBuilder {
         propertyBuilder.setRelationship(RelationshipType.MANY_TO_ONE);
         propertyBuilder.setTargetEntity(field.getClass());
         JoinColumn joinColumn = field.getAnnotation(JoinColumn.class);
-        if (joinColumn != null) {
+        if (Objects.nonNull(joinColumn) && StringUtils.isNotBlank(joinColumn.name())) {
+            propertyBuilder.setColumnName(joinColumn.name());
             propertyBuilder.setForeignKeyName(joinColumn.name());
+        } else {
+            String columnName = IStringUtil.camelToSnake(field.getName()) + "_id";
+            propertyBuilder.setColumnName(columnName);
+            propertyBuilder.setForeignKeyName(columnName);
         }
     }
 
@@ -163,6 +165,7 @@ public class LocalClassMetadataBuilder extends MetadataBuilder {
                 .setFieldName(fieldName)
                 .setFieldType(fieldType)
                 .setColumnName(columnName)
-                .setColumnType(getJDBCType(fieldType));
+                .setColumnType(getJDBCType(fieldType))
+                .setColumnTypeName(getSqlTypeName(fieldType));
     }
 }

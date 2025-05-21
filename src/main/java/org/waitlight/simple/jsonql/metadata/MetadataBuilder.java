@@ -1,5 +1,7 @@
 package org.waitlight.simple.jsonql.metadata;
 
+import org.apache.calcite.sql.type.SqlTypeName;
+
 import java.sql.JDBCType;
 
 public abstract class MetadataBuilder {
@@ -53,6 +55,48 @@ public abstract class MetadataBuilder {
             return JDBCType.CHAR;
         } else {
             return JDBCType.VARCHAR;
+        }
+    }
+
+    /**
+     * 将Java类型转换为对应的{@link SqlTypeName}
+     *
+     * @param javaType Java类型
+     * @return 对应的SQL类型名称
+     */
+    protected SqlTypeName getSqlTypeName(Class<?> javaType) {
+        if (javaType == String.class) {
+            return SqlTypeName.VARCHAR;
+        } else if (javaType == Integer.class || javaType == int.class) {
+            return SqlTypeName.INTEGER;
+        } else if (javaType == Long.class || javaType == long.class) {
+            return SqlTypeName.BIGINT;
+        } else if (javaType == Double.class || javaType == double.class) {
+            return SqlTypeName.DOUBLE;
+        } else if (javaType == Float.class || javaType == float.class) {
+            return SqlTypeName.FLOAT;
+        } else if (javaType == Boolean.class || javaType == boolean.class) {
+            return SqlTypeName.BOOLEAN;
+        } else if (javaType == java.util.Date.class) {
+            return SqlTypeName.TIMESTAMP;
+        } else if (javaType == java.sql.Date.class) {
+            return SqlTypeName.DATE;
+        } else if (javaType == java.sql.Time.class) {
+            return SqlTypeName.TIME;
+        } else if (javaType == java.sql.Timestamp.class) {
+            return SqlTypeName.TIMESTAMP;
+        } else if (javaType == byte[].class) {
+            return SqlTypeName.VARBINARY;
+        } else if (javaType == Short.class || javaType == short.class) {
+            return SqlTypeName.SMALLINT;
+        } else if (javaType == Byte.class || javaType == byte.class) {
+            return SqlTypeName.TINYINT;
+        } else if (javaType == java.math.BigDecimal.class) {
+            return SqlTypeName.DECIMAL;
+        } else if (javaType == Character.class || javaType == char.class) {
+            return SqlTypeName.CHAR;
+        } else {
+            return SqlTypeName.VARCHAR;
         }
     }
 }

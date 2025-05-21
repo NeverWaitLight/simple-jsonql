@@ -12,7 +12,7 @@ import org.waitlight.simple.jsonql.statement.model.FieldStatement;
 import java.util.Map;
 import java.util.Objects;
 
-public abstract class AbstractSqlBuilder<T extends JsonQLStatement> implements SqlBuilder<T> {
+public abstract class AbstractSqlBuilder<T extends JsonQLStatement> {
 
     protected final Metadata metadata;
 
@@ -24,9 +24,16 @@ public abstract class AbstractSqlBuilder<T extends JsonQLStatement> implements S
         this.metadata = metadata;
     }
 
-    protected Map<FieldStatement, Property> map(String entityName, JsonQLStatement statement) {
-        return null;
-    }
+    /**
+     * 通过 {@link JsonQLStatement} 构建 sql
+     *
+     * @param statement 待处理的语句
+     * @return 预处理后的 sql
+     * @throws SqlBuildException 构建异常
+     */
+    protected abstract PreparedSql<T> build(T statement) throws SqlBuildException;
+
+    protected abstract Map<FieldStatement, Property> map(String entityName, T statement);
 
     /**
      * Base on apache calcite

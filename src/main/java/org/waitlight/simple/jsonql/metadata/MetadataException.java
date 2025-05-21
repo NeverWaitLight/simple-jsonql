@@ -5,7 +5,7 @@ public class MetadataException extends RuntimeException {
         super(message);
     }
 
-    public MetadataException(String message, Throwable cause) {
-        super(message, cause);
+    public MetadataException(String message, Object... parameters) {
+        super(message.formatted(parameters));
     }
-} 
+}

@@ -1,7 +1,5 @@
 package org.waitlight.simple.jsonql.builder;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.type.RelDataType;
@@ -12,31 +10,27 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.waitlight.simple.jsonql.metadata.*;
-import org.waitlight.simple.jsonql.statement.InsertStatement;
-import org.waitlight.simple.jsonql.statement.JsonQLStatement;
-import org.waitlight.simple.jsonql.statement.StatementsPairs;
+import org.waitlight.simple.jsonql.metadata.Metadata;
+import org.waitlight.simple.jsonql.metadata.MetadataException;
+import org.waitlight.simple.jsonql.metadata.PersistentClass;
+import org.waitlight.simple.jsonql.metadata.Property;
 import org.waitlight.simple.jsonql.statement.model.FieldStatement;
 import org.waitlight.simple.jsonql.statement.model.PersistStatement;
-import org.jooq.DSLContext;
-import org.jooq.impl.DSL;
-import org.jooq.impl.DefaultConfiguration;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement> {
+public abstract class AbstractPersistSqlBuilder<T extends PersistStatement> extends AbstractSqlBuilder<T> {
 
-    private static final Logger log = LoggerFactory.getLogger(InsertSqlBuilder.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractPersistSqlBuilder.class);
 
     public static final String FOREIGN_KEY_PLACEHOLDER = "__FOREIGN_KEY_PLACEHOLDER__";
 
-    public InsertSqlBuilder(Metadata metadata) {
+    public AbstractPersistSqlBuilder(Metadata metadata) {
         super(metadata);
     }
-
 
     /**
      * 根据实体元数据和语句内容，生成SQL语句
@@ -57,60 +51,22 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
      * @return 包含SQL和参数的PreparedSql对象
      * @throws SqlBuildException 如果解析过程中发生错误，将抛出异常
      */
+    public abstract PreparedSql<T> build(T statement) throws SqlBuildException;
+
     @Override
-    public PreparedSql<InsertStatement> build(InsertStatement statement) throws SqlBuildException {
-        if (Objects.isNull(statement)) {
-            throw new SqlBuildException("Statement is null");
+    protected Map<FieldStatement, Property> map(String entityName, PersistStatement statement) {
+        Map<FieldStatement, Property> result = new HashMap<>();
+        List<Property> properties = metadata.getEntity(entityName).getProperties();
+        List<FieldStatement> fieldStatements = statement.getFields().stream().filter(FieldStatement::isValid).toList();
+        for (FieldStatement fieldStatement : fieldStatements) {
+            Property property = properties.stream()
+                    .filter(prop -> StringUtils.equals(prop.fieldName(), fieldStatement.getField()))
+                    .findFirst()
+                    .orElseThrow(() -> new MetadataException("Could not find metadata definition for field: " + fieldStatement.getField()));
+            result.put(fieldStatement, property);
         }
-
-        StatementsPairs<PersistStatement> statementsPairs = JsonQLStatement.convert(statement);
-        PreparedSql<InsertStatement> preparedSql1 = buildSql(statementsPairs.mainStatement());
-        for (PersistStatement persistStatement : statementsPairs.nestedStatements()) {
-            PreparedSql<InsertStatement> preparedSql = buildSql(persistStatement);
-        }
-        final String mainEntityId = statement.getEntityId();
-
-        PersistentClass persistentClass = metadata.getEntity(mainEntityId);
-        if (Objects.isNull(persistentClass)) {
-            throw new MetadataException("Could not find metadata definition for entity: " + mainEntityId);
-        }
-
-        List<Property> relationProperties = persistentClass.getProperties().stream()
-                .filter(prop -> Objects.nonNull(prop.relationship()))
-                .toList();
-
-        if (CollectionUtils.isEmpty(relationProperties)) {
-            return buildSql(statement);
-        }
-
-        List<FieldStatement> regularFields = statement.getFields().stream()
-                .filter(field -> CollectionUtils.isEmpty(field.getValues()))
-                .toList();
-
-        InsertStatement mainStmt = new InsertStatement();
-        mainStmt.setEntityId(mainEntityId);
-        mainStmt.setFields(new ArrayList<>(regularFields));
-
-        final PreparedSql<InsertStatement> preparedSql = new PreparedSql<>();
-
-        for (Property relationProperty : relationProperties) {
-            RelationshipType relationType = relationProperty.relationship();
-
-            switch (relationType) {
-                case ONE_TO_MANY -> processOneToManyRelationship(statement, mainStmt, relationProperty, preparedSql);
-                case MANY_TO_ONE -> processManyToOneRelationship(statement, mainStmt, relationProperty, preparedSql);
-                default -> {
-                }
-            }
-        }
-
-        PreparedSql<InsertStatement> mainSql = buildSql(mainStmt);
-        preparedSql.setSql(mainSql.getSql());
-        preparedSql.setParameters(mainSql.getParameters());
-
-        return preparedSql;
+        return result;
     }
-
 
     /**
      * 处理一对多关系（如User->Blog）
@@ -121,8 +77,8 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
      * @param relationProperty 关系属性
      * @param preparedSql      预处理SQL对象
      */
-    private void processOneToManyRelationship(InsertStatement stmt, InsertStatement mainStmt,
-                                              Property relationProperty, PreparedSql<InsertStatement> preparedSql) throws SqlBuildException {
+    private void processOneToManyRelationship(PersistStatement stmt, PersistStatement mainStmt,
+                                              Property relationProperty, PreparedSql<PersistStatement> preparedSql) throws SqlBuildException {
         List<PersistStatement> persistStatements = findNestedStatements(stmt, relationProperty.fieldName());
 
         if (CollectionUtils.isEmpty(persistStatements)) {
@@ -140,7 +96,7 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
                 nestedStmt.getFields().add(foreignKeyField);
             }
 
-            PreparedSql<InsertStatement> nestedSql = buildSql(nestedStmt);
+            PreparedSql<PersistStatement> nestedSql = buildSql(nestedStmt);
             if (nestedSql.isNotEmpty()) {
                 preparedSql.addNestedSQLs(nestedSql);
             }
@@ -156,8 +112,8 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
      * @param relationProperty 关系属性
      * @param preparedSql      预处理SQL对象
      */
-    private void processManyToOneRelationship(InsertStatement stmt, InsertStatement mainStmt,
-                                              Property relationProperty, PreparedSql<InsertStatement> preparedSql) {
+    private void processManyToOneRelationship(PersistStatement stmt, PersistStatement mainStmt,
+                                              Property relationProperty, PreparedSql<PersistStatement> preparedSql) {
         List<PersistStatement> persistStatements = findNestedStatements(stmt, relationProperty.fieldName());
 
         if (CollectionUtils.isEmpty(persistStatements)) {
@@ -182,7 +138,7 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
      * @param propertyName 属性名
      * @return 嵌套语句列表
      */
-    private List<PersistStatement> findNestedStatements(InsertStatement stmt, String propertyName) {
+    private List<PersistStatement> findNestedStatements(PersistStatement stmt, String propertyName) {
         return stmt.getFields().stream()
                 .filter(field -> StringUtils.equals(field.getField(), propertyName))
                 .filter(field -> CollectionUtils.isNotEmpty(field.getValues()))
@@ -243,7 +199,7 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
      * @param relationProperty 关系属性
      * @param foreignKeyValue  外键值
      */
-    private void addForeignKeyField(InsertStatement mainStmt, Property relationProperty, String foreignKeyValue) {
+    private void addForeignKeyField(PersistStatement mainStmt, Property relationProperty, String foreignKeyValue) {
         String foreignKeyFieldName = relationProperty.foreignKeyName();
         if (StringUtils.isBlank(foreignKeyFieldName)) {
             log.error("Could not determine foreign key field name for property {}", relationProperty.fieldName());
@@ -293,7 +249,7 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
      * @param statement 实体语句
      * @return 预处理SQL对象
      */
-    private PreparedSql<InsertStatement> buildSql(PersistStatement statement) throws SqlBuildException {
+    private PreparedSql<PersistStatement> buildSql(PersistStatement statement) throws SqlBuildException {
         if (Objects.isNull(statement)) {
             return new PreparedSql<>();
         }
@@ -305,28 +261,25 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
             return new PreparedSql<>();
         }
 
-        // 使用 jOOQ 构建 SQL
-        DSLContext create = DSL.using(new DefaultConfiguration());
-        org.jooq.Table<?> table = DSL.table(DSL.name(statement.getEntityId()));
-        List<org.jooq.Field<Object>> fields = new ArrayList<>();
-        List<Object> values = new ArrayList<>();
-
+        RelDataTypeFactory typeFactory = new JavaTypeFactoryImpl();
+        RelDataTypeFactory.Builder relDataTypeBuilder = typeFactory.builder();
         Map<FieldStatement, Property> map = map(statement.getEntityId(), statement);
         for (FieldStatement field : statement.getFields()) {
             Property property = map.get(field);
             String columnName = property.columnName();
-            fields.add(DSL.field(DSL.name(columnName)));
-            values.add(field.getValue());
+            SqlTypeName columnTypeName = property.columnTypeName();
+            relDataTypeBuilder.add(columnName, columnTypeName);
         }
+        RelDataType relDataType = relDataTypeBuilder.build();
+        RelBuilder builder = RelBuilder.create(metadata.getFrameworkConfig());
+        builder.values(relDataType, parameters.toArray());
+        builder.push(builder.scan(statement.getEntityId()).build());
+        RelNode relNode = builder.build();
 
-        org.jooq.Query query = create.insertInto(table)
-                .columns(fields.toArray(new org.jooq.Field[0]))
-                .values(values.toArray());
+        String sql = super.build(relNode);
 
-        String sql = query.getSQL();
-        log.info("SQL: {}", sql);
-
-        PreparedSql<InsertStatement> preparedSql = new PreparedSql<>(sql, parameters, InsertStatement.class);
+        PreparedSql<PersistStatement> preparedSql = new PreparedSql<>(sql, parameters, PersistStatement.class);
+        preparedSql.setRelNode(relNode);
         return preparedSql;
     }
 }

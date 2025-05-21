@@ -15,27 +15,27 @@ public abstract class JsonQLStatement {
     private String formId;
     private String entityId;
 
-    public List<PersistStatement> convert2SingleLayer(InsertStatement statement) {
+    /**
+     * 将嵌套的PersistStatement转换为单层PersistStatement
+     */
+    public static StatementsPairs<PersistStatement> convert(PersistStatement statement) {
         List<FieldStatement> rootFieldStatements = statement.getFields().stream()
                 .filter(field -> field.isInvalid() || !field.hasNestedStatement())
                 .toList();
 
-        PersistStatement rootStatement = new PersistStatement();
-        rootStatement.setAppId(statement.getAppId());
-        rootStatement.setFormId(statement.getFormId());
-        rootStatement.setEntityId(statement.getEntityId());
-        rootStatement.setFields(new ArrayList<>(rootFieldStatements));
+        PersistStatement mainStatement = new PersistStatement();
+        mainStatement.setAppId(statement.getAppId());
+        mainStatement.setFormId(statement.getFormId());
+        mainStatement.setEntityId(statement.getEntityId());
+        mainStatement.setFields(new ArrayList<>(rootFieldStatements));
 
-        List<PersistStatement> statements = new ArrayList<>();
-        statements.add(rootStatement);
 
-        List<PersistStatement> persistStatements = statement.getFields().stream()
+        List<PersistStatement> nestedStatements = statement.getFields().stream()
                 .filter(FieldStatement::isValid)
                 .filter(FieldStatement::hasNestedStatement)
                 .flatMap(field -> field.getValues().stream())
                 .toList();
-        statements.addAll(persistStatements);
 
-        return statements;
+        return new StatementsPairs<>(mainStatement, nestedStatements);
     }
 }

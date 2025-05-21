@@ -52,7 +52,6 @@ public class InsertEngineTest {
         // Create a user with nested blog entities
         String jsonCreate = """
                 {
-                    "statement": "insert",
                     "appId": "123456",
                     "formId": "89757",
                     "entityId": "user",
