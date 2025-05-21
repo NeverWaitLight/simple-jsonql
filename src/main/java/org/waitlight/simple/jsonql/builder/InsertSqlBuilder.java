@@ -12,8 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.waitlight.simple.jsonql.metadata.*;
 import org.waitlight.simple.jsonql.statement.InsertStatement;
-import org.waitlight.simple.jsonql.statement.JsonQLStatement;
-import org.waitlight.simple.jsonql.statement.StatementsPairs;
 import org.waitlight.simple.jsonql.statement.model.FieldStatement;
 import org.waitlight.simple.jsonql.statement.model.PersistStatement;
 
@@ -56,12 +54,6 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
     public PreparedSql<InsertStatement> build(InsertStatement statement) throws SqlBuildException {
         if (Objects.isNull(statement)) {
             throw new SqlBuildException("Statement is null");
-        }
-
-        StatementsPairs<PersistStatement> statementsPairs = JsonQLStatement.convert(statement);
-        PreparedSql<InsertStatement> preparedSql1 = buildSql(statementsPairs.mainStatement());
-        for (PersistStatement persistStatement : statementsPairs.nestedStatements()) {
-            PreparedSql<InsertStatement> preparedSql = buildSql(persistStatement);
         }
         final String mainEntityId = statement.getEntityId();
 
