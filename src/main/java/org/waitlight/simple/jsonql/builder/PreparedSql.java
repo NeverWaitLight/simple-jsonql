@@ -6,7 +6,6 @@ import org.waitlight.simple.jsonql.statement.JsonQLStatement;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 @Data
@@ -16,8 +15,6 @@ public class PreparedSql<T extends JsonQLStatement> {
     private List<Object> parameters;
     private Class<T> statementType;
     private List<PreparedSql<T>> nestedSQLs = new ArrayList<>();
-    private LinkedHashMap<String, List<Object>> sqles = new LinkedHashMap<>();
-    private List<RelNode> relNodes = new ArrayList<>();
 
     /**
      * 默认构造函数
@@ -93,9 +90,5 @@ public class PreparedSql<T extends JsonQLStatement> {
      */
     public List<Object> getParameters() {
         return parameters == null ? Collections.emptyList() : parameters;
-    }
-
-    public void addRelNode(RelNode relNode) {
-        relNodes.add(relNode);
     }
 }

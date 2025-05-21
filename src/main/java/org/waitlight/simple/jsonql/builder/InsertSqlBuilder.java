@@ -1,15 +1,13 @@
 package org.waitlight.simple.jsonql.builder;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
-import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.type.RelDataType;
-import org.apache.calcite.rel.type.RelDataTypeFactory;
-import org.apache.calcite.sql.type.SqlTypeName;
-import org.apache.calcite.tools.RelBuilder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.DSLContext;
+import org.jooq.Field;
+import org.jooq.Query;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
+import org.jooq.impl.DefaultConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.waitlight.simple.jsonql.metadata.*;
@@ -18,9 +16,6 @@ import org.waitlight.simple.jsonql.statement.JsonQLStatement;
 import org.waitlight.simple.jsonql.statement.StatementsPairs;
 import org.waitlight.simple.jsonql.statement.model.FieldStatement;
 import org.waitlight.simple.jsonql.statement.model.PersistStatement;
-import org.jooq.DSLContext;
-import org.jooq.impl.DSL;
-import org.jooq.impl.DefaultConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -307,8 +302,9 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
 
         // 使用 jOOQ 构建 SQL
         DSLContext create = DSL.using(new DefaultConfiguration());
-        org.jooq.Table<?> table = DSL.table(DSL.name(statement.getEntityId()));
-        List<org.jooq.Field<Object>> fields = new ArrayList<>();
+        Table<?> table = DSL.table(DSL.name(statement.getEntityId()));
+
+        List<Field<Object>> fields = new ArrayList<>();
         List<Object> values = new ArrayList<>();
 
         Map<FieldStatement, Property> map = map(statement.getEntityId(), statement);
@@ -319,14 +315,10 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
             values.add(field.getValue());
         }
 
-        org.jooq.Query query = create.insertInto(table)
-                .columns(fields.toArray(new org.jooq.Field[0]))
+        Query query = create.insertInto(table)
+                .columns(fields.toArray(new Field[0]))
                 .values(values.toArray());
-
         String sql = query.getSQL();
-        log.info("SQL: {}", sql);
-
-        PreparedSql<InsertStatement> preparedSql = new PreparedSql<>(sql, parameters, InsertStatement.class);
-        return preparedSql;
+        return new PreparedSql<>(sql, parameters, InsertStatement.class);
     }
 }
