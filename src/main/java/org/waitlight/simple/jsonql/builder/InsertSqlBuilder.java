@@ -4,20 +4,22 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
 import org.jooq.Field;
+import org.jooq.SQLDialect;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
-import org.jooq.impl.DefaultConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.waitlight.simple.jsonql.metadata.*;
+import org.waitlight.simple.jsonql.metadata.Metadata;
+import org.waitlight.simple.jsonql.metadata.PersistentClass;
+import org.waitlight.simple.jsonql.metadata.Property;
+import org.waitlight.simple.jsonql.metadata.RelationshipType;
 import org.waitlight.simple.jsonql.statement.InsertStatement;
+import org.waitlight.simple.jsonql.statement.StatementUtils;
+import org.waitlight.simple.jsonql.statement.StatementsPairs;
 import org.waitlight.simple.jsonql.statement.model.FieldStatement;
 import org.waitlight.simple.jsonql.statement.model.PersistStatement;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement> {
 
@@ -29,26 +31,6 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
         super(metadata);
     }
 
-
-    /**
-     * 根据实体元数据和语句内容，生成SQL语句
-     * <p>
-     * 处理流程：
-     * 1. 获取实体元数据，检查是否有关系字段
-     * 2. 如果没有关系字段，直接构建简单SQL返回
-     * 3. 提取非嵌套的基本字段，构造主实体语句
-     * 4. 按关系类型处理嵌套实体
-     * 5. 生成并返回最终SQL，包含主实体和关联实体的SQL
-     * <p>
-     * 支持的关系类型：
-     * - 单一实体创建
-     * - 一对多关系（如User->Blog）
-     * - 多对一关系（如Blog->User）
-     *
-     * @param statement 待解析的CreateStatement语句
-     * @return 包含SQL和参数的PreparedSql对象
-     * @throws SqlBuildException 如果解析过程中发生错误，将抛出异常
-     */
     @Override
     public PreparedSql<InsertStatement> build(InsertStatement statement) throws SqlBuildException {
         if (Objects.isNull(statement)) {
@@ -56,125 +38,86 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
         }
         final String mainEntityId = statement.getEntityId();
 
-        PersistentClass persistentClass = metadata.getEntity(mainEntityId);
-        if (Objects.isNull(persistentClass)) {
-            throw new MetadataException("Could not find metadata definition for entity: " + mainEntityId);
-        }
+        final PersistentClass mainPersistentClass = metadata.getEntity(mainEntityId);
+        final StatementsPairs<PersistStatement> statementsPairs = StatementUtils.convert2SingleLevel(statement);
 
-        List<Property> relationProperties = persistentClass.getProperties().stream()
-                .filter(prop -> Objects.nonNull(prop.relationship()))
-                .toList();
+        final PersistStatement mainStatement = statementsPairs.mainStatement();
+        final PreparedSql<InsertStatement> preparedSql = buildSql(mainStatement);
 
-        if (CollectionUtils.isEmpty(relationProperties)) {
-            return buildSql(statement);
-        }
-
-        List<FieldStatement> regularFields = statement.getFields().stream()
-                .filter(field -> CollectionUtils.isEmpty(field.getValues()))
-                .toList();
-
-        InsertStatement mainStmt = new InsertStatement();
-        mainStmt.setEntityId(mainEntityId);
-        mainStmt.setFields(new ArrayList<>(regularFields));
-
-        final PreparedSql<InsertStatement> preparedSql = new PreparedSql<>();
-
-        for (Property relationProperty : relationProperties) {
-            RelationshipType relationType = relationProperty.relationship();
-
-            switch (relationType) {
-                case ONE_TO_MANY -> processOneToManyRelationship(statement, mainStmt, relationProperty, preparedSql);
-                case MANY_TO_ONE -> processManyToOneRelationship(statement, mainStmt, relationProperty, preparedSql);
+        for (PersistStatement nestedStatement : statementsPairs.nestedStatements()) {
+            String nestedEntityId = nestedStatement.getEntityId();
+            PersistentClass nestedPersistentClass = metadata.getEntity(nestedEntityId);
+            RelationshipType relationshipType = mainPersistentClass.getRelations().get(nestedPersistentClass.getEntityClass());
+            switch (relationshipType) {
+                case ONE_TO_MANY ->
+                        processOneToMany(nestedPersistentClass, mainPersistentClass, nestedStatement, mainStatement, preparedSql);
+                case MANY_TO_ONE -> processManyToOne(nestedStatement, mainStatement, preparedSql);
                 default -> {
+
                 }
             }
         }
 
-        PreparedSql<InsertStatement> mainSql = buildSql(mainStmt);
-        preparedSql.setSql(mainSql.getSql());
-        preparedSql.setParameters(mainSql.getParameters());
+//        for (Property relationProperty : relationProperties) {
+//            RelationshipType relationType = relationProperty.relationship();
+//
+//            switch (relationType) {
+//                case ONE_TO_MANY -> processOneToMany(statement, mainStmt, relationProperty, preparedSql);
+//                case MANY_TO_ONE -> processManyToOne(statement, mainStmt, relationProperty, preparedSql);
+//                default -> {
+//                }
+//            }
+//        }
+//
+//        PreparedSql<InsertStatement> mainSql = buildSql(mainStmt);
+//        preparedSql.setSql(mainSql.getSql());
+//        preparedSql.setParameters(mainSql.getParameters());
 
         return preparedSql;
     }
 
+    private void processOneToMany(
+            PersistentClass nestedPersistentClass, PersistentClass mainPersistentClass,
+            PersistStatement nestedStatement, PersistStatement mainStmt,
+            PreparedSql<InsertStatement> preparedSql) throws SqlBuildException {
 
-    /**
-     * 处理一对多关系（如User->Blog）
-     * 为"多"方添加指向"一"方的外键字段占位符，并生成嵌套SQL
-     *
-     * @param stmt             原始语句
-     * @param mainStmt         主实体语句
-     * @param relationProperty 关系属性
-     * @param preparedSql      预处理SQL对象
-     */
-    private void processOneToManyRelationship(InsertStatement stmt, InsertStatement mainStmt,
-                                              Property relationProperty, PreparedSql<InsertStatement> preparedSql) throws SqlBuildException {
-        List<PersistStatement> persistStatements = findNestedStatements(stmt, relationProperty.fieldName());
+        String fieldName = Optional.ofNullable(nestedPersistentClass.getRelationshipType(mainPersistentClass.getEntityClass()))
+                .map(Property::fieldName)
+                .orElseThrow(() -> new SqlBuildException("No relation property found"));
 
-        if (CollectionUtils.isEmpty(persistStatements)) {
-            return;
-        }
+        FieldStatement relField = new FieldStatement();
+        relField.setField(fieldName);
+        relField.setValue(FOREIGN_KEY_PLACEHOLDER);
+        nestedStatement.getFields().add(relField);
 
-        for (PersistStatement nestedStmt : persistStatements) {
-            String foreignKeyFieldName = getForeignKeyName(mainStmt.getEntityId(),
-                    nestedStmt.getEntityId(), relationProperty);
-
-            if (StringUtils.isNotBlank(foreignKeyFieldName)) {
-                FieldStatement foreignKeyField = new FieldStatement();
-                foreignKeyField.setField(foreignKeyFieldName);
-                foreignKeyField.setValue(FOREIGN_KEY_PLACEHOLDER);
-                nestedStmt.getFields().add(foreignKeyField);
-            }
-
-            PreparedSql<InsertStatement> nestedSql = buildSql(nestedStmt);
-            if (nestedSql.isNotEmpty()) {
-                preparedSql.addNestedSQLs(nestedSql);
-            }
-        }
+        preparedSql.addNestedSQLs(buildSql(nestedStatement));
     }
 
-    /**
-     * 处理多对一关系（如Blog->User）
-     * 检查嵌套语句是否只包含ID字段，如果是则将ID添加为外键
-     *
-     * @param stmt             原始语句
-     * @param mainStmt         主实体语句
-     * @param relationProperty 关系属性
-     * @param preparedSql      预处理SQL对象
-     */
-    private void processManyToOneRelationship(InsertStatement stmt, InsertStatement mainStmt,
-                                              Property relationProperty, PreparedSql<InsertStatement> preparedSql) {
-        List<PersistStatement> persistStatements = findNestedStatements(stmt, relationProperty.fieldName());
+    private void processManyToOne(PersistStatement statement, PersistStatement mainStmt,
+                                  PreparedSql<InsertStatement> preparedSql) {
 
-        if (CollectionUtils.isEmpty(persistStatements)) {
-            return;
-        }
-
-        PersistStatement nestedStmt = persistStatements.get(0);
-
-        if (isReferenceOnlyStatement(nestedStmt)) {
-            String referencedId = extractIdFromNestedStatement(nestedStmt);
-
-            if (StringUtils.isNotBlank(referencedId)) {
-                addForeignKeyField(mainStmt, relationProperty, referencedId);
-            }
-        }
+        FieldStatement relField = new FieldStatement();
+//        relField.setField(relationProperty.columnName());
+        relField.setValue(FOREIGN_KEY_PLACEHOLDER);
+        statement.getFields().add(relField);
+//
+//        preparedSql.addNestedSQLs(buildSql(statement));
+//
+//        if (CollectionUtils.isEmpty(persistStatements)) {
+//            return;
+//        }
+//
+//        PersistStatement nestedStmt = persistStatements.get(0);
+//
+//        if (isReferenceOnlyStatement(nestedStmt)) {
+//            String referencedId = extractIdFromNestedStatement(nestedStmt);
+//
+//            if (StringUtils.isNotBlank(referencedId)) {
+//                addForeignKeyField(mainStmt, relationProperty, referencedId);
+//            }
+//        }
     }
 
-    /**
-     * 根据属性名查找嵌套语句
-     *
-     * @param stmt         原始语句
-     * @param propertyName 属性名
-     * @return 嵌套语句列表
-     */
-    private List<PersistStatement> findNestedStatements(InsertStatement stmt, String propertyName) {
-        return stmt.getFields().stream()
-                .filter(field -> StringUtils.equals(field.getField(), propertyName))
-                .filter(field -> CollectionUtils.isNotEmpty(field.getValues()))
-                .flatMap(field -> field.getValues().stream())
-                .toList();
-    }
 
     /**
      * 判断嵌套语句是否仅包含ID字段
@@ -284,14 +227,9 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
             return new PreparedSql<>();
         }
 
-        List<String> fieldNames = statement.getFields().stream().map(FieldStatement::getField).toList();
         List<Object> parameters = statement.getFields().stream().map(FieldStatement::getValue).toList();
 
-        if (fieldNames.isEmpty() || parameters.isEmpty()) {
-            return new PreparedSql<>();
-        }
-
-        DSLContext create = DSL.using(new DefaultConfiguration());
+        DSLContext create = DSL.using(SQLDialect.MYSQL);
         Table<?> table = DSL.table(DSL.name(statement.getEntityId()));
 
         List<Field<Object>> fields = new ArrayList<>();
@@ -309,6 +247,7 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
                 .columns(fields.toArray(new Field[0]))
                 .values(values.toArray())
                 .getSQL();
+        log.info("build sql: {}", sql);
         return new PreparedSql<>(sql, parameters, InsertStatement.class);
     }
 }

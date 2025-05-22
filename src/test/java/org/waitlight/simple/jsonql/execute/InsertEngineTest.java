@@ -2,10 +2,10 @@ package org.waitlight.simple.jsonql.execute;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.waitlight.simple.jsonql.execute.result.ExecuteResult;
-import org.waitlight.simple.jsonql.execute.result.InsertResult;
 import org.waitlight.simple.jsonql.entity.Blog;
 import org.waitlight.simple.jsonql.entity.User;
+import org.waitlight.simple.jsonql.execute.result.ExecuteResult;
+import org.waitlight.simple.jsonql.execute.result.InsertResult;
 import org.waitlight.simple.jsonql.metadata.MetadataSource;
 import org.waitlight.simple.jsonql.statement.InsertStatement;
 
@@ -27,7 +27,6 @@ public class InsertEngineTest {
         // Create a single user entity
         String jsonCreate = """
                 {
-                    "statement": "insert",
                     "appId": "123456",
                     "formId": "89757",
                     "entityId": "user",
@@ -41,7 +40,7 @@ public class InsertEngineTest {
 
         // The result should be an InsertResult
         assertNotNull(result);
-        assertTrue(result instanceof InsertResult);
+        assertInstanceOf(InsertResult.class, result);
         InsertResult insertResult = (InsertResult) result;
         assertTrue(insertResult.getAffectedRows() > 0);
         assertFalse(insertResult.getMainIds().isEmpty());
@@ -87,7 +86,7 @@ public class InsertEngineTest {
         ExecuteResult result = engine.execute(jsonCreate, InsertStatement.class);
 
         assertNotNull(result);
-        assertTrue(result instanceof InsertResult);
+        assertInstanceOf(InsertResult.class, result);
         InsertResult insertResult = (InsertResult) result;
         assertTrue(insertResult.getAffectedRows() > 0);
         assertFalse(insertResult.getMainIds().isEmpty());
@@ -96,10 +95,8 @@ public class InsertEngineTest {
 
     @Test
     public void testCreateWithInvalidField() throws Exception {
-        // Create with a field that doesn't exist in the entity
         String jsonCreate = """
                 {
-                    "statement": "insert",
                     "appId": "123456",
                     "formId": "89757",
                     "entityId": "user",
@@ -119,7 +116,6 @@ public class InsertEngineTest {
     public void testCreateBlogDirectly() throws Exception {
         String jsonCreate = """
                 {
-                  "statement": "insert",
                   "appId": "123456",
                   "formId": "89758",
                   "entityId": "blog",
@@ -141,7 +137,7 @@ public class InsertEngineTest {
                 }
                 """;
 
-        ExecuteResult result = engine.execute(jsonCreate,  InsertStatement.class);
+        ExecuteResult result = engine.execute(jsonCreate, InsertStatement.class);
 
         assertNotNull(result);
         assertTrue(result instanceof InsertResult);

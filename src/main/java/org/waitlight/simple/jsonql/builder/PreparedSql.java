@@ -1,7 +1,6 @@
 package org.waitlight.simple.jsonql.builder;
 
 import lombok.Data;
-import org.apache.calcite.rel.RelNode;
 import org.waitlight.simple.jsonql.statement.JsonQLStatement;
 
 import java.util.ArrayList;
@@ -10,7 +9,6 @@ import java.util.List;
 
 @Data
 public class PreparedSql<T extends JsonQLStatement> {
-    private RelNode relNode;
     private String sql;
     private List<Object> parameters;
     private Class<T> statementType;

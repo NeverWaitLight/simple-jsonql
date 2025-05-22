@@ -4,10 +4,12 @@ import jakarta.persistence.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.waitlight.simple.jsonql.util.IStringUtil;
+import org.waitlight.simple.jsonql.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
-import java.util.Collection;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 import static org.waitlight.simple.jsonql.util.JDBCTypeUtils.getJDBCType;
 
@@ -19,32 +21,13 @@ public class LocalClassMetadataBuilder extends MetadataBuilder {
         this.metadataSource = metadataSource;
     }
 
-    /**
-     * 构建元数据实例
-     * <p>
-     * 此方法负责从MetadataSource中获取所有实体类，并为每个实体类创建一个PersistentClass实例，
-     * 然后将这些实例添加到Metadata对象中返回的Metadata实例包含了所有实体的映射信息，
-     * 可用于后续的数据库操作和ORM映射
-     *
-     * @return {@link Metadata} 元数据实例，包含所有实体的映射信息
-     */
     @Override
     public Metadata build() {
         Metadata metadata = new Metadata();
-        mapClassToMetadata(metadata, metadataSource.getEntityClasses());
-        return metadata;
-    }
+        Set<Class<?>> entityClasses = metadataSource.getEntityClasses();
 
-
-    /**
-     * 映射Java类到PersistentClass
-     */
-    private void mapClassToMetadata(Metadata metadata, Collection<Class<?>> entityClasses) {
-        if (Objects.isNull(metadata)) {
-            throw new IllegalArgumentException("Metadata cannot be null");
-        }
         if (CollectionUtils.isEmpty(entityClasses)) {
-            return;
+            throw new IllegalArgumentException("Metadata cannot be null");
         }
 
         for (Class<?> entityClass : entityClasses) {
@@ -57,14 +40,16 @@ public class LocalClassMetadataBuilder extends MetadataBuilder {
             for (Field field : entityClass.getDeclaredFields()) {
                 Property.Builder propertyBuilder = handlePropertyMapping(field);
 
-                handleOneToManyAnnotation(field, entityClass, propertyBuilder);
-                handleManyToOneAnnotation(field, propertyBuilder);
-                handleManyToManyAnnotation(field, entityClass, propertyBuilder);
+                handleOneToManyAnnotation(persistentClass, field, entityClass, propertyBuilder);
+                handleManyToOneAnnotation(persistentClass, field, propertyBuilder);
+                handleManyToManyAnnotation(persistentClass, field, entityClass, propertyBuilder);
 
                 persistentClass.addProperty(propertyBuilder.build());
             }
             metadata.add(persistentClass);
         }
+
+        return metadata;
     }
 
     private void handleTableAnnotation(Class<?> entityClass, PersistentClass persistentClass) {
@@ -77,21 +62,32 @@ public class LocalClassMetadataBuilder extends MetadataBuilder {
     }
 
 
-    private void handleOneToManyAnnotation(Field field, Class<?> entityClass, Property.Builder propertyBuilder) {
+    private void handleOneToManyAnnotation(PersistentClass persistentClass,
+            Field field,
+            Class<?> entityClass,
+            Property.Builder propertyBuilder) {
         if (!field.isAnnotationPresent(OneToMany.class)) {
             return;
         }
 
         OneToMany oneToMany = field.getAnnotation(OneToMany.class);
-        Class<?> targetEntity = oneToMany.targetEntity();
+        Class<?> targetEntityClass = oneToMany.targetEntity();
+        Class<?> targetEntity = (targetEntityClass == void.class)
+                ? ReflectionUtils.getGenericType(field)
+                : targetEntityClass;
+
         propertyBuilder.setRelationship(RelationshipType.ONE_TO_MANY)
                 .setTargetEntity(targetEntity)
                 .setJoinTableName(IStringUtil.camelToSnake(targetEntity.getSimpleName()))
                 .setForeignKeyName(IStringUtil.camelToSnake(entityClass.getSimpleName()) + "_id")
                 .setMappedBy(oneToMany.mappedBy());
+
+        persistentClass.addRelationProperty(targetEntity, RelationshipType.ONE_TO_MANY);
     }
 
-    private void handleManyToOneAnnotation(Field field, Property.Builder propertyBuilder) {
+    private void handleManyToOneAnnotation(PersistentClass persistentClass,
+            Field field,
+            Property.Builder propertyBuilder) {
         if (!field.isAnnotationPresent(ManyToOne.class)) {
             return;
         }
@@ -107,9 +103,14 @@ public class LocalClassMetadataBuilder extends MetadataBuilder {
             propertyBuilder.setColumnName(columnName);
             propertyBuilder.setForeignKeyName(columnName);
         }
+
+        persistentClass.addRelationProperty(field.getClass(), RelationshipType.MANY_TO_ONE);
     }
 
-    private void handleManyToManyAnnotation(Field field, Class<?> entityClass, Property.Builder propertyBuilder) {
+    private void handleManyToManyAnnotation(PersistentClass persistentClass,
+            Field field,
+            Class<?> entityClass,
+            Property.Builder propertyBuilder) {
         if (!field.isAnnotationPresent(ManyToMany.class)) {
             return;
         }
@@ -125,6 +126,8 @@ public class LocalClassMetadataBuilder extends MetadataBuilder {
                     + IStringUtil.camelToSnake(manyToMany.targetEntity().getSimpleName());
             propertyBuilder.setJoinTableName(joinTableName);
         }
+
+        persistentClass.addRelationProperty(field.getClass(), RelationshipType.MANY_TO_MANY);
     }
 
     private void handleJoinTableAnnotation(Field field, Class<?> entityClass, Property.Builder propertyBuilder, ManyToMany manyToMany) {
