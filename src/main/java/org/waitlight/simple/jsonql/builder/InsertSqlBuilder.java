@@ -4,7 +4,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
 import org.jooq.Field;
-import org.jooq.Query;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
@@ -292,7 +291,6 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
             return new PreparedSql<>();
         }
 
-        // 使用 jOOQ 构建 SQL
         DSLContext create = DSL.using(new DefaultConfiguration());
         Table<?> table = DSL.table(DSL.name(statement.getEntityId()));
 
@@ -307,10 +305,10 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
             values.add(field.getValue());
         }
 
-        Query query = create.insertInto(table)
+        String sql = create.insertInto(table)
                 .columns(fields.toArray(new Field[0]))
-                .values(values.toArray());
-        String sql = query.getSQL();
+                .values(values.toArray())
+                .getSQL();
         return new PreparedSql<>(sql, parameters, InsertStatement.class);
     }
 }
