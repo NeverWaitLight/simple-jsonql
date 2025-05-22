@@ -35,7 +35,7 @@ public class PersistentClass {
         relations.put(targetEntity, relationshipType);
     }
 
-    public Property getRelationshipType(Class<?> targetEntity) throws SqlBuildException {
+    public Property getPropertyForRelClass(Class<?> targetEntity) throws SqlBuildException {
         if (targetEntity == null) {
             throw new MetadataException("targetEntity is null");
         }

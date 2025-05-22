@@ -25,8 +25,6 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
 
     private static final Logger log = LoggerFactory.getLogger(InsertSqlBuilder.class);
 
-    public static final String FOREIGN_KEY_PLACEHOLDER = "__FOREIGN_KEY_PLACEHOLDER__";
-
     public InsertSqlBuilder(Metadata metadata) {
         super(metadata);
     }
@@ -50,38 +48,27 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
             RelationshipType relationshipType = mainPersistentClass.getRelations().get(nestedPersistentClass.getEntityClass());
             switch (relationshipType) {
                 case ONE_TO_MANY ->
-                        processOneToMany(nestedPersistentClass, mainPersistentClass, nestedStatement, mainStatement, preparedSql);
-                case MANY_TO_ONE -> processManyToOne(nestedStatement, mainStatement, preparedSql);
+                        processOneToMany(mainPersistentClass, nestedPersistentClass, mainStatement, nestedStatement, preparedSql);
+                case MANY_TO_ONE ->
+                        processManyToOne(mainPersistentClass, nestedPersistentClass, mainStatement, nestedStatement, preparedSql);
                 default -> {
 
                 }
             }
         }
 
-//        for (Property relationProperty : relationProperties) {
-//            RelationshipType relationType = relationProperty.relationship();
-//
-//            switch (relationType) {
-//                case ONE_TO_MANY -> processOneToMany(statement, mainStmt, relationProperty, preparedSql);
-//                case MANY_TO_ONE -> processManyToOne(statement, mainStmt, relationProperty, preparedSql);
-//                default -> {
-//                }
-//            }
-//        }
-//
-//        PreparedSql<InsertStatement> mainSql = buildSql(mainStmt);
-//        preparedSql.setSql(mainSql.getSql());
-//        preparedSql.setParameters(mainSql.getParameters());
-
         return preparedSql;
     }
 
     private void processOneToMany(
-            PersistentClass nestedPersistentClass, PersistentClass mainPersistentClass,
-            PersistStatement nestedStatement, PersistStatement mainStmt,
-            PreparedSql<InsertStatement> preparedSql) throws SqlBuildException {
+            PersistentClass mainPersistentClass,
+            PersistentClass nestedPersistentClass,
+            PersistStatement mainStatement,
+            PersistStatement nestedStatement,
+            PreparedSql<InsertStatement> preparedSql
+    ) throws SqlBuildException {
 
-        String fieldName = Optional.ofNullable(nestedPersistentClass.getRelationshipType(mainPersistentClass.getEntityClass()))
+        String fieldName = Optional.ofNullable(nestedPersistentClass.getPropertyForRelClass(mainPersistentClass.getEntityClass()))
                 .map(Property::fieldName)
                 .orElseThrow(() -> new SqlBuildException("No relation property found"));
 
@@ -93,13 +80,17 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
         preparedSql.addNestedSQLs(buildSql(nestedStatement));
     }
 
-    private void processManyToOne(PersistStatement statement, PersistStatement mainStmt,
-                                  PreparedSql<InsertStatement> preparedSql) {
+    private void processManyToOne(
+            PersistentClass mainPersistentClass,
+            PersistentClass nestedPersistentClass,
+            PersistStatement mainStatement,
+            PersistStatement nestedStatement,
+            PreparedSql<InsertStatement> preparedSql) {
 
         FieldStatement relField = new FieldStatement();
 //        relField.setField(relationProperty.columnName());
         relField.setValue(FOREIGN_KEY_PLACEHOLDER);
-        statement.getFields().add(relField);
+//        statement.getFields().add(relField);
 //
 //        preparedSql.addNestedSQLs(buildSql(statement));
 //

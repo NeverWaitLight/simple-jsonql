@@ -14,6 +14,8 @@ import java.util.Objects;
 
 public abstract class AbstractSqlBuilder<T extends JsonQLStatement> {
 
+    public static final String FOREIGN_KEY_PLACEHOLDER = "__FOREIGN_KEY_PLACEHOLDER__";
+
     protected final Metadata metadata;
 
     private final SqlDialect dialect = SqlDialect.DatabaseProduct.MYSQL.getDialect();   // SQL 方言

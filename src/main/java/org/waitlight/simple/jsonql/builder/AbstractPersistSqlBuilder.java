@@ -17,8 +17,6 @@ public abstract class AbstractPersistSqlBuilder<T extends PersistStatement> exte
 
     private static final Logger log = LoggerFactory.getLogger(AbstractPersistSqlBuilder.class);
 
-    public static final String FOREIGN_KEY_PLACEHOLDER = "__FOREIGN_KEY_PLACEHOLDER__";
-
     public AbstractPersistSqlBuilder(Metadata metadata) {
         super(metadata);
     }
