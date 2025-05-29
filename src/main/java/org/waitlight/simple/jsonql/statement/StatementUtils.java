@@ -19,6 +19,7 @@ public class StatementUtils {
         mainStatement.setAppId(statement.getAppId());
         mainStatement.setFormId(statement.getFormId());
         mainStatement.setEntityId(statement.getEntityId());
+        mainStatement.setDataId(statement.getDataId());
         mainStatement.setFields(new ArrayList<>(rootFieldStatements));
 
         List<PersistStatement> nestedStatements = statement.getFields().stream()

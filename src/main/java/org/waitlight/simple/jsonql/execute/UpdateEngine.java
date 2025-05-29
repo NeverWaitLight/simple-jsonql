@@ -4,9 +4,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.waitlight.simple.jsonql.builder.PreparedSql;
+import org.waitlight.simple.jsonql.builder.SqlBuildException;
 import org.waitlight.simple.jsonql.builder.UpdateSqlParser;
 import org.waitlight.simple.jsonql.builder.WhereClauseSqlParser;
 import org.waitlight.simple.jsonql.execute.result.UpdateResult;
+import org.waitlight.simple.jsonql.metadata.MetadataBuilderFactory;
 import org.waitlight.simple.jsonql.metadata.MetadataSource;
 import org.waitlight.simple.jsonql.statement.UpdateStatement;
 
@@ -31,12 +33,12 @@ public class UpdateEngine extends StatementEngine<UpdateStatement, UpdateResult>
     public UpdateEngine(MetadataSource metadataSource) {
         super(metadataSource);
         this.whereClauseExecutor = new WhereClauseSqlParser(metadataSource);
-        this.updateSqlParser = new UpdateSqlParser(metadataSource);
+        this.updateSqlParser = new UpdateSqlParser(MetadataBuilderFactory.createLocalBuilder(metadataSource).build());
     }
 
     @Override
-    public UpdateResult execute(Connection conn, UpdateStatement statement) throws SQLException {
-        PreparedSql<UpdateStatement> preparedSql = updateSqlParser.parseSql(statement);
+    public UpdateResult execute(Connection conn, UpdateStatement statement) throws SQLException, SqlBuildException {
+        PreparedSql<UpdateStatement> preparedSql = updateSqlParser.build(statement);
 
         if (preparedSql.getStatementType() != UpdateStatement.class) {
             throw new IllegalArgumentException("UpdateEngine can only execute UpdateStatements");

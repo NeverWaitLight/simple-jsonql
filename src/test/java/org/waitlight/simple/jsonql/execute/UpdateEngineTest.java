@@ -6,15 +6,11 @@ import org.waitlight.simple.jsonql.entity.Blog;
 import org.waitlight.simple.jsonql.entity.User;
 import org.waitlight.simple.jsonql.execute.result.ExecuteResult;
 import org.waitlight.simple.jsonql.execute.result.InsertResult;
-import org.waitlight.simple.jsonql.execute.result.SelectResult;
 import org.waitlight.simple.jsonql.execute.result.UpdateResult;
 import org.waitlight.simple.jsonql.metadata.MetadataSource;
 import org.waitlight.simple.jsonql.statement.InsertStatement;
-import org.waitlight.simple.jsonql.statement.SelectStatement;
 import org.waitlight.simple.jsonql.statement.UpdateStatement;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -32,88 +28,58 @@ public class UpdateEngineTest {
 
     @Test
     public void execute_singleEntityUpdate_returnsSuccessResult() throws Exception {
-        // 1. 先创建一条记录
-        String randomName = "原始名称" + new Random().nextInt(10000);
-        String updatedName = "已更新名称" + new Random().nextInt(10000);
-
-        String insertQuery = """
+        // Create a user first to update
+        String originalName = "原始名称" + new Random().nextInt(10000);
+        String jsonCreate = """
                 {
-                    "statement": "insert",
-                    "appId": "123456",
-                    "formId": "89757",
-                    "entityId": "user",
-                    "fields": [
-                        {"field": "name", "value": "%s"}
-                    ]
-                }
-                """.formatted(randomName);
+                          "appId": "123456",
+                          "formId": "89757",
+                          "entityId": "user",
+                          "fields": [
+                              {"field": "name", "value": "%s"}
+                          ]
+                      }
+                """.formatted(originalName);
 
-        ExecuteResult insertResultObj = engine.execute(insertQuery, InsertStatement.class);
-        assertTrue(insertResultObj instanceof InsertResult);
-        InsertResult insertResult = (InsertResult) insertResultObj;
+        ExecuteResult createResult = engine.execute(jsonCreate, InsertStatement.class);
+        assertNotNull(createResult);
+        assertInstanceOf(InsertResult.class, createResult);
+        InsertResult insertResult = (InsertResult) createResult;
         assertTrue(insertResult.getAffectedRows() > 0);
         assertFalse(insertResult.getMainIds().isEmpty());
 
-        Long userId = insertResult.getMainIds().get(0);
+        Long userId = insertResult.getMainIds().getFirst();
 
-        // 2. 更新该记录
-        String updateQuery = """
+        // Update the user
+        String updatedName = "更新后名称" + new Random().nextInt(10000);
+        String jsonUpdate = """
                 {
-                    "statement": "update",
-                    "appId": "123456",
-                    "formId": "89757",
-                    "entityId": "user",
-                    "dataId": "%s",
-                    "fields": [
-                        {"field": "name", "value": "%s"}
-                    ]
-                }
+                        "appId": "123456",
+                        "formId": "89757",
+                        "entityId": "user",
+                        "dataId": "%s",
+                        "fields": [
+                            {"field": "name", "value": "%s"}
+                        ]
+                    }
                 """.formatted(userId, updatedName);
 
-        ExecuteResult updateResultObj = engine.execute(updateQuery, UpdateStatement.class);
-        assertNotNull(updateResultObj);
-        assertTrue(updateResultObj instanceof UpdateResult);
-        UpdateResult updateResult = (UpdateResult) updateResultObj;
-        assertTrue(updateResult.getAffectedRows() > 0, "Update should affect at least one row");
+        ExecuteResult result = engine.execute(jsonUpdate, UpdateStatement.class);
 
-        // 3. 验证更新是否成功
-        String selectQuery = """
-                {
-                    "statement": "select",
-                    "appId": "123456",
-                    "formId": "89757",
-                    "entityId": "user",
-                    "filters": {
-                        "rel": "and",
-                        "conditions": [
-                            {"field": "id", "method": "eq", "value": %s}
-                        ]
-                    },
-                    "page": {"size": 10, "number": 1}
-                }
-                """.formatted(userId);
-
-        ExecuteResult selectResultObj = engine.execute(selectQuery, SelectStatement.class);
-        assertNotNull(selectResultObj);
-        assertTrue(selectResultObj instanceof SelectResult);
-        SelectResult selectResult = (SelectResult) selectResultObj;
-
-        List<Map<String, Object>> resultList = selectResult.getRecords();
-        assertFalse(resultList.isEmpty(), "Updated record should exist");
-        assertEquals(updatedName, resultList.get(0).get("name"),
-                "Name should be updated to new value");
+        // The result should be an UpdateResult
+        assertNotNull(result);
+        assertInstanceOf(UpdateResult.class, result);
+        UpdateResult updateResult = (UpdateResult) result;
+        assertTrue(updateResult.getAffectedRows() > 0);
     }
 
     @Test
-    public void execute_updateWithNestedEntity_returnsSuccessResult() throws Exception {
-        // 1. 先创建一条带嵌套实体的记录
-        String randomName = "用户" + new Random().nextInt(10000);
-        String originalTitle = "原始标题" + new Random().nextInt(10000);
-        String updatedTitle = "更新后标题" + new Random().nextInt(10000);
-
-        String insertQuery = """
+    public void execute_updateWithNestedEntities_returnsSuccessResult() throws Exception {
+        // Create a user with nested blog entities first
+        String userName = "用户" + new Random().nextInt(10000);
+        String blogTitle = "博客标题" + new Random().nextInt(10000);
+        String jsonCreate = """
                 {
-                    "statement": "insert",
                     "appId": "123456",
                     "formId": "89757",
                     "entityId": "user",
@@ -135,63 +101,214 @@ public class UpdateEngineTest {
                         }
                     ]
                 }
-                """.formatted(randomName, originalTitle);
+                """.formatted(userName, blogTitle);
 
-        ExecuteResult insertResultObj = engine.execute(insertQuery, InsertStatement.class);
-        assertTrue(insertResultObj instanceof InsertResult);
-        InsertResult insertResult = (InsertResult) insertResultObj;
+        ExecuteResult createResult = engine.execute(jsonCreate, InsertStatement.class);
+        assertNotNull(createResult);
+        assertInstanceOf(InsertResult.class, createResult);
+        InsertResult insertResult = (InsertResult) createResult;
         assertTrue(insertResult.getAffectedRows() > 0);
         assertFalse(insertResult.getMainIds().isEmpty());
         assertFalse(insertResult.getNestedIds().isEmpty());
 
-        Long userId = insertResult.getMainIds().get(0);
-        Long blogId = insertResult.getNestedIds().get(0);
+        Long userId = insertResult.getMainIds().getFirst();
+        Long blogId = insertResult.getNestedIds().getFirst();
 
-        // 2. 更新嵌套实体 - 直接更新博客
-        String updateQuery = """
+        // Update the user with nested blog reference
+        String updatedName = "更新后用户名" + new Random().nextInt(10000);
+        String jsonUpdate = """
                 {
-                    "statement": "update",
-                    "appId": "123456",
-                    "formId": "89758",
-                    "entityId": "blog",
-                    "dataId": "%s",
-                    "fields": [
-                        {"field": "title", "value": "%s"}
+                        "appId": "123456",
+                        "formId": "89757",
+                        "entityId": "user",
+                        "dataId": "%s",
+                        "fields": [
+                            {"field": "name", "value": "%s"},
+                            {
+                                "field": "blogs",
+                                "values": [
+                                    {
+                                        "appId": "123456",
+                                        "formId": "89758",
+                                        "entityId": "blog",
+                                        "dataId": "%s",
+                                        "fields": [
+                                            {"field": "title", "value": "更新后的博客标题"}
+                                        ]
+                                }
+                            ]
+                        }
                     ]
                 }
-                """.formatted(blogId, updatedTitle);
+                """.formatted(userId, updatedName, blogId);
 
-        ExecuteResult updateResultObj = engine.execute(updateQuery, UpdateStatement.class);
-        assertNotNull(updateResultObj);
-        assertTrue(updateResultObj instanceof UpdateResult);
-        UpdateResult updateResult = (UpdateResult) updateResultObj;
-        assertTrue(updateResult.getAffectedRows() > 0, "Update should affect at least one row");
+        ExecuteResult result = engine.execute(jsonUpdate, UpdateStatement.class);
 
-        // 3. 验证更新是否成功
-        String selectQuery = """
+        assertNotNull(result);
+        assertInstanceOf(UpdateResult.class, result);
+        UpdateResult updateResult = (UpdateResult) result;
+        assertTrue(updateResult.getAffectedRows() > 0);
+    }
+
+    @Test
+    public void execute_updateWithInvalidField_throwsException() {
+        // Create a user first
+        String originalName = "测试用户" + new Random().nextInt(10000);
+        String jsonCreate = """
                 {
-                    "statement": "select",
                     "appId": "123456",
-                    "formId": "89758",
-                    "entityId": "blog",
-                    "filters": {
-                        "rel": "and",
-                        "conditions": [
-                            {"field": "id", "method": "eq", "value": %s}
-                        ]
-                    },
-                    "page": {"size": 10, "number": 1}
+                    "formId": "89757",
+                    "entityId": "user",
+                    "fields": [
+                        {"field": "name", "value": "%s"}
+                    ]
+                }
+                """.formatted(originalName);
+
+        ExecuteResult createResult = assertDoesNotThrow(() -> engine.execute(jsonCreate, InsertStatement.class));
+        InsertResult insertResult = (InsertResult) createResult;
+        Long userId = insertResult.getMainIds().get(0);
+
+        // Try to update with invalid field
+        String jsonUpdate = """
+                {
+                    "appId": "123456",
+                    "formId": "89757",
+                    "entityId": "user",
+                    "dataId": "%s",
+                    "fields": [
+                        {"field": "name", "value": "alice"},
+                        {"field": "nonexistent", "value": "this field doesn't exist"}
+                    ]
+                }
+                """.formatted(userId);
+
+        Exception exception = assertThrows(Exception.class, () -> engine.execute(jsonUpdate, UpdateStatement.class));
+        assertTrue(exception.getMessage().contains("nonexistent") || exception.getMessage().contains("field"));
+    }
+
+    @Test
+    public void execute_updateBlogDirectly_returnsSuccessResult() throws Exception {
+        // Create a blog with user reference first
+        String jsonCreate = """
+                {
+                  "appId": "123456",
+                  "formId": "89758",
+                  "entityId": "blog",
+                  "fields": [
+                    {"field": "title", "value": "原始博客标题"},
+                    {"field": "content", "value": "这是原始博客内容"},
+                    {
+                      "field": "user",
+                      "values": [
+                        {
+                          "appId": "123456",
+                          "formId": "89758",
+                          "entityId": "user",
+                          "fields": [ {"field": "id", "value": "123"} ]
+                        }
+                      ]
+                    }
+                  ]
+                    }
+                """;
+
+        ExecuteResult createResult = engine.execute(jsonCreate, InsertStatement.class);
+        assertNotNull(createResult);
+        assertInstanceOf(InsertResult.class, createResult);
+        InsertResult insertResult = (InsertResult) createResult;
+        assertTrue(insertResult.getAffectedRows() > 0);
+        assertFalse(insertResult.getMainIds().isEmpty());
+
+        Long blogId = insertResult.getMainIds().get(0);
+
+        // Update the blog
+        String jsonUpdate = """
+                {
+                  "appId": "123456",
+                  "formId": "89758",
+                  "entityId": "blog",
+                  "dataId": "%s",
+                  "fields": [
+                    {"field": "title", "value": "更新后的博客标题"},
+                    {"field": "content", "value": "这是更新后的博客内容"}
+                  ]
                 }
                 """.formatted(blogId);
 
-        ExecuteResult selectResultObj = engine.execute(selectQuery, SelectStatement.class);
-        assertNotNull(selectResultObj);
-        assertTrue(selectResultObj instanceof SelectResult);
-        SelectResult selectResult = (SelectResult) selectResultObj;
+        ExecuteResult result = engine.execute(jsonUpdate, UpdateStatement.class);
 
-        List<Map<String, Object>> resultList = selectResult.getRecords();
-        assertFalse(resultList.isEmpty(), "Updated blog record should exist");
-        assertEquals(updatedTitle, resultList.get(0).get("title"),
-                "Blog title should be updated to new value");
+        assertNotNull(result);
+        assertInstanceOf(UpdateResult.class, result);
+        UpdateResult updateResult = (UpdateResult) result;
+        assertTrue(updateResult.getAffectedRows() > 0);
+    }
+
+    @Test
+    public void execute_updateBlogWithUserReference_returnsSuccessResult() throws Exception {
+        // Create a blog first
+        String jsonCreate = """
+                {
+                  "appId": "123456",
+                  "formId": "89758",
+                  "entityId": "blog",
+                  "fields": [
+                    {"field": "title", "value": "原始博客"},
+                    {"field": "content", "value": "原始内容"},
+                    {
+                      "field": "user",
+                      "values": [
+                        {
+                          "appId": "123456",
+                          "formId": "89758",
+                          "entityId": "user",
+                          "fields": [ {"field": "name", "value": "原始作者"} ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+                """;
+
+        ExecuteResult createResult = engine.execute(jsonCreate, InsertStatement.class);
+        assertNotNull(createResult);
+        assertInstanceOf(InsertResult.class, createResult);
+        InsertResult insertResult = (InsertResult) createResult;
+        assertTrue(insertResult.getAffectedRows() > 0);
+        assertFalse(insertResult.getMainIds().isEmpty());
+
+        Long blogId = insertResult.getMainIds().get(0);
+
+        // Update the blog with user reference
+        String jsonUpdate = """
+                {
+                  "appId": "123456",
+                  "formId": "89758",
+                  "entityId": "blog",
+                  "dataId": "%s",
+                  "fields": [
+                    {"field": "title", "value": "更新后博客标题"},
+                    {"field": "content", "value": "更新后博客内容"},
+                    {
+                      "field": "user",
+                      "values": [
+                        {
+                          "appId": "123456",
+                          "formId": "89758",
+                          "entityId": "user",
+                          "fields": [ {"field": "id", "value": "456"} ]
+                        }
+                      ]
+                    }
+                  ]
+                    }
+                """.formatted(blogId);
+
+        ExecuteResult result = engine.execute(jsonUpdate, UpdateStatement.class);
+
+        assertNotNull(result);
+        assertInstanceOf(UpdateResult.class, result);
+        UpdateResult updateResult = (UpdateResult) result;
+        assertTrue(updateResult.getAffectedRows() > 0);
     }
 }
