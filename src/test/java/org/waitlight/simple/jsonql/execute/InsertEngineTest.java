@@ -94,7 +94,7 @@ public class InsertEngineTest {
     }
 
     @Test
-    public void execute_insertWithInvalidField_throwsException() throws Exception {
+    public void execute_insertWithInvalidField_throwsException() {
         String jsonCreate = """
                 {
                     "appId": "123456",
@@ -140,7 +140,7 @@ public class InsertEngineTest {
         ExecuteResult result = engine.execute(jsonCreate, InsertStatement.class);
 
         assertNotNull(result);
-        assertTrue(result instanceof InsertResult);
+        assertInstanceOf(InsertResult.class, result);
         InsertResult insertResult = (InsertResult) result;
         assertTrue(insertResult.getAffectedRows() > 0);
         assertFalse(insertResult.getMainIds().isEmpty());
@@ -174,7 +174,7 @@ public class InsertEngineTest {
         ExecuteResult result = engine.execute(jsonCreate, InsertStatement.class);
 
         assertNotNull(result);
-        assertTrue(result instanceof InsertResult);
+        assertInstanceOf(InsertResult.class, result);
         InsertResult insertResult = (InsertResult) result;
         assertTrue(insertResult.getAffectedRows() > 0);
         assertFalse(insertResult.getMainIds().isEmpty());
