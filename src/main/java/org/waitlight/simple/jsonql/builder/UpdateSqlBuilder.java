@@ -21,11 +21,11 @@ import org.waitlight.simple.jsonql.statement.model.PersistStatement;
 
 import java.util.*;
 
-public class UpdateSqlParser extends AbstractPersistSqlBuilder<UpdateStatement> {
+public class UpdateSqlBuilder extends AbstractPersistSqlBuilder<UpdateStatement> {
 
-    private static final Logger log = LoggerFactory.getLogger(UpdateSqlParser.class);
+    private static final Logger log = LoggerFactory.getLogger(UpdateSqlBuilder.class);
 
-    public UpdateSqlParser(Metadata metadata) {
+    public UpdateSqlBuilder(Metadata metadata) {
         super(metadata);
     }
 

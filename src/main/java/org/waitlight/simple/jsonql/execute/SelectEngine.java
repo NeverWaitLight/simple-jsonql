@@ -3,7 +3,7 @@ package org.waitlight.simple.jsonql.execute;
 import lombok.extern.slf4j.Slf4j;
 import org.waitlight.simple.jsonql.builder.ClauseSqlParser;
 import org.waitlight.simple.jsonql.builder.PreparedSql;
-import org.waitlight.simple.jsonql.builder.SelectSqlParser;
+import org.waitlight.simple.jsonql.builder.SelectSqlBuilder;
 import org.waitlight.simple.jsonql.execute.result.SelectResult;
 import org.waitlight.simple.jsonql.metadata.MetadataSource;
 import org.waitlight.simple.jsonql.statement.SelectStatement;
@@ -18,17 +18,17 @@ import java.util.Map;
 @Slf4j
 public class SelectEngine extends StatementEngine<SelectStatement, SelectResult> {
     private final ClauseSqlParser clauseSqlParser;
-    private final SelectSqlParser selectSqlParser;
+    private final SelectSqlBuilder selectSqlBuilder;
 
     public SelectEngine(MetadataSource metadataSource) {
         super(metadataSource);
         this.clauseSqlParser = new ClauseSqlParser(metadataSource);
-        this.selectSqlParser = new SelectSqlParser(metadataSource);
+        this.selectSqlBuilder = new SelectSqlBuilder(metadataSource);
     }
 
     @Override
     public SelectResult execute(Connection conn, SelectStatement statement) throws SQLException {
-        PreparedSql<SelectStatement> preparedSql = selectSqlParser.parseSql(statement);
+        PreparedSql<SelectStatement> preparedSql = selectSqlBuilder.parseSql(statement);
 
         if (preparedSql.getStatementType() != SelectStatement.class) {
             throw new IllegalArgumentException("SelectEngine can only execute SelectStatements");
@@ -78,7 +78,7 @@ public class SelectEngine extends StatementEngine<SelectStatement, SelectResult>
      */
     private int getTotalCount(Connection conn, SelectStatement statement) throws SQLException {
         // 直接重用SelectSqlParser为我们生成的SQL，但只保留WHERE部分
-        PreparedSql<SelectStatement> preparedSql = selectSqlParser.parseSql(statement);
+        PreparedSql<SelectStatement> preparedSql = selectSqlBuilder.parseSql(statement);
         String fullSql = preparedSql.getSql();
         List<Object> fullParameters = preparedSql.getParameters();
 

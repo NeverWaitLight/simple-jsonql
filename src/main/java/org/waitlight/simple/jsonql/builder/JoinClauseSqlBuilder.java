@@ -4,9 +4,9 @@ import org.waitlight.simple.jsonql.metadata.MetadataSource;
 import org.waitlight.simple.jsonql.statement.SelectStatement;
 import org.waitlight.simple.jsonql.statement.model.FilterCriteria;
 
-public class JoinClauseSqlParser extends AbstractClauseSqlParser {
+public class JoinClauseSqlBuilder extends AbstractClauseSqlBuilder {
 
-    public JoinClauseSqlParser(MetadataSource metadataSource) {
+    public JoinClauseSqlBuilder(MetadataSource metadataSource) {
         super(metadataSource);
     }
 

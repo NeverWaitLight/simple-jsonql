@@ -1,8 +1,6 @@
 package org.waitlight.simple.jsonql.builder;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.waitlight.simple.jsonql.metadata.Metadata;
 import org.waitlight.simple.jsonql.metadata.MetadataException;
 import org.waitlight.simple.jsonql.metadata.Property;
@@ -14,8 +12,6 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class AbstractPersistSqlBuilder<T extends PersistStatement> extends AbstractSqlBuilder<T> {
-
-    private static final Logger log = LoggerFactory.getLogger(AbstractPersistSqlBuilder.class);
 
     public AbstractPersistSqlBuilder(Metadata metadata) {
         super(metadata);

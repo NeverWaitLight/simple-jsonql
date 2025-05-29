@@ -2,7 +2,7 @@ package org.waitlight.simple.jsonql.execute;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.waitlight.simple.jsonql.builder.DeleteSqlParser;
+import org.waitlight.simple.jsonql.builder.DeleteSqlBuilder;
 import org.waitlight.simple.jsonql.builder.PreparedSql;
 import org.waitlight.simple.jsonql.execute.result.DeleteResult;
 import org.waitlight.simple.jsonql.metadata.MetadataBuilderFactory;
@@ -16,17 +16,17 @@ import java.util.List;
 
 @Slf4j
 public class DeleteEngine extends StatementEngine<DeleteStatement, DeleteResult> {
-    private final DeleteSqlParser deleteSqlParser;
+    private final DeleteSqlBuilder deleteSqlBuilder;
 
     public DeleteEngine(MetadataSource metadataSource) {
         super(metadataSource);
-        this.deleteSqlParser = new DeleteSqlParser(MetadataBuilderFactory.createLocalBuilder(metadataSource).build());
+        this.deleteSqlBuilder = new DeleteSqlBuilder(MetadataBuilderFactory.createLocalBuilder(metadataSource).build());
     }
 
     @Override
     public DeleteResult execute(Connection conn, DeleteStatement stmt) throws SQLException {
         try {
-            PreparedSql<DeleteStatement> preparedSql = deleteSqlParser.build(stmt);
+            PreparedSql<DeleteStatement> preparedSql = deleteSqlBuilder.build(stmt);
 
             if (preparedSql.getSql() == null || preparedSql.getSql().isEmpty()) {
                 log.info("生成的SQL为空，不执行删除操作。 Entity: {}", stmt.getEntityId());

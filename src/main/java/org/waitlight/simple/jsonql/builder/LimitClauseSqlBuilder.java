@@ -4,8 +4,8 @@ import org.waitlight.simple.jsonql.metadata.MetadataSource;
 import org.waitlight.simple.jsonql.statement.SelectStatement;
 import org.waitlight.simple.jsonql.statement.model.PageCriteria;
 
-public class LimitClauseSqlParser extends AbstractClauseSqlParser {
-    public LimitClauseSqlParser(MetadataSource metadataSource) {
+public class LimitClauseSqlBuilder extends AbstractClauseSqlBuilder {
+    public LimitClauseSqlBuilder(MetadataSource metadataSource) {
         super(metadataSource);
     }
 

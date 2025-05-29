@@ -3,10 +3,10 @@ package org.waitlight.simple.jsonql.builder;
 import org.apache.commons.lang3.StringUtils;
 import org.waitlight.simple.jsonql.metadata.MetadataSource;
 
-public abstract class AbstractClauseSqlParser {
+public abstract class AbstractClauseSqlBuilder {
     protected final MetadataSource metadataSource;
 
-    public AbstractClauseSqlParser(MetadataSource metadataSource) {
+    public AbstractClauseSqlBuilder(MetadataSource metadataSource) {
         this.metadataSource = metadataSource;
     }
 

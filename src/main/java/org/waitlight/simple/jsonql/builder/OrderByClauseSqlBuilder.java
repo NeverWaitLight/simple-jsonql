@@ -6,9 +6,9 @@ import org.waitlight.simple.jsonql.statement.model.SortCriteria;
 
 import java.util.List;
 
-public class OrderByClauseSqlParser extends AbstractClauseSqlParser {
+public class OrderByClauseSqlBuilder extends AbstractClauseSqlBuilder {
 
-    public OrderByClauseSqlParser(MetadataSource metadataSource) {
+    public OrderByClauseSqlBuilder(MetadataSource metadataSource) {
         super(metadataSource);
     }
 

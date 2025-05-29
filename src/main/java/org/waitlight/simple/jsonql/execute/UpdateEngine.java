@@ -5,8 +5,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.waitlight.simple.jsonql.builder.PreparedSql;
 import org.waitlight.simple.jsonql.builder.SqlBuildException;
-import org.waitlight.simple.jsonql.builder.UpdateSqlParser;
-import org.waitlight.simple.jsonql.builder.WhereClauseSqlParser;
+import org.waitlight.simple.jsonql.builder.UpdateSqlBuilder;
+import org.waitlight.simple.jsonql.builder.WhereClauseSqlBuilder;
 import org.waitlight.simple.jsonql.execute.result.UpdateResult;
 import org.waitlight.simple.jsonql.metadata.MetadataBuilderFactory;
 import org.waitlight.simple.jsonql.metadata.MetadataSource;
@@ -19,8 +19,8 @@ import java.util.List;
 
 @Slf4j
 public class UpdateEngine extends StatementEngine<UpdateStatement, UpdateResult> {
-    private final WhereClauseSqlParser whereClauseExecutor;
-    private final UpdateSqlParser updateSqlParser;
+    private final WhereClauseSqlBuilder whereClauseExecutor;
+    private final UpdateSqlBuilder updateSqlBuilder;
 
     // Helper record/class for main statement execution result
     private record MainUpdateDetail(int affectedRows) {
@@ -32,13 +32,13 @@ public class UpdateEngine extends StatementEngine<UpdateStatement, UpdateResult>
 
     public UpdateEngine(MetadataSource metadataSource) {
         super(metadataSource);
-        this.whereClauseExecutor = new WhereClauseSqlParser(metadataSource);
-        this.updateSqlParser = new UpdateSqlParser(MetadataBuilderFactory.createLocalBuilder(metadataSource).build());
+        this.whereClauseExecutor = new WhereClauseSqlBuilder(metadataSource);
+        this.updateSqlBuilder = new UpdateSqlBuilder(MetadataBuilderFactory.createLocalBuilder(metadataSource).build());
     }
 
     @Override
     public UpdateResult execute(Connection conn, UpdateStatement statement) throws SQLException, SqlBuildException {
-        PreparedSql<UpdateStatement> preparedSql = updateSqlParser.build(statement);
+        PreparedSql<UpdateStatement> preparedSql = updateSqlBuilder.build(statement);
 
         if (preparedSql.getStatementType() != UpdateStatement.class) {
             throw new IllegalArgumentException("UpdateEngine can only execute UpdateStatements");

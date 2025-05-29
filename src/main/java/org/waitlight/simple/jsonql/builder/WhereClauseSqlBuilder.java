@@ -6,9 +6,9 @@ import org.waitlight.simple.jsonql.statement.model.*;
 
 import java.util.List;
 
-public class WhereClauseSqlParser extends AbstractClauseSqlParser {
+public class WhereClauseSqlBuilder extends AbstractClauseSqlBuilder {
 
-    public WhereClauseSqlParser(MetadataSource metadataSource) {
+    public WhereClauseSqlBuilder(MetadataSource metadataSource) {
         super(metadataSource);
     }
 
@@ -95,7 +95,7 @@ public class WhereClauseSqlParser extends AbstractClauseSqlParser {
             sb.append("NOT ");
         }
         sb.append("EXISTS (")
-                .append(new SelectSqlParser(metadataSource).parseSql(condition.getSubquery()).getSql())
+                .append(new SelectSqlBuilder(metadataSource).parseSql(condition.getSubquery()).getSql())
                 .append(")");
         return sb.toString();
     }

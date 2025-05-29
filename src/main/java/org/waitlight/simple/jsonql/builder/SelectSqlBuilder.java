@@ -1,7 +1,7 @@
 package org.waitlight.simple.jsonql.builder;
 
+import org.waitlight.simple.jsonql.metadata.MetadataBuilderFactory;
 import org.waitlight.simple.jsonql.metadata.MetadataSource;
-import org.waitlight.simple.jsonql.statement.JsonQLStatement;
 import org.waitlight.simple.jsonql.statement.SelectStatement;
 import org.waitlight.simple.jsonql.statement.model.FilterCondition;
 import org.waitlight.simple.jsonql.statement.model.FilterCriteria;
@@ -11,21 +11,17 @@ import org.waitlight.simple.jsonql.statement.model.SortCriteria;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SelectSqlParser {
+public class SelectSqlBuilder extends AbstractSqlBuilder<SelectStatement> {
 
-    private final ClauseSqlParser clauseSqlParser; // For potential future use to delegate clause building
+    private final ClauseSqlParser clauseSqlParser;
 
-    public SelectSqlParser(MetadataSource metadataSource) {
-        // Initialize ClauseExecutor if it's going to be used by the parser directly
-        // Or, if QueryExecutor manages it, it could be passed in.
-        // For now, let's assume if this parser becomes complex, it might instantiate
-        // its own clause handlers
-        // or be given them.
-        // As per QueryExecutor, ClauseExecutor takes MetadataSources.
+    public SelectSqlBuilder(MetadataSource metadataSource) {
+        super(MetadataBuilderFactory.createLocalBuilder(metadataSource).build());
         this.clauseSqlParser = new ClauseSqlParser(metadataSource);
     }
 
-    public PreparedSql<SelectStatement> parseSql(JsonQLStatement statement) {
+    @Override
+    protected PreparedSql<SelectStatement> build(SelectStatement statement) throws SqlBuildException {
         if (!(statement instanceof SelectStatement selectStatement)) {
             throw new IllegalArgumentException(
                     "Expected QueryStatement but got " + statement.getClass().getSimpleName());
@@ -138,4 +134,6 @@ public class SelectSqlParser {
         sqlObj.setStatementType(SelectStatement.class);
         return sqlObj;
     }
+
+
 }

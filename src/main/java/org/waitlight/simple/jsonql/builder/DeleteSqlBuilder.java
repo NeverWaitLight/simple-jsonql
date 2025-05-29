@@ -13,11 +13,11 @@ import org.waitlight.simple.jsonql.statement.DeleteStatement;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DeleteSqlParser extends AbstractSqlBuilder<DeleteStatement> {
+public class DeleteSqlBuilder extends AbstractSqlBuilder<DeleteStatement> {
 
-    private static final Logger log = LoggerFactory.getLogger(DeleteSqlParser.class);
+    private static final Logger log = LoggerFactory.getLogger(DeleteSqlBuilder.class);
 
-    public DeleteSqlParser(Metadata metadata) {
+    public DeleteSqlBuilder(Metadata metadata) {
         super(metadata);
     }
 
