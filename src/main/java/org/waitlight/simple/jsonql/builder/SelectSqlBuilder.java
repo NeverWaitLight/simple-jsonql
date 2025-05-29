@@ -3,17 +3,14 @@ package org.waitlight.simple.jsonql.builder;
 import org.apache.calcite.jdbc.CalciteConnection;
 import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.core.JoinRelType;
 import org.apache.calcite.rex.RexBuilder;
 import org.apache.calcite.rex.RexInputRef;
-import org.apache.calcite.rex.RexLiteral;
 import org.apache.calcite.rex.RexNode;
-import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.sql.SqlDialect;
-import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.dialect.MysqlSqlDialect;
 import org.apache.calcite.sql.fun.SqlStdOperatorTable;
-import org.apache.calcite.tools.*;
+import org.apache.calcite.tools.FrameworkConfig;
+import org.apache.calcite.tools.RelBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,12 +23,10 @@ import org.waitlight.simple.jsonql.statement.model.FilterCriteria;
 import org.waitlight.simple.jsonql.statement.model.PageCriteria;
 import org.waitlight.simple.jsonql.statement.model.SortCriteria;
 
-import java.math.BigDecimal;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class SelectSqlBuilder extends AbstractSqlBuilder<SelectStatement> {
 
@@ -173,7 +168,7 @@ public class SelectSqlBuilder extends AbstractSqlBuilder<SelectStatement> {
      * 构建单个过滤条件
      */
     private RexNode buildFilterCondition(RelBuilder builder, RexBuilder rexBuilder,
-            FilterCondition condition, PersistentClass persistentClass)
+                                         FilterCondition condition, PersistentClass persistentClass)
             throws SqlBuildException {
         String fieldName = condition.getField();
         Property property = findProperty(persistentClass, fieldName);

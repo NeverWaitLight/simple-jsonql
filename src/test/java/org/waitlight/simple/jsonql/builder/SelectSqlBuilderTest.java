@@ -13,7 +13,8 @@ import org.waitlight.simple.jsonql.statement.model.PageCriteria;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SelectSqlBuilderTest {
 
