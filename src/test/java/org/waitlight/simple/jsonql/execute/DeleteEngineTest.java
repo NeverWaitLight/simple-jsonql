@@ -27,11 +27,10 @@ public class DeleteEngineTest {
     }
 
     @Test
-    public void execute_deleteWithIds_returnsSuccessResult() throws Exception {
-        String randomName = "真实ID李四" + new Random().nextInt();
+    public void execute_deleteWithSingleId_returnsSuccessResult() throws Exception {
+        String randomName = "测试用户" + new Random().nextInt(10000);
         String insertQuery = """
                 {
-                    "statement": "insert",
                     "appId": "123456",
                     "formId": "89757",
                     "entityId": "user",
@@ -40,32 +39,31 @@ public class DeleteEngineTest {
                     ]
                 }
                 """.formatted(randomName);
+
         ExecuteResult insertResultObj = engine.execute(insertQuery, InsertStatement.class);
         assertNotNull(insertResultObj);
-        assertTrue(insertResultObj instanceof InsertResult, "Result should be InsertResult");
+        assertInstanceOf(InsertResult.class, insertResultObj);
 
         InsertResult insertResult = (InsertResult) insertResultObj;
-        assertTrue(insertResult.getAffectedRows() > 0, "Insert should affect at least one row");
-        assertFalse(insertResult.getMainIds().isEmpty(), "Insert should return at least one ID");
+        assertTrue(insertResult.getAffectedRows() > 0);
+        assertFalse(insertResult.getMainIds().isEmpty());
 
-        Long insertedId = insertResult.getMainIds().get(0);
-        assertNotNull(insertedId, "Inserted ID should not be null");
+        Long insertedId = insertResult.getMainIds().getFirst();
 
         String deleteQuery = """
                 {
-                    "statement": "delete",
                     "appId": "123456",
                     "formId": "89757",
                     "entityId": "user",
-                    "ids": ["%s"]
+                    "id": "%s"
                 }
                 """.formatted(insertedId);
 
         ExecuteResult deleteResultObj = engine.execute(deleteQuery, DeleteStatement.class);
-        assertNotNull(deleteResultObj, "Delete result should not be null");
-        assertTrue(deleteResultObj instanceof DeleteResult, "Result should be DeleteResult");
+        assertNotNull(deleteResultObj);
+        assertInstanceOf(DeleteResult.class, deleteResultObj);
 
         DeleteResult deleteResult = (DeleteResult) deleteResultObj;
-        assertEquals(1, deleteResult.getAffectedRows(), "Delete should affect 1 row when using the actual ID");
+        assertEquals(1, deleteResult.getAffectedRows());
     }
 }

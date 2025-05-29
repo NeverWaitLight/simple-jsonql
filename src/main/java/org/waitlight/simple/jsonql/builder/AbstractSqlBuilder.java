@@ -35,7 +35,6 @@ public abstract class AbstractSqlBuilder<T extends JsonQLStatement> {
      */
     protected abstract PreparedSql<T> build(T statement) throws SqlBuildException;
 
-    protected abstract Map<FieldStatement, Property> map(String entityName, T statement);
 
     /**
      * Base on apache calcite

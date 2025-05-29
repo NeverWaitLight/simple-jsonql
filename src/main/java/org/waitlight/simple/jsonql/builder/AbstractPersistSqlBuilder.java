@@ -42,7 +42,6 @@ public abstract class AbstractPersistSqlBuilder<T extends PersistStatement> exte
      */
     public abstract PreparedSql<T> build(T statement) throws SqlBuildException;
 
-    @Override
     protected Map<FieldStatement, Property> map(String entityName, PersistStatement statement) {
         Map<FieldStatement, Property> result = new HashMap<>();
         List<Property> properties = metadata.getEntity(entityName).getProperties();
