@@ -75,7 +75,7 @@ public class SelectEngineTest {
     }
 
     @Test
-    public void testBasicQuery() throws Exception {
+    public void execute_basicQuery_returnsQueryResults() throws Exception {
         // 基本分页查询，无过滤条件
         String query = """
                 {
@@ -101,7 +101,7 @@ public class SelectEngineTest {
     }
 
     @Test
-    public void testQueryWithFilters() throws Exception {
+    public void execute_queryWithFilters_returnsFilteredResults() throws Exception {
         // 带过滤条件的查询
         String query = """
                 {
@@ -131,7 +131,7 @@ public class SelectEngineTest {
     }
 
     @Test
-    public void testQueryWithSort() throws Exception {
+    public void execute_queryWithSort_returnsSortedResults() throws Exception {
         // 排序查询
         String query = """
                 {
@@ -163,7 +163,7 @@ public class SelectEngineTest {
     }
 
     @Test
-    public void testSubTableQuery() throws Exception {
+    public void execute_subTableQuery_returnsSubTableResults() throws Exception {
         // 子表查询（通过关联字段查询）
         String query = """
                 {

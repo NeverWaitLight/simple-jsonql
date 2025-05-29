@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class CalciteTests {
 
     @Test
-    public void testDirectCalciteApiWithMultipleConditions() {
+    public void calciteApi_multipleConditions_generatesCorrectSql() {
         // 1. 创建Schema和表定义
         SchemaPlus schema = CalciteSchema.createRootSchema(false).plus();
 
@@ -123,7 +123,7 @@ public class CalciteTests {
     }
 
     @Test
-    public void testNameLikeAndAgeOrSex() {
+    public void calciteApi_nameLikeAndAgeOrSex_generatesCorrectSql() {
         // 1. 创建Schema和用户表定义
         SchemaPlus schema = CalciteSchema.createRootSchema(false).plus();
 
@@ -213,7 +213,7 @@ public class CalciteTests {
     }
 
     @Test
-    public void testStudentClassLeftJoin() {
+    public void calciteApi_studentClassLeftJoin_generatesCorrectSql() {
         // 1. 创建Schema
         SchemaPlus schema = CalciteSchema.createRootSchema(false).plus();
         RelDataTypeFactory typeFactory = new JavaTypeFactoryImpl();
@@ -310,7 +310,7 @@ public class CalciteTests {
     }
 
     @Test
-    public void testAllDataTypesTableAndQuery() {
+    public void calciteApi_allDataTypesQuery_generatesCorrectSql() {
         // 1. 创建Schema
         SchemaPlus schema = CalciteSchema.createRootSchema(false).plus();
         RelDataTypeFactory typeFactory = new JavaTypeFactoryImpl();
@@ -626,7 +626,7 @@ public class CalciteTests {
 
 
     @Test
-    public void testDeleteStatement() {
+    public void calciteApi_deleteStatement_generatesCorrectSql() {
         // 1. 创建Schema和用户表定义
         SchemaPlus schema = CalciteSchema.createRootSchema(false).plus();
 
@@ -693,7 +693,7 @@ public class CalciteTests {
     }
 
     @Test
-    public void testUpdateStatement() {
+    public void calciteApi_updateStatement_generatesCorrectSql() {
         // 1. 创建Schema和用户表定义
         SchemaPlus schema = CalciteSchema.createRootSchema(false).plus();
 

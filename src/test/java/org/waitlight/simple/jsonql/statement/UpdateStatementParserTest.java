@@ -11,7 +11,7 @@ public class UpdateStatementParserTest {
     private final StatementParser parser = new StatementParser();
 
     @Test
-    public void update() throws JsonQLStatementException {
+    public void parse_updateStatementWithNestedEntities_returnsValidUpdateStatement() throws JsonQLStatementException {
         String json = """
                 {
                     "appId": "123456",

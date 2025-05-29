@@ -27,7 +27,7 @@ public class DeleteEngineTest {
     }
 
     @Test
-    public void testDeleteWithIds() throws Exception {
+    public void execute_deleteWithIds_returnsSuccessResult() throws Exception {
         String randomName = "真实ID李四" + new Random().nextInt();
         String insertQuery = """
                 {

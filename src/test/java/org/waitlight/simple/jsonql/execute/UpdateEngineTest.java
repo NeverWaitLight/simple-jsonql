@@ -31,7 +31,7 @@ public class UpdateEngineTest {
     }
 
     @Test
-    public void testUpdateSingleEntity() throws Exception {
+    public void execute_singleEntityUpdate_returnsSuccessResult() throws Exception {
         // 1. 先创建一条记录
         String randomName = "原始名称" + new Random().nextInt(10000);
         String updatedName = "已更新名称" + new Random().nextInt(10000);
@@ -105,7 +105,7 @@ public class UpdateEngineTest {
     }
 
     @Test
-    public void testUpdateWithNestedEntity() throws Exception {
+    public void execute_updateWithNestedEntity_returnsSuccessResult() throws Exception {
         // 1. 先创建一条带嵌套实体的记录
         String randomName = "用户" + new Random().nextInt(10000);
         String originalTitle = "原始标题" + new Random().nextInt(10000);

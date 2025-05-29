@@ -12,7 +12,7 @@ public class SelectStatementParserTest {
     private final StatementParser parser = new StatementParser();
 
     @Test
-    public void query() throws JsonQLStatementException {
+    public void parse_selectStatementWithFiltersAndSort_returnsValidSelectStatement() throws JsonQLStatementException {
         String json = """
                 {
                   "appId": "123456",

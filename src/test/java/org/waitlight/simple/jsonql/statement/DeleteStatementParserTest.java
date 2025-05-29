@@ -9,7 +9,7 @@ public class DeleteStatementParserTest {
     private final StatementParser parser = new StatementParser();
 
     @Test
-    public void deleteWithIds() throws JsonQLStatementException {
+    public void parse_deleteStatementWithIds_returnsValidDeleteStatement() throws JsonQLStatementException {
         String json = """
                 {
                     "appId": "123456",

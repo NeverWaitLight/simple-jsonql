@@ -23,7 +23,7 @@ public class InsertEngineTest {
     }
 
     @Test
-    public void testCreateSingleEntity() throws Exception {
+    public void execute_singleEntityInsert_returnsSuccessResult() throws Exception {
         // Create a single user entity
         String jsonCreate = """
                 {
@@ -47,7 +47,7 @@ public class InsertEngineTest {
     }
 
     @Test
-    public void testCreateWithNestedEntities() throws Exception {
+    public void execute_insertWithNestedEntities_returnsSuccessResult() throws Exception {
         // Create a user with nested blog entities
         String jsonCreate = """
                 {
@@ -94,7 +94,7 @@ public class InsertEngineTest {
     }
 
     @Test
-    public void testCreateWithInvalidField() throws Exception {
+    public void execute_insertWithInvalidField_throwsException() throws Exception {
         String jsonCreate = """
                 {
                     "appId": "123456",
@@ -113,7 +113,7 @@ public class InsertEngineTest {
     }
 
     @Test
-    public void testCreateBlogDirectly() throws Exception {
+    public void execute_createBlogDirectly_returnsSuccessResult() throws Exception {
         String jsonCreate = """
                 {
                   "appId": "123456",
@@ -147,7 +147,7 @@ public class InsertEngineTest {
     }
 
     @Test
-    public void testCreateBlogDirectlyWithNewUser() throws Exception {
+    public void execute_createBlogWithNewUser_returnsSuccessResult() throws Exception {
         String jsonCreate = """
                 {
                   "appId": "123456",

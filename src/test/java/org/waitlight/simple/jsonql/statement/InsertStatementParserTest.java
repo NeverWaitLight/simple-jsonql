@@ -10,7 +10,7 @@ public class InsertStatementParserTest {
     private final StatementParser parser = new StatementParser();
 
     @Test
-    public void create() throws JsonQLStatementException {
+    public void parse_simpleInsertStatement_returnsValidInsertStatement() throws JsonQLStatementException {
         String json = """
                 {
                     "appId": "123456",
@@ -42,7 +42,7 @@ public class InsertStatementParserTest {
     }
 
     @Test
-    public void createWithNestedEntities() throws JsonQLStatementException {
+    public void parse_insertStatementWithNestedEntities_returnsValidInsertStatement() throws JsonQLStatementException {
         String json = """
                 {
                     "appId": "123456",
