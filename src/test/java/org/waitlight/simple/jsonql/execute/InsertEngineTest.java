@@ -145,4 +145,38 @@ public class InsertEngineTest {
         assertTrue(insertResult.getAffectedRows() > 0);
         assertFalse(insertResult.getMainIds().isEmpty());
     }
+
+    @Test
+    public void testCreateBlogDirectlyWithNewUser() throws Exception {
+        String jsonCreate = """
+                {
+                  "appId": "123456",
+                  "formId": "89758",
+                  "entityId": "blog",
+                  "fields": [
+                    {"field": "title", "value": "用户123的新博客"},
+                    {"field": "content", "value": "这是用户123的新博客内容"},
+                    {
+                      "field": "user",
+                      "values": [
+                        {
+                          "appId": "123456",
+                          "formId": "89758",
+                          "entityId": "user",
+                          "fields": [ {"field": "name", "value": "无敌旋风腿"} ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+                """;
+
+        ExecuteResult result = engine.execute(jsonCreate, InsertStatement.class);
+
+        assertNotNull(result);
+        assertTrue(result instanceof InsertResult);
+        InsertResult insertResult = (InsertResult) result;
+        assertTrue(insertResult.getAffectedRows() > 0);
+        assertFalse(insertResult.getMainIds().isEmpty());
+    }
 }

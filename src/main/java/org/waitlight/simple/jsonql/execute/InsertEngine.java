@@ -64,7 +64,6 @@ public class InsertEngine extends StatementEngine<InsertStatement, InsertResult>
         boolean originalAutoCommit = conn.getAutoCommit();
         MainExecutionDetail mainResult = null;
         NestedExecutionSummary nestedSummary = new NestedExecutionSummary(new ArrayList<>(), 0);
-        InsertResult executionResult;
 
         try {
             conn.setAutoCommit(false);
@@ -75,34 +74,16 @@ public class InsertEngine extends StatementEngine<InsertStatement, InsertResult>
 
             conn.commit();
 
-            int totalAffectedRows = (mainResult != null ? mainResult.affectedRows() : 0)
-                    + nestedSummary.totalAffectedRows();
-            List<Long> mainIds = mainResult != null && mainResult.generatedId() != null
-                    ? List.of(mainResult.generatedId())
-                    : Collections.emptyList();
-            List<Long> nestedIds = nestedSummary.generatedIds() != null ? nestedSummary.generatedIds()
-                    : Collections.emptyList();
-
-            executionResult = new InsertResult(totalAffectedRows, mainIds, nestedIds);
-
+            InsertResult executionResult = buildInsertResult(mainResult, nestedSummary);
             log.info("事务提交成功，总影响行数: {}, 主ID: {}, 嵌套ID: {}",
                     executionResult.getAffectedRows(), executionResult.getMainIds(), executionResult.getNestedIds());
 
             return executionResult;
         } catch (SQLException e) {
             handleTransactionError(conn, e);
-            // Populate result object even in case of error for consistency
-            int currentAffected = (mainResult != null ? mainResult.affectedRows() : 0)
-                    + nestedSummary.totalAffectedRows();
-            List<Long> currentMainIds = mainResult != null && mainResult.generatedId() != null
-                    ? List.of(mainResult.generatedId())
-                    : Collections.emptyList();
-            List<Long> currentNestedIds = nestedSummary.generatedIds() != null ? nestedSummary.generatedIds()
-                    : Collections.emptyList();
-            executionResult = new InsertResult(currentAffected, currentMainIds, currentNestedIds);
-            // Log the partial/error state before throwing
+            InsertResult executionResult = buildInsertResult(mainResult, nestedSummary);
             log.error("事务执行失败，当前状态: {}", executionResult);
-            throw e; // Re-throw the exception
+            throw e;
         } finally {
             restoreAutoCommit(conn, originalAutoCommit);
         }
@@ -277,5 +258,20 @@ public class InsertEngine extends StatementEngine<InsertStatement, InsertResult>
         } catch (SQLException e) {
             log.error("恢复AutoCommit设置失败", e);
         }
+    }
+
+    /**
+     * 构建插入结果对象
+     */
+    private InsertResult buildInsertResult(MainExecutionDetail mainResult, NestedExecutionSummary nestedSummary) {
+        int totalAffectedRows = (mainResult != null ? mainResult.affectedRows() : 0)
+                + nestedSummary.totalAffectedRows();
+        List<Long> mainIds = mainResult != null && mainResult.generatedId() != null
+                ? List.of(mainResult.generatedId())
+                : Collections.emptyList();
+        List<Long> nestedIds = nestedSummary.generatedIds() != null ? nestedSummary.generatedIds()
+                : Collections.emptyList();
+
+        return new InsertResult(totalAffectedRows, mainIds, nestedIds);
     }
 }

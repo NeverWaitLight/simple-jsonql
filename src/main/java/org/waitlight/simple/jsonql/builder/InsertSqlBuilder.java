@@ -40,7 +40,7 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
         final StatementsPairs<PersistStatement> statementsPairs = StatementUtils.convert2SingleLevel(statement);
 
         final PersistStatement mainStatement = statementsPairs.mainStatement();
-        final PreparedSql<InsertStatement> preparedSql = buildSql(mainStatement);
+        PreparedSql<InsertStatement> preparedSql = buildSql(mainStatement);
 
         for (PersistStatement nestedStatement : statementsPairs.nestedStatements()) {
             String nestedEntityId = nestedStatement.getEntityId();
@@ -52,7 +52,8 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
                         processOneToMany(mainPersistentClass, nestedPersistentClass, mainStatement, nestedStatement,
                                 preparedSql);
                 case MANY_TO_ONE ->
-                        processManyToOne(mainPersistentClass, nestedPersistentClass, mainStatement, nestedStatement,
+                    preparedSql = processManyToOne(mainPersistentClass, nestedPersistentClass, mainStatement,
+                            nestedStatement,
                                 preparedSql);
                 default -> {
 
@@ -86,30 +87,93 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
     /**
      * 处理多对一关系，嵌套插入主数据记录
      */
-    private void processManyToOne(
+    private PreparedSql<InsertStatement> processManyToOne(
             PersistentClass mainPersistentClass,
             PersistentClass nestedPersistentClass,
             PersistStatement mainStatement,
             PersistStatement nestedStatement,
             PreparedSql<InsertStatement> preparedSql) throws SqlBuildException {
 
+        // 判断内嵌对象包含id字段就调用processManyToOneIncludeId方法，否则调用processManyToOneWithoutId方法
+        if (isReferenceOnlyStatement(nestedStatement)) {
+            // 嵌套对象只包含ID，表示引用已存在的实体
+            return processManyToOneIncludeId(mainPersistentClass, nestedPersistentClass, mainStatement,
+                    nestedStatement, preparedSql);
+        } else {
+            // 嵌套对象包含其他字段，需要创建新的实体
+            return processManyToOneWithoutId(mainPersistentClass, nestedPersistentClass, mainStatement,
+                    nestedStatement, preparedSql);
+        }
+    }
+
+    private PreparedSql<InsertStatement> processManyToOneIncludeId(
+            PersistentClass mainPersistentClass,
+            PersistentClass nestedPersistentClass,
+            PersistStatement mainStatement,
+            PersistStatement nestedStatement,
+            PreparedSql<InsertStatement> preparedSql) throws SqlBuildException {
+
+        // 内嵌的对象只有id，表示在insert时自动转换对应外键字段名，values就是传入的id的值
+
+        // 从嵌套语句中提取ID值
+        String idValue = extractIdFromNestedStatement(nestedStatement);
+        if (StringUtils.isBlank(idValue)) {
+            throw new SqlBuildException("在多对一关系中，嵌套实体的ID值不能为空");
+        }
+
+        // 获取外键字段名
+        String foreignKeyFieldName = Optional
+                .ofNullable(mainPersistentClass.getPropertyForRelClass(nestedPersistentClass.getEntityClass()))
+                .map(Property::foreignKeyName)
+                .orElse(nestedStatement.getEntityId().toLowerCase() + "_id");
+
+        // 将外键字段添加到主实体语句中
+        FieldStatement foreignKeyField = new FieldStatement();
+        foreignKeyField.setField(foreignKeyFieldName);
+        foreignKeyField.setValue(idValue);
+        mainStatement.getFields().add(foreignKeyField);
+
+        // 重新生成包含外键字段的SQL
+        return buildSql(mainStatement);
+    }
+
+    private PreparedSql<InsertStatement> processManyToOneWithoutId(
+            PersistentClass mainPersistentClass,
+            PersistentClass nestedPersistentClass,
+            PersistStatement mainStatement,
+            PersistStatement nestedStatement,
+            PreparedSql<InsertStatement> preparedSql) throws SqlBuildException {
+
+        // 翻转 PersistentClass：多对一关系中，应该先插入"一"的一方
         PersistentClass tmpPersistentClass = mainPersistentClass;
         mainPersistentClass = nestedPersistentClass;
         nestedPersistentClass = tmpPersistentClass;
 
+        // 翻转 Statement：对应地翻转语句
         PersistStatement tmpStatement = mainStatement;
         mainStatement = nestedStatement;
         nestedStatement = tmpStatement;
 
-        Property propertyForRelClass = mainPersistentClass
-                .getPropertyForRelClass(nestedPersistentClass.getEntityClass());
+        // 先构建并添加"一"方的SQL（现在的 mainStatement）
+        preparedSql = buildSql(mainStatement);
 
-        // TODO 翻转mainstatement和nestedstatement
-        // TODO 翻转mainpersistentclass和nestedpersistentclass
+        // 在"多"方添加外键字段
+        String foreignKeyFieldName = Optional
+                .ofNullable(nestedPersistentClass.getPropertyForRelClass(mainPersistentClass.getEntityClass()))
+                .map(Property::foreignKeyName)
+                .orElse(mainStatement.getEntityId().toLowerCase() + "_id");
 
-        log.info("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+        FieldStatement foreignKeyField = new FieldStatement();
+        foreignKeyField.setField(foreignKeyFieldName);
+        foreignKeyField.setValue(FOREIGN_KEY_PLACEHOLDER);
+        nestedStatement.getFields().add(foreignKeyField);
+
+        // 构建并添加"多"方的SQL（现在的 nestedStatement）
+        PreparedSql<InsertStatement> childSql = buildSql(nestedStatement);
+        preparedSql.addNestedSQLs(childSql);
+
+        return preparedSql;
     }
-
     /**
      * 判断嵌套语句是否仅包含ID字段
      *

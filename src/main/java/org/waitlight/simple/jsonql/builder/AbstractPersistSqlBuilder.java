@@ -49,7 +49,10 @@ public abstract class AbstractPersistSqlBuilder<T extends PersistStatement> exte
         List<FieldStatement> fieldStatements = statement.getFields().stream().filter(FieldStatement::isValid).toList();
         for (FieldStatement fieldStatement : fieldStatements) {
             Property property = properties.stream()
-                    .filter(prop -> StringUtils.equals(prop.fieldName(), fieldStatement.getField()))
+                    .filter(prop -> {
+                        return StringUtils.equals(prop.fieldName(), fieldStatement.getField())
+                                || StringUtils.equals(prop.foreignKeyName(), fieldStatement.getField());
+                    })
                     .findFirst()
                     .orElseThrow(() -> new MetadataException("Could not find metadata definition for field: " + fieldStatement.getField()));
             result.put(fieldStatement, property);

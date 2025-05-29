@@ -42,7 +42,7 @@ public class PersistentClass {
 
 
         return getProperties().stream()
-                .filter(item -> targetEntity.equals(item.targetEntity()))
+                .filter(item -> targetEntity.equals(item.fieldType()))
                 .findFirst()
                 .orElseThrow(() -> new SqlBuildException("No relation property found"));
     }
