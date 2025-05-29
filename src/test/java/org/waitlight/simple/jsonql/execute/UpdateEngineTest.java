@@ -276,8 +276,10 @@ public class UpdateEngineTest {
         InsertResult insertResult = (InsertResult) createResult;
         assertTrue(insertResult.getAffectedRows() > 0);
         assertFalse(insertResult.getMainIds().isEmpty());
+        assertFalse(insertResult.getNestedIds().isEmpty());
 
-        Long blogId = insertResult.getMainIds().get(0);
+        Long blogId = insertResult.getNestedIds().getFirst();
+        Long userId = insertResult.getMainIds().getFirst();
 
         // Update the blog with user reference
         String jsonUpdate = """
@@ -296,13 +298,16 @@ public class UpdateEngineTest {
                           "appId": "123456",
                           "formId": "89758",
                           "entityId": "user",
-                          "fields": [ {"field": "id", "value": "456"} ]
+                          "fields": [
+                            {"field": "id", "value": "%s"},
+                            {"field": "name", "value": "更新后的作者名称"}
+                          ]
                         }
                       ]
                     }
                   ]
-                    }
-                """.formatted(blogId);
+            }
+            """.formatted(blogId, userId);
 
         ExecuteResult result = engine.execute(jsonUpdate, UpdateStatement.class);
 

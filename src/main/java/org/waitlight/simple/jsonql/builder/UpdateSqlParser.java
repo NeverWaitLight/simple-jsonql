@@ -98,12 +98,10 @@ public class UpdateSqlParser extends AbstractPersistSqlBuilder<UpdateStatement> 
             PersistStatement nestedStatement,
             PreparedSql<UpdateStatement> preparedSql) throws SqlBuildException {
 
-        if (isOnlyIncludeId(nestedStatement)) {
-            String idValue = extractNestedId(nestedStatement);
-            if (StringUtils.isBlank(idValue)) {
-                throw new SqlBuildException("在多对一关系中，嵌套实体的ID值不能为空");
-            }
+        String idValue = extractNestedId(nestedStatement);
 
+        if (StringUtils.isNotBlank(idValue)) {
+            // 有ID的情况：设置外键关系
             String foreignKeyFieldName = Optional
                     .ofNullable(mainPersistentClass.getPropertyForRelClass(nestedPersistentClass.getEntityClass()))
                     .map(Property::foreignKeyName)
@@ -114,10 +112,28 @@ public class UpdateSqlParser extends AbstractPersistSqlBuilder<UpdateStatement> 
             foreignKeyField.setValue(idValue);
             mainStatement.getFields().add(foreignKeyField);
 
-            return buildSql(mainStatement);
-        } else {
-            log.warn("更新操作中不支持创建新的嵌套实体，只能引用已存在的实体ID");
+            // 重新构建主实体的SQL
+            preparedSql = buildSql(mainStatement);
+
+            // 如果嵌套对象不仅仅包含ID，还需要更新嵌套实体
+            if (!isOnlyIncludeId(nestedStatement)) {
+                // 设置嵌套实体的dataId以便更新
+                if (StringUtils.isBlank(nestedStatement.getDataId())) {
+                    nestedStatement.setDataId(idValue);
+                }
+
+                // 移除ID字段，避免重复更新
+                nestedStatement.getFields().removeIf(field -> "id".equals(field.getField()));
+
+                // 如果还有其他字段需要更新，则添加嵌套更新
+                if (CollectionUtils.isNotEmpty(nestedStatement.getFields())) {
+                    preparedSql.addNestedSQLs(buildSql(nestedStatement));
+                }
+            }
+
             return preparedSql;
+        } else {
+            throw new SqlBuildException("在多对一关系中，嵌套实体必须提供ID值");
         }
     }
 
@@ -175,33 +191,28 @@ public class UpdateSqlParser extends AbstractPersistSqlBuilder<UpdateStatement> 
         DSLContext create = DSL.using(SQLDialect.MYSQL);
         Table<?> table = DSL.table(DSL.name(statement.getEntityId()));
 
-        List<Field<Object>> updateFields = new ArrayList<>();
-        List<Object> updateValues = new ArrayList<>();
+        Map<FieldStatement, Property> map = map(statement.getEntityId(), statement);
+
+        // 构建SET子句的Map
+        Map<Field<?>, Object> setMap = new LinkedHashMap<>(); // 使用LinkedHashMap保持顺序
         List<Object> parameters = new ArrayList<>();
 
-        Map<FieldStatement, Property> map = map(statement.getEntityId(), statement);
         for (FieldStatement field : statement.getFields()) {
             Property property = map.get(field);
             String columnName = property.columnName();
-            updateFields.add(DSL.field(DSL.name(columnName)));
-            updateValues.add(field.getValue());
+            setMap.put(DSL.field(DSL.name(columnName)), DSL.param());
             parameters.add(field.getValue());
         }
 
-        // 构建UPDATE语句
-        StringBuilder sql = new StringBuilder();
-        sql.append("UPDATE `").append(statement.getEntityId()).append("` SET ");
+        // 使用jooq构建UPDATE语句
+        String sql = create.update(table)
+                .set(setMap)
+                .where(DSL.field(DSL.name("id")).eq(DSL.param()))
+                .getSQL();
 
-        List<String> setClauses = new ArrayList<>();
-        for (int i = 0; i < updateFields.size(); i++) {
-            setClauses.add(updateFields.get(i).getName() + " = ?");
-        }
-        sql.append(String.join(", ", setClauses));
-
-        sql.append(" WHERE `id` = ?");
         parameters.add(statement.getDataId());
 
         log.info("build update sql: {}", sql);
-        return new PreparedSql<>(sql.toString(), parameters, UpdateStatement.class);
+        return new PreparedSql<>(sql, parameters, UpdateStatement.class);
     }
 }
