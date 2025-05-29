@@ -283,31 +283,31 @@ public class UpdateEngineTest {
 
         // Update the blog with user reference
         String jsonUpdate = """
-                {
-                  "appId": "123456",
-                  "formId": "89758",
-                  "entityId": "blog",
-                  "dataId": "%s",
-                  "fields": [
-                    {"field": "title", "value": "更新后博客标题"},
-                    {"field": "content", "value": "更新后博客内容"},
                     {
-                      "field": "user",
-                      "values": [
+                      "appId": "123456",
+                      "formId": "89758",
+                      "entityId": "blog",
+                      "dataId": "%s",
+                      "fields": [
+                        {"field": "title", "value": "更新后博客标题"},
+                        {"field": "content", "value": "更新后博客内容"},
                         {
-                          "appId": "123456",
-                          "formId": "89758",
-                          "entityId": "user",
-                          "fields": [
-                            {"field": "id", "value": "%s"},
-                            {"field": "name", "value": "更新后的作者名称"}
+                          "field": "user",
+                          "values": [
+                            {
+                              "appId": "123456",
+                              "formId": "89758",
+                              "entityId": "user",
+                              "fields": [
+                                {"field": "id", "value": "%s"},
+                                {"field": "name", "value": "更新后的作者名称"}
+                              ]
+                            }
                           ]
                         }
                       ]
-                    }
-                  ]
-            }
-            """.formatted(blogId, userId);
+                }
+                """.formatted(blogId, userId);
 
         ExecuteResult result = engine.execute(jsonUpdate, UpdateStatement.class);
 

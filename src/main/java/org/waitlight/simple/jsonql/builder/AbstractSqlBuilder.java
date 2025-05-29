@@ -5,11 +5,8 @@ import org.apache.calcite.rel.rel2sql.RelToSqlConverter;
 import org.apache.calcite.sql.SqlDialect;
 import org.apache.calcite.sql.SqlNode;
 import org.waitlight.simple.jsonql.metadata.Metadata;
-import org.waitlight.simple.jsonql.metadata.Property;
 import org.waitlight.simple.jsonql.statement.JsonQLStatement;
-import org.waitlight.simple.jsonql.statement.model.FieldStatement;
 
-import java.util.Map;
 import java.util.Objects;
 
 public abstract class AbstractSqlBuilder<T extends JsonQLStatement> {
