@@ -45,12 +45,15 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
         for (PersistStatement nestedStatement : statementsPairs.nestedStatements()) {
             String nestedEntityId = nestedStatement.getEntityId();
             PersistentClass nestedPersistentClass = metadata.getEntity(nestedEntityId);
-            RelationshipType relationshipType = mainPersistentClass.getRelations().get(nestedPersistentClass.getEntityClass());
+            RelationshipType relationshipType = mainPersistentClass.getRelations()
+                    .get(nestedPersistentClass.getEntityClass());
             switch (relationshipType) {
                 case ONE_TO_MANY ->
-                        processOneToMany(mainPersistentClass, nestedPersistentClass, mainStatement, nestedStatement, preparedSql);
+                    processOneToMany(mainPersistentClass, nestedPersistentClass, mainStatement, nestedStatement,
+                            preparedSql);
                 case MANY_TO_ONE ->
-                        processManyToOne(mainPersistentClass, nestedPersistentClass, mainStatement, nestedStatement, preparedSql);
+                    processManyToOne(mainPersistentClass, nestedPersistentClass, mainStatement, nestedStatement,
+                            preparedSql);
                 default -> {
 
                 }
@@ -65,10 +68,10 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
             PersistentClass nestedPersistentClass,
             PersistStatement mainStatement,
             PersistStatement nestedStatement,
-            PreparedSql<InsertStatement> preparedSql
-    ) throws SqlBuildException {
+            PreparedSql<InsertStatement> preparedSql) throws SqlBuildException {
 
-        String fieldName = Optional.ofNullable(nestedPersistentClass.getPropertyForRelClass(mainPersistentClass.getEntityClass()))
+        String fieldName = Optional
+                .ofNullable(nestedPersistentClass.getPropertyForRelClass(mainPersistentClass.getEntityClass()))
                 .map(Property::fieldName)
                 .orElseThrow(() -> new SqlBuildException("No relation property found"));
 
@@ -80,35 +83,32 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
         preparedSql.addNestedSQLs(buildSql(nestedStatement));
     }
 
+    /**
+     * 处理多对一关系，嵌套插入主数据记录
+     */
     private void processManyToOne(
             PersistentClass mainPersistentClass,
             PersistentClass nestedPersistentClass,
             PersistStatement mainStatement,
             PersistStatement nestedStatement,
-            PreparedSql<InsertStatement> preparedSql) {
+            PreparedSql<InsertStatement> preparedSql) throws SqlBuildException {
 
-        FieldStatement relField = new FieldStatement();
-//        relField.setField(relationProperty.columnName());
-        relField.setValue(FOREIGN_KEY_PLACEHOLDER);
-//        statement.getFields().add(relField);
-//
-//        preparedSql.addNestedSQLs(buildSql(statement));
-//
-//        if (CollectionUtils.isEmpty(persistStatements)) {
-//            return;
-//        }
-//
-//        PersistStatement nestedStmt = persistStatements.get(0);
-//
-//        if (isReferenceOnlyStatement(nestedStmt)) {
-//            String referencedId = extractIdFromNestedStatement(nestedStmt);
-//
-//            if (StringUtils.isNotBlank(referencedId)) {
-//                addForeignKeyField(mainStmt, relationProperty, referencedId);
-//            }
-//        }
+        PersistentClass tmpPersistentClass = mainPersistentClass;
+        mainPersistentClass = nestedPersistentClass;
+        nestedPersistentClass = tmpPersistentClass;
+
+        PersistStatement tmpStatement = mainStatement;
+        mainStatement = nestedStatement;
+        nestedStatement = tmpStatement;
+
+        Property propertyForRelClass = mainPersistentClass
+                .getPropertyForRelClass(nestedPersistentClass.getEntityClass());
+
+        // TODO 翻转mainstatement和nestedstatement
+        // TODO 翻转mainpersistentclass和nestedpersistentclass
+
+        log.info("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
     }
-
 
     /**
      * 判断嵌套语句是否仅包含ID字段

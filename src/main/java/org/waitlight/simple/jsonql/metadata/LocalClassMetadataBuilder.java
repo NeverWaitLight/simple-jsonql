@@ -104,7 +104,7 @@ public class LocalClassMetadataBuilder extends MetadataBuilder {
             propertyBuilder.setForeignKeyName(columnName);
         }
 
-        persistentClass.addRelationProperty(field.getClass(), RelationshipType.MANY_TO_ONE);
+        persistentClass.addRelationProperty(field.getType(), RelationshipType.MANY_TO_ONE);
     }
 
     private void handleManyToManyAnnotation(PersistentClass persistentClass,
@@ -127,7 +127,7 @@ public class LocalClassMetadataBuilder extends MetadataBuilder {
             propertyBuilder.setJoinTableName(joinTableName);
         }
 
-        persistentClass.addRelationProperty(field.getClass(), RelationshipType.MANY_TO_MANY);
+        persistentClass.addRelationProperty(field.getType(), RelationshipType.MANY_TO_MANY);
     }
 
     private void handleJoinTableAnnotation(Field field, Class<?> entityClass, Property.Builder propertyBuilder, ManyToMany manyToMany) {
