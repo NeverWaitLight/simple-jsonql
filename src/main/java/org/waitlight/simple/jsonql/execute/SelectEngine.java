@@ -1,10 +1,10 @@
 package org.waitlight.simple.jsonql.execute;
 
 import lombok.extern.slf4j.Slf4j;
-import org.waitlight.simple.jsonql.execute.result.SelectResult;
 import org.waitlight.simple.jsonql.builder.ClauseSqlParser;
 import org.waitlight.simple.jsonql.builder.PreparedSql;
 import org.waitlight.simple.jsonql.builder.SelectSqlParser;
+import org.waitlight.simple.jsonql.execute.result.SelectResult;
 import org.waitlight.simple.jsonql.metadata.MetadataSource;
 import org.waitlight.simple.jsonql.statement.SelectStatement;
 import org.waitlight.simple.jsonql.statement.model.PageCriteria;

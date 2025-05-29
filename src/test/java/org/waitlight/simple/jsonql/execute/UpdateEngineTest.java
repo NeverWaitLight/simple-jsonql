@@ -2,12 +2,12 @@ package org.waitlight.simple.jsonql.execute;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.waitlight.simple.jsonql.entity.Blog;
+import org.waitlight.simple.jsonql.entity.User;
 import org.waitlight.simple.jsonql.execute.result.ExecuteResult;
 import org.waitlight.simple.jsonql.execute.result.InsertResult;
 import org.waitlight.simple.jsonql.execute.result.SelectResult;
 import org.waitlight.simple.jsonql.execute.result.UpdateResult;
-import org.waitlight.simple.jsonql.entity.Blog;
-import org.waitlight.simple.jsonql.entity.User;
 import org.waitlight.simple.jsonql.metadata.MetadataSource;
 import org.waitlight.simple.jsonql.statement.InsertStatement;
 import org.waitlight.simple.jsonql.statement.SelectStatement;

@@ -38,7 +38,7 @@ public class ExecuteEngine {
     /**
      * 执行JsonQL查询
      *
-     * @param jsonQuery JSON格式的查询语句
+     * @param jsonQuery           JSON格式的查询语句
      * @param jsonQLStatementType 查询语句类型
      * @return 查询执行结果
      * @throws Exception 解析异常或SQL异常

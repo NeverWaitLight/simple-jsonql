@@ -8,7 +8,6 @@ import org.waitlight.simple.jsonql.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 
 import static org.waitlight.simple.jsonql.util.JDBCTypeUtils.getJDBCType;
@@ -63,9 +62,9 @@ public class LocalClassMetadataBuilder extends MetadataBuilder {
 
 
     private void handleOneToManyAnnotation(PersistentClass persistentClass,
-            Field field,
-            Class<?> entityClass,
-            Property.Builder propertyBuilder) {
+                                           Field field,
+                                           Class<?> entityClass,
+                                           Property.Builder propertyBuilder) {
         if (!field.isAnnotationPresent(OneToMany.class)) {
             return;
         }
@@ -86,8 +85,8 @@ public class LocalClassMetadataBuilder extends MetadataBuilder {
     }
 
     private void handleManyToOneAnnotation(PersistentClass persistentClass,
-            Field field,
-            Property.Builder propertyBuilder) {
+                                           Field field,
+                                           Property.Builder propertyBuilder) {
         if (!field.isAnnotationPresent(ManyToOne.class)) {
             return;
         }
@@ -108,9 +107,9 @@ public class LocalClassMetadataBuilder extends MetadataBuilder {
     }
 
     private void handleManyToManyAnnotation(PersistentClass persistentClass,
-            Field field,
-            Class<?> entityClass,
-            Property.Builder propertyBuilder) {
+                                            Field field,
+                                            Class<?> entityClass,
+                                            Property.Builder propertyBuilder) {
         if (!field.isAnnotationPresent(ManyToMany.class)) {
             return;
         }

@@ -1,11 +1,5 @@
 package org.waitlight.simple.jsonql.metadata;
 
-import org.apache.calcite.sql.type.SqlTypeName;
-import org.jooq.impl.SQLDataType;
-
-import java.sql.JDBCType;
-import java.sql.Types;
-
 public abstract class MetadataBuilder {
     /**
      * 构建元数据实例

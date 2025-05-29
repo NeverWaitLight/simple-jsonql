@@ -59,7 +59,7 @@ public class JDBCTypeUtils {
     public static SqlTypeName getSqlTypeName(JDBCType jdbcType) {
         return switch (jdbcType) {
             case VARCHAR, LONGVARCHAR, NVARCHAR, LONGNVARCHAR -> SqlTypeName.VARCHAR;
-            case INTEGER -> SqlTypeName.INTEGER; 
+            case INTEGER -> SqlTypeName.INTEGER;
             case BIGINT -> SqlTypeName.BIGINT;
             case DOUBLE -> SqlTypeName.DOUBLE;
             case FLOAT, REAL -> SqlTypeName.FLOAT;

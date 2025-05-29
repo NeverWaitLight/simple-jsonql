@@ -3,10 +3,10 @@ package org.waitlight.simple.jsonql.execute;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.waitlight.simple.jsonql.execute.result.UpdateResult;
 import org.waitlight.simple.jsonql.builder.PreparedSql;
 import org.waitlight.simple.jsonql.builder.UpdateSqlParser;
 import org.waitlight.simple.jsonql.builder.WhereClauseSqlParser;
+import org.waitlight.simple.jsonql.execute.result.UpdateResult;
 import org.waitlight.simple.jsonql.metadata.MetadataSource;
 import org.waitlight.simple.jsonql.statement.UpdateStatement;
 

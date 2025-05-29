@@ -49,11 +49,11 @@ public class InsertSqlBuilder extends AbstractPersistSqlBuilder<InsertStatement>
                     .get(nestedPersistentClass.getEntityClass());
             switch (relationshipType) {
                 case ONE_TO_MANY ->
-                    processOneToMany(mainPersistentClass, nestedPersistentClass, mainStatement, nestedStatement,
-                            preparedSql);
+                        processOneToMany(mainPersistentClass, nestedPersistentClass, mainStatement, nestedStatement,
+                                preparedSql);
                 case MANY_TO_ONE ->
-                    processManyToOne(mainPersistentClass, nestedPersistentClass, mainStatement, nestedStatement,
-                            preparedSql);
+                        processManyToOne(mainPersistentClass, nestedPersistentClass, mainStatement, nestedStatement,
+                                preparedSql);
                 default -> {
 
                 }
