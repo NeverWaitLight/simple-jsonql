@@ -5,6 +5,7 @@ import org.waitlight.simple.jsonql.builder.ClauseSqlParser;
 import org.waitlight.simple.jsonql.builder.PreparedSql;
 import org.waitlight.simple.jsonql.builder.SelectSqlBuilder;
 import org.waitlight.simple.jsonql.execute.result.SelectResult;
+import org.waitlight.simple.jsonql.metadata.MetadataBuilderFactory;
 import org.waitlight.simple.jsonql.metadata.MetadataSource;
 import org.waitlight.simple.jsonql.statement.SelectStatement;
 import org.waitlight.simple.jsonql.statement.model.PageCriteria;
@@ -23,48 +24,49 @@ public class SelectEngine extends StatementEngine<SelectStatement, SelectResult>
     public SelectEngine(MetadataSource metadataSource) {
         super(metadataSource);
         this.clauseSqlParser = new ClauseSqlParser(metadataSource);
-        this.selectSqlBuilder = new SelectSqlBuilder(metadataSource);
+        this.selectSqlBuilder = new SelectSqlBuilder(MetadataBuilderFactory.createLocalBuilder(metadataSource).build());
     }
 
     @Override
     public SelectResult execute(Connection conn, SelectStatement statement) throws SQLException {
-        PreparedSql<SelectStatement> preparedSql = selectSqlBuilder.parseSql(statement);
+        try {
+            PreparedSql<SelectStatement> preparedSql = selectSqlBuilder.build(statement);
 
-        if (preparedSql.getStatementType() != SelectStatement.class) {
-            throw new IllegalArgumentException("SelectEngine can only execute SelectStatements");
-        }
-
-        log.info("执行查询语句 Entity: {}", statement.getEntityId());
-        log.info("主SQL: {}", preparedSql.getSql());
-        if (preparedSql.getParameters() != null && !preparedSql.getParameters().isEmpty()) {
-            log.info("主SQL参数: {}", preparedSql.getParameters());
-        }
-
-        try (PreparedStatement stmt = conn.prepareStatement(preparedSql.getSql())) {
-            List<Object> parameters = preparedSql.getParameters();
-            for (int i = 0; i < parameters.size(); i++) {
-                stmt.setObject(i + 1, parameters.get(i));
+            if (preparedSql.getStatementType() != SelectStatement.class) {
+                throw new IllegalArgumentException("SelectEngine can only execute SelectStatements");
             }
-            try (ResultSet rs = stmt.executeQuery()) {
-                List<Map<String, Object>> records = processResultSet(rs);
 
-                // 处理分页信息
-                PageCriteria page = statement.getPage();
-                int pageSize = (page != null && page.getSize() != null) ? page.getSize() : records.size();
-                int pageNumber = (page != null && page.getNumber() != null) ? page.getNumber() : 1;
+            log.info("执行查询语句 Entity: {}", statement.getEntityId());
+            log.info("主SQL: {}", preparedSql.getSql());
+            if (preparedSql.getParameters() != null && !preparedSql.getParameters().isEmpty()) {
+                log.info("主SQL参数: {}", preparedSql.getParameters());
+            }
 
-                // 如果有分页信息，则需要执行计数查询
-                if (page != null && page.getSize() != null) {
-                    int totalCount = getTotalCount(conn, statement);
-                    return SelectResult.of(records, totalCount, pageSize, pageNumber);
-                } else {
-                    return SelectResult.of(records);
+            try (PreparedStatement stmt = conn.prepareStatement(preparedSql.getSql())) {
+                List<Object> parameters = preparedSql.getParameters();
+                for (int i = 0; i < parameters.size(); i++) {
+                    stmt.setObject(i + 1, parameters.get(i));
+                }
+                try (ResultSet rs = stmt.executeQuery()) {
+                    List<Map<String, Object>> records = processResultSet(rs);
+
+                    // 处理分页信息
+                    PageCriteria page = statement.getPage();
+                    int pageSize = (page != null && page.getSize() != null) ? page.getSize() : records.size();
+                    int pageNumber = (page != null && page.getNumber() != null) ? page.getNumber() : 1;
+
+                    // 如果有分页信息，则需要执行计数查询
+                    if (page != null && page.getSize() != null) {
+                        int totalCount = getTotalCount(conn, statement);
+                        return SelectResult.of(records, totalCount, pageSize, pageNumber);
+                    } else {
+                        return SelectResult.of(records);
+                    }
                 }
             }
-        } catch (SQLException e) {
-            log.error("查询执行失败 Entity: {}. SQL: {}. Error: {}", statement.getEntityId(), preparedSql.getSql(),
-                    e.getMessage());
-            throw e;
+        } catch (Exception e) {
+            log.error("查询执行失败 Entity: {}. Error: {}", statement.getEntityId(), e.getMessage());
+            throw new SQLException("查询执行失败: " + e.getMessage(), e);
         }
     }
 
@@ -77,67 +79,72 @@ public class SelectEngine extends StatementEngine<SelectStatement, SelectResult>
      * @throws SQLException 当SQL执行错误时抛出
      */
     private int getTotalCount(Connection conn, SelectStatement statement) throws SQLException {
-        // 直接重用SelectSqlParser为我们生成的SQL，但只保留WHERE部分
-        PreparedSql<SelectStatement> preparedSql = selectSqlBuilder.parseSql(statement);
-        String fullSql = preparedSql.getSql();
-        List<Object> fullParameters = preparedSql.getParameters();
+        try {
+            // 直接重用SelectSqlBuilder为我们生成的SQL，但只保留WHERE部分
+            PreparedSql<SelectStatement> preparedSql = selectSqlBuilder.build(statement);
+            String fullSql = preparedSql.getSql();
+            List<Object> fullParameters = preparedSql.getParameters();
 
-        StringBuilder countSql = new StringBuilder();
-        countSql.append("SELECT COUNT(*) FROM ").append(statement.getEntityId());
+            StringBuilder countSql = new StringBuilder();
+            countSql.append("SELECT COUNT(*) FROM ").append(statement.getEntityId());
 
-        // 提取WHERE部分的SQL和参数
-        List<Object> countParameters = new ArrayList<>();
-        int whereIndex = fullSql.indexOf("WHERE");
+            // 提取WHERE部分的SQL和参数
+            List<Object> countParameters = new ArrayList<>();
+            int whereIndex = fullSql.indexOf("WHERE");
 
-        if (whereIndex != -1) {
-            // 从完整SQL中提取WHERE子句部分
-            int orderByIndex = fullSql.indexOf("ORDER BY");
-            int limitIndex = fullSql.indexOf("LIMIT");
+            if (whereIndex != -1) {
+                // 从完整SQL中提取WHERE子句部分
+                int orderByIndex = fullSql.indexOf("ORDER BY");
+                int limitIndex = fullSql.indexOf("LIMIT");
 
-            int endIndex;
-            if (orderByIndex != -1) {
-                endIndex = orderByIndex;
-            } else if (limitIndex != -1) {
-                endIndex = limitIndex;
-            } else {
-                endIndex = fullSql.length();
-            }
+                int endIndex;
+                if (orderByIndex != -1) {
+                    endIndex = orderByIndex;
+                } else if (limitIndex != -1) {
+                    endIndex = limitIndex;
+                } else {
+                    endIndex = fullSql.length();
+                }
 
-            // 提取条件部分并添加到计数SQL中
-            countSql.append(" WHERE ");
-            countSql.append(fullSql.substring(whereIndex + 6, endIndex).trim());
+                // 提取条件部分并添加到计数SQL中
+                countSql.append(" WHERE ");
+                countSql.append(fullSql.substring(whereIndex + 6, endIndex).trim());
 
-            // 计算需要多少个参数
-            int placeholderCount = 0;
-            for (int i = whereIndex; i < endIndex; i++) {
-                if (fullSql.charAt(i) == '?') {
-                    placeholderCount++;
+                // 计算需要多少个参数
+                int placeholderCount = 0;
+                for (int i = whereIndex; i < endIndex; i++) {
+                    if (fullSql.charAt(i) == '?') {
+                        placeholderCount++;
+                    }
+                }
+
+                // 添加相应数量的参数
+                for (int i = 0; i < placeholderCount; i++) {
+                    countParameters.add(fullParameters.get(i));
                 }
             }
 
-            // 添加相应数量的参数
-            for (int i = 0; i < placeholderCount; i++) {
-                countParameters.add(fullParameters.get(i));
-            }
-        }
-
-        log.info("执行计数SQL: {}", countSql);
-        if (!countParameters.isEmpty()) {
-            log.info("计数SQL参数: {}", countParameters);
-        }
-
-        try (PreparedStatement stmt = conn.prepareStatement(countSql.toString())) {
-            // 设置参数
-            for (int i = 0; i < countParameters.size(); i++) {
-                stmt.setObject(i + 1, countParameters.get(i));
+            log.info("执行计数SQL: {}", countSql);
+            if (!countParameters.isEmpty()) {
+                log.info("计数SQL参数: {}", countParameters);
             }
 
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
+            try (PreparedStatement stmt = conn.prepareStatement(countSql.toString())) {
+                // 设置参数
+                for (int i = 0; i < countParameters.size(); i++) {
+                    stmt.setObject(i + 1, countParameters.get(i));
                 }
-                return 0;
+
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getInt(1);
+                    }
+                    return 0;
+                }
             }
+        } catch (Exception e) {
+            log.error("计数查询失败: {}", e.getMessage());
+            throw new SQLException("计数查询失败: " + e.getMessage(), e);
         }
     }
 

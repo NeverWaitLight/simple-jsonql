@@ -43,7 +43,6 @@ public class SelectEngineTest {
         // 创建用户及其博客
         String insertQuery = """
                 {
-                    "statement": "insert",
                     "appId": "123456",
                     "formId": "89757",
                     "entityId": "user",
@@ -79,7 +78,6 @@ public class SelectEngineTest {
         // 基本分页查询，无过滤条件
         String query = """
                 {
-                    "statement": "select",
                     "appId": "123456",
                     "formId": "89757",
                     "entityId": "user",
@@ -105,7 +103,6 @@ public class SelectEngineTest {
         // 带过滤条件的查询
         String query = """
                 {
-                    "statement": "select",
                     "appId": "123456",
                     "formId": "89757",
                     "entityId": "user",
@@ -135,7 +132,6 @@ public class SelectEngineTest {
         // 排序查询
         String query = """
                 {
-                    "statement": "select",
                     "appId": "123456",
                     "formId": "89757",
                     "entityId": "user",
@@ -167,7 +163,6 @@ public class SelectEngineTest {
         // 子表查询（通过关联字段查询）
         String query = """
                 {
-                    "statement": "select",
                     "appId": "123456",
                     "formId": "89757",
                     "entityId": "user",

@@ -1,5 +1,6 @@
 package org.waitlight.simple.jsonql.builder;
 
+import org.waitlight.simple.jsonql.metadata.MetadataBuilderFactory;
 import org.waitlight.simple.jsonql.metadata.MetadataSource;
 import org.waitlight.simple.jsonql.statement.SelectStatement;
 import org.waitlight.simple.jsonql.statement.model.*;
@@ -94,9 +95,14 @@ public class WhereClauseSqlBuilder extends AbstractClauseSqlBuilder {
         if (condition.isNot()) {
             sb.append("NOT ");
         }
-        sb.append("EXISTS (")
-                .append(new SelectSqlBuilder(metadataSource).parseSql(condition.getSubquery()).getSql())
-                .append(")");
+        try {
+            sb.append("EXISTS (")
+                    .append(new SelectSqlBuilder(MetadataBuilderFactory.createLocalBuilder(metadataSource).build())
+                            .parseSql(condition.getSubquery()).getSql())
+                    .append(")");
+        } catch (SqlBuildException e) {
+            throw new RuntimeException("Failed to build subquery: " + e.getMessage(), e);
+        }
         return sb.toString();
     }
 
