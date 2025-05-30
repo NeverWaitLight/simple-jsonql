@@ -111,19 +111,14 @@ public class SelectSqlBuilder extends AbstractSqlBuilder<SelectStatement> {
         }
 
         String tableName = persistentClass.getTableName();
-
         // FROM子句
         builder.scan(tableName);
-
         // WHERE子句
         addFilters(builder, statement.getFilters(), persistentClass);
-
         // ORDER BY子句
         addSorts(builder, statement.getSort(), persistentClass);
-
         // SELECT子句（选择所有字段）
         builder.project(builder.fields());
-
         // LIMIT和OFFSET
         addPagination(builder, statement.getPage());
     }

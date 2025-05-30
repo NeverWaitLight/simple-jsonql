@@ -1,7 +1,6 @@
 package org.waitlight.simple.jsonql.execute;
 
 import lombok.extern.slf4j.Slf4j;
-import org.waitlight.simple.jsonql.builder.ClauseSqlParser;
 import org.waitlight.simple.jsonql.builder.PreparedSql;
 import org.waitlight.simple.jsonql.builder.SelectSqlBuilder;
 import org.waitlight.simple.jsonql.execute.result.SelectResult;
@@ -18,12 +17,10 @@ import java.util.Map;
 
 @Slf4j
 public class SelectEngine extends StatementEngine<SelectStatement, SelectResult> {
-    private final ClauseSqlParser clauseSqlParser;
     private final SelectSqlBuilder selectSqlBuilder;
 
     public SelectEngine(MetadataSource metadataSource) {
         super(metadataSource);
-        this.clauseSqlParser = new ClauseSqlParser(metadataSource);
         this.selectSqlBuilder = new SelectSqlBuilder(MetadataBuilderFactory.createLocalBuilder(metadataSource).build());
     }
 

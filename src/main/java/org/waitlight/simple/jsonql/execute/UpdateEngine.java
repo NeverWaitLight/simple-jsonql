@@ -6,7 +6,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.waitlight.simple.jsonql.builder.PreparedSql;
 import org.waitlight.simple.jsonql.builder.SqlBuildException;
 import org.waitlight.simple.jsonql.builder.UpdateSqlBuilder;
-import org.waitlight.simple.jsonql.builder.WhereClauseSqlBuilder;
 import org.waitlight.simple.jsonql.execute.result.UpdateResult;
 import org.waitlight.simple.jsonql.metadata.MetadataBuilderFactory;
 import org.waitlight.simple.jsonql.metadata.MetadataSource;
@@ -19,7 +18,6 @@ import java.util.List;
 
 @Slf4j
 public class UpdateEngine extends StatementEngine<UpdateStatement, UpdateResult> {
-    private final WhereClauseSqlBuilder whereClauseExecutor;
     private final UpdateSqlBuilder updateSqlBuilder;
 
     // Helper record/class for main statement execution result
@@ -32,7 +30,6 @@ public class UpdateEngine extends StatementEngine<UpdateStatement, UpdateResult>
 
     public UpdateEngine(MetadataSource metadataSource) {
         super(metadataSource);
-        this.whereClauseExecutor = new WhereClauseSqlBuilder(metadataSource);
         this.updateSqlBuilder = new UpdateSqlBuilder(MetadataBuilderFactory.createLocalBuilder(metadataSource).build());
     }
 
