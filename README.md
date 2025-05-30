@@ -2,9 +2,9 @@
 
 一个基于 Spring Boot 的 JSON 格式 SQL 查询引擎，支持通过 JSON 格式构建 SQL 语句。
 
-## logs
+## Versions
 
-- 2025/05/29项目开发到一半发现约等于是个 GraphQL 后端的变种
+- 0.0.1: 实现基于 JSON 的基础 CRUD 操作
 
 ## 技术栈
 
